@@ -54,6 +54,7 @@ export class RolService {
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error al verificar el rol:', error);
+
         return of(false); // Retorna false en caso de error
       })
     );

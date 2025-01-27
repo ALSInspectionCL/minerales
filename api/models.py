@@ -113,17 +113,17 @@ class RecepcionTransporte(models.Model):
     idTransporteOrigen = models.CharField(max_length=200,blank=True, null=True)  #id del transporte que llega, numero de patente, codigo de tren, etc
     idCarro = models.CharField(max_length=200,blank=True, null=True)
     sellosOrigen = models.CharField(max_length=200,blank=True, null=True)
-    netoHumedoOrigen = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
+    netoHumedoOrigen = models.DecimalField(max_digits=200, decimal_places=2, blank=True,null=True)
     idTransporteDestino = models.CharField(max_length=200,blank=True, null=True)
     fDestino = models.DateField(blank=True, null=True) #fecha de salida del transporte
     hDestino = models.TimeField(blank=True, null=True) #hora de salida del transporte
     idCarroDestino = models.CharField(max_length=200,blank=True, null=True)
-    sellosDestino = models.CharField(max_length=200)
-    brutoDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
-    taraDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
-    netoHumedoDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
-    diferenciaHumeda = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
-    diferenciaSeca = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
+    sellosDestino = models.CharField(max_length=200,null=True,blank=True)
+    brutoDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True, null=True)
+    taraDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True,null=True)
+    netoHumedoDestino = models.DecimalField(max_digits=200, decimal_places=2, blank=True,null=True)
+    diferenciaHumeda = models.DecimalField(max_digits=200, decimal_places=2, blank=True,null=True)
+    diferenciaSeca = models.DecimalField(max_digits=200, decimal_places=2, blank=True,null=True)
     bodegaDescarga = models.CharField(max_length=200,blank=True, null=True)
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
     estado = models.CharField(max_length=20)
@@ -186,10 +186,10 @@ class DetalleBodega(models.Model):
     hora = models.TimeField(blank=True, null=True)
     ingreso = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
     despacho = models.DecimalField(max_digits=200, decimal_places=2, blank=True)
- 
+
 @receiver(pre_save, sender=Recepcion)
 def calculate_diferencia_humeda(sender, instance, **kwargs):
     instance.diferenciaHumeda = instance.netoHumedoOrigen - instance.netoHumedoDestino
-  
+
 
 # Create your models here.
