@@ -39,9 +39,9 @@ export class RolService {
       'Authorization': `token ${token}`,
       'Content-Type': 'application/json'
     });
-  
+
     // Usa GET para obtener la información del usuario, incluyendo su rol
-    return this.http.get(`http://127.0.0.1:8000/api/user/?search=${email}`, { headers });
+    return this.http.get(`https://control.als-inspection.cl/api_min/api/user/?search=${email}`, { headers });
   }
 
   hasRole(email: string, expectedRole: string): Observable<boolean> {

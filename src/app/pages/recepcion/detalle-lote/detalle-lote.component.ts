@@ -98,7 +98,7 @@ export class DetalleLoteComponent {
   lote: any | null = null;
   recepcionTransporteForm: FormGroup;
   admin: boolean;
-  apiLotes: 'http://127.0.0.1:8000/api/lote-recepcion/';
+  apiLotes: 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
   totalCamiones = 0;
   totalVagones = 0;
   totalBrutoHumedo = 0;
@@ -146,7 +146,7 @@ export class DetalleLoteComponent {
   }
 
   obtenerBodegas() {
-    const apiUrl = 'http://127.0.0.1:8000/api/bodega/'; // Cambia la URL según API
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.bodegas = data; // Asigna las bodegas obtenidos a la variable
@@ -257,7 +257,7 @@ export class DetalleLoteComponent {
       this.lote.pesoNetoSeco = Number(this.totalNetoSeco.toFixed(2)) || 0;
       this.lote.pesoTara = Number(this.totalTara.toFixed(2)) || 0;
       this.lote.diferenciaPeso = Number(this.totalDiferencias.toFixed(2)) || 0;
-      
+
 
       this.recepcionTransporteService.actualizarLote(this.lote).subscribe(
         (response) => {
@@ -430,7 +430,7 @@ export class DetalleLoteComponent {
 
         // Realizar la llamada HTTP para actualizar el lote
         return this.http
-          .put(`http://127.0.0.1:8000/api/lote-recepcion/${this.lote.id}/`, lote)
+          .put(`https://control.als-inspection.cl/api_min/api/lote-recepcion/${this.lote.id}/`, lote)
           .subscribe(
             (response) => {
               console.log('Lote actualizado correctamente', response);
@@ -491,13 +491,13 @@ export class DetalleLoteComponent {
   exportToExcel(): void {
     // Crear una hoja de trabajo de Excel
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.dataSource1);
-  
+
     // Aplicar estilos a la primera fila (encabezado)
     const headerRange = XLSX.utils.decode_range(ws['!ref']!); // Obtener el rango de la hoja
     for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col }); // Obtener la dirección de la celda (fila 0, columna col)
       if (!ws[cellAddress]) continue; // Si la celda no existe, continuar
-  
+
       // Aplicar estilo a la celda
       ws[cellAddress].s = {
         font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
@@ -505,11 +505,11 @@ export class DetalleLoteComponent {
         alignment: { horizontal: "center" }, // Alinear al centro
       };
     }
-  
+
     // Crear un libro de trabajo y agregar la hoja de trabajo
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
-  
+
     // Guardar el archivo Excel usando xlsx-style
     XLSX.writeFile(wb, 'datos_lote.xlsx');
   }
@@ -564,12 +564,12 @@ export class CrearRegistroDialog {
       const valorPesoBruto = this.recepcionTransporteForm.get('brutoDestino')?.value;
       const valorPesoTara = this.recepcionTransporteForm.get('taraDestino')?.value;
       const valorPesoNeto = this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
-  
+
       if (valorPesoBruto && valorPesoTara) {
         const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
         const diferenciaHumeda = valorPesoNeto - valorPesoTara;
         const diferenciaSeca = valorPesoNeto - (valorPesoNeto * (this.porcentajeHumedad / 100));
-  
+
         this.recepcionTransporteForm.patchValue({
           diferenciaHumeda: diferenciaHumeda,
           diferenciaSeca: diferenciaSeca,
@@ -759,7 +759,7 @@ export class CrearRegistroDialog {
           const id = this.data.id;
           this.http
             .put(
-              `http://127.0.0.1:8000/api/recepcion-transporte/${id}/`,
+              `https://control.als-inspection.cl/api_min/api/recepcion-transporte/${id}/`,
               registroModificado
             )
             .subscribe(
@@ -819,19 +819,19 @@ export class CrearRegistroDialog {
         console.error('Error al obtener el total de la bodega:', error);
       }
     );
-    
+
   }
 
   guardar() {
     const valorPesoBruto = this.recepcionTransporteForm.get('brutoDestino')?.value;
     const valorPesoTara = this.recepcionTransporteForm.get('taraDestino')?.value;
     const valorPesoNeto = this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
-  
+
     // Calcula las diferencias de peso
     const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
     const diferenciaHumeda = valorPesoNeto - valorPesoTara;
     const diferenciaSeca = valorPesoNeto - (valorPesoNeto * (this.porcentajeHumedad / 100));
-  
+
     // Actualiza los valores del formulario
     this.recepcionTransporteForm.patchValue({
       diferenciaHumeda: diferenciaHumeda,
@@ -911,7 +911,7 @@ export class CrearRegistroDialog {
           this.calcularTotalBodega(totalNetoHumedo, registroModificado.bodega);
           this.http
             .put(
-              `http://127.0.0.1:8000/api/recepcion-transporte/${id}/`,
+              `https://control.als-inspection.cl/api_min/api/recepcion-transporte/${id}/`,
               registroModificado
             )
             .subscribe(

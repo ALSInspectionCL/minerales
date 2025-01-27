@@ -98,7 +98,7 @@ export class LotesComponent {
   }
 
   obtenerServicios() {
-    const apiUrl = 'http://127.0.0.1:8000/api/servicio/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.servicios = data; // Asigna los servicios obtenidos a la variable
@@ -111,7 +111,7 @@ export class LotesComponent {
   }
 
   obtenerSolicitudes() {
-    const apiUrl = 'http://127.0.0.1:8000/api/solicitud/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.solicitud = data; // Asigna las solicitudes obtenidos a la variable
@@ -125,7 +125,7 @@ export class LotesComponent {
 
   getBodegas() {
     this.http
-      .get('http://127.0.0.1:8000/api/bodega/')
+      .get('https://control.als-inspection.cl/api_min/api/bodega/')
       .subscribe((data: any) => {
         this.bodegas = data; // Asumiendo que la respuesta es un array de bodegas
       });
@@ -172,7 +172,7 @@ export class LotesComponent {
 
     if (this.fechaSeleccionadaI != null && this.fechaSeleccionadaF == null) {
       const fechaFormateada = this.formatDate(this.fechaSeleccionadaI);
-      const apiUrl = 'http://127.0.0.1:8000/api/lote-recepcion/';
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
       this.http.get<any[]>(apiUrl).subscribe((data) => {
         this.lotesRecepcion = data;
         console.log(data);
@@ -210,7 +210,7 @@ export class LotesComponent {
       this.fechaSeleccionadaF != null
     ) {
       const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
-      const apiUrl = 'http://127.0.0.1:8000/api/lote-recepcion/';
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
       this.http.get<any[]>(apiUrl).subscribe((data) => {
         this.lotesRecepcion = data;
         console.log(data);
@@ -249,7 +249,7 @@ export class LotesComponent {
     ) {
       const fechaFormateadaI = this.formatDate(this.fechaSeleccionadaI);
       const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
-      const apiUrl = 'http://127.0.0.1:8000/api/lote-recepcion/';
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
       this.http.get<any[]>(apiUrl).subscribe((data) => {
         this.lotesRecepcion = data;
         console.log(data);
@@ -321,7 +321,7 @@ export class LotesComponent {
         return;
       }
       if (this.idServicio && this.idSolicitud) {
-        const apiUrl = 'http://127.0.0.1:8000/api/lote-recepcion/';
+        const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
         this.http.get<any[]>(apiUrl).subscribe((data) => {
           this.lotesRecepcion = data;
           console.log(data);

@@ -127,7 +127,7 @@ export class NuevoLoteComponent implements OnInit {
   }
 
   registrarLote() {
-    console.log('registrando lote :D');
+    console.log('registrando lote');
     console.log(this.lote)
     this.loteService.crearLote(this.idServicio, this.idSolicitud, this.lote.nLote, this.lote.observacion, this.lote.tipoTransporte).subscribe((response: any) => {
       console.log(response);

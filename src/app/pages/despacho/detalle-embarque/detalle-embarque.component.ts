@@ -99,7 +99,7 @@ export class DetalleEmbarqueComponent {
   rdespachoTransporteForm: FormGroup;
   admin: boolean;
   operator: boolean;
-  apiLotes: 'http://127.0.0.1:8000/api/lote-despacho/';
+  apiLotes: 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
   bodegaSeleccionada: any;
   bodegas: any;
   total: number;
@@ -168,7 +168,7 @@ export class DetalleEmbarqueComponent {
   }
 
   obtenerBodegas() {
-    const apiUrl = 'http://127.0.0.1:8000/api/bodega/'; // Cambia la URL según API
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.bodegas = data; // Asigna las bodegas obtenidos a la variable

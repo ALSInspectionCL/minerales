@@ -168,7 +168,7 @@ export class FormulariosComponent {
     );
   }
   obtenerBodegas() {
-    const apiUrl = 'http://127.0.0.1:8000/api/bodega/'; // Cambia la URL según API
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.bodegas = data; // Asigna las bodegas obtenidos a la variable
@@ -181,7 +181,7 @@ export class FormulariosComponent {
   }
 
   obtenerServicios() {
-    const apiUrl = 'http://127.0.0.1:8000/api/servicio/'; // Cambia la URL según API
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.servicios = data; // Asigna los servicios obtenidos a la variable
@@ -193,7 +193,7 @@ export class FormulariosComponent {
     );
   }
   obtenerSolicitudes() {
-    const apiUrl = 'http://127.0.0.1:8000/api/solicitud/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.solicitudes = data; // Asigna las solicitudes obtenidos a la variable
@@ -247,14 +247,14 @@ export class FormulariosComponent {
   }
 
   crearServicio() {
-    const apiUrl = 'http://127.0.0.1:8000/api/servicio/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/';
     const dateFServ = new Date(this.servicio.fServ);
     const formattedFServ = this.formatDate(dateFServ);
     const servicio = {
       nServ: this.servicio.nServ,
       fServ: formattedFServ,
       lServ: this.servicio.lServ,
-      eServ: this.servicio.eServ,
+      eServ: 'pendiente',
     };
     console.log(servicio);
     this.http.post(apiUrl, servicio).subscribe(
@@ -294,14 +294,16 @@ export class FormulariosComponent {
 
   // Método para crear una nueva bodega
   crearBodega(bodega: { nombreBodega: string; total?: number }) {
-    const apiUrl = 'http://127.0.0.1:8000/api/bodega/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/';
     this.http.post(apiUrl, bodega).subscribe(
       (respuesta) => {
         console.log('Bodega creada:', respuesta);
         // Aquí puedes actualizar la lista de bodegas si es necesario
+        Notiflix.Notify.success('Bodega creada');
         this.obtenerBodegas(); // Llama a un método para obtener la lista actualizada
       },
       (error) => {
+        Notiflix.Notify.failure('Error al crear la bodega')
         console.error('Error al crear la bodega:', error);
       }
     );
@@ -313,7 +315,7 @@ export class FormulariosComponent {
     nombreBodega: string;
     total?: number;
   }) {
-    const apiUrl = `http://127.0.0.1:8000/api/bodega/${bodega.idBodega}/`;
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/bodega/${bodega.idBodega}/`;
     //bodega.total = 0; // Si deseas actualizar el total, hazlo aquí
     this.http.put(apiUrl, bodega).subscribe(
       (respuesta) => {
@@ -329,7 +331,7 @@ export class FormulariosComponent {
   }
 
   crearSolicitud() {
-    const apiUrl = 'http://127.0.0.1:8000/api/solicitud/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     console.log(this.solicitud);
     const dateFiServ = new Date(this.solicitud.FiSoli);
     const formattedFiServ = this.formatDate(dateFiServ);
@@ -346,7 +348,7 @@ export class FormulariosComponent {
       fiSoli: formattedFiServ,
       ftSoli: formattedFtServ,
       lSoli: this.solicitud.lSoli,
-      eSoli: this.solicitud.eSoli,
+      eSoli: 'pendiente',
     };
     console.log(solicitud);
 
@@ -371,7 +373,7 @@ export class FormulariosComponent {
       'Servicio seleccionado para eliminar:',
       this.selectedServicioId
     );
-    const apiUrl = `http://127.0.0.1:8000/api/servicio/${this.selectedServicioId}/`; // Cambia la URL según tu API
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/servicio/${this.selectedServicioId}/`; // Cambia la URL según tu API
     this.http.delete(apiUrl).subscribe(
       (respuesta) => {
         console.log('Servicio eliminado:', respuesta);
@@ -390,7 +392,7 @@ export class FormulariosComponent {
 
   eliminarRegistros() {
     this.http
-      .delete('http://127.0.0.1:8000/api/recepcion-transporte/')
+      .delete('https://control.als-inspection.cl/api_min/api/recepcion-transporte/')
       .subscribe(
         (response) => {
           Notiflix.Notify.success('Registros eliminados');
@@ -421,7 +423,7 @@ export class FormulariosComponent {
   }
   selectedSolicitudId: any; // Esta variable debe estar aquí
   eliminarSolicitud() {
-    const apiUrl = `http://127.0.0.1:8000/api/solicitud/${this.selectedSolicitudId}/`; // Cambia la URL según tu API
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/solicitud/${this.selectedSolicitudId}/`; // Cambia la URL según tu API
     this.http.delete(apiUrl).subscribe(
       (respuesta) => {
         console.log('Solicitud eliminada:', respuesta);
@@ -447,7 +449,7 @@ export class FormulariosComponent {
       return;
     }
 
-    const apiUrl = 'http://127.0.0.1:8000/api/user';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/user/';
 
     // Buscar el usuario en la API
     this.http
@@ -529,7 +531,7 @@ export class FormulariosComponent {
     };
 
     // Enviar el nuevo usuario a la API
-    const apiUrl = 'http://127.0.0.1:8000/api/user/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/user/';
     this.http.post(apiUrl, nuevoUser).subscribe(
       (respuesta) => {
         console.log(respuesta);

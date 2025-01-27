@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ServicioService {
 
-  private apiUrl = 'http://127.0.0.1:8000/api/solicitud/';
+  private apiUrl = 'https://control.als-inspection.cl/api_min/solicitud/';
 
   constructor(private http: HttpClient) { }
 

@@ -6,8 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ActualizarLoteService {
-  private apiUrlLote = 'http://127.0.0.1:8000/api/lote-recepcion/'; // URL para los lotes
-  private apiUrlRecepcionTransporte = 'http://127.0.0.1:8000/api/recepcion-transporte/'; // URL para recepcion-transporte
+  private apiUrlLote = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/'; // URL para los lotes
+  private apiUrlRecepcionTransporte = 'https://control.als-inspection.cl/api_min/api/recepcion-transporte/'; // URL para recepcion-transporte
 
   constructor(private http: HttpClient) { }
 

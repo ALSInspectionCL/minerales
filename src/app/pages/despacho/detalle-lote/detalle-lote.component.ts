@@ -97,7 +97,7 @@ export class DetalleLoteComponent {
   rdespachoTransporteForm: FormGroup;
   admin: boolean;
   operator: boolean;
-  apiLotes: 'http://127.0.0.1:8000/api/lote-despacho/';
+  apiLotes: 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
   totalCamiones = 0;
   totalVagones = 0;
   totalBrutoHumedo = 0;
@@ -147,7 +147,7 @@ export class DetalleLoteComponent {
   }
 
   obtenerBodegas() {
-    const apiUrl = 'http://127.0.0.1:8000/api/bodega/'; // Cambia la URL según API
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.bodegas = data; // Asigna las bodegas obtenidos a la variable
@@ -558,12 +558,12 @@ export class CrearRegistroDialog {
       const valorPesoBruto = this.despachoTransporteForm.get('brutoDestino')?.value;
       const valorPesoTara = this.despachoTransporteForm.get('taraDestino')?.value;
       const valorPesoNeto = this.despachoTransporteForm.get('netoHumedoDestino')?.value;
-    
+
       if (valorPesoBruto && valorPesoTara) {
         const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
         const diferenciaHumeda = valorPesoNeto - valorPesoTara;
         const diferenciaSeca = valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
-    
+
         this.despachoTransporteForm.patchValue(
           {
             diferenciaHumeda: diferenciaHumeda,
@@ -642,7 +642,7 @@ export class CrearRegistroDialog {
           const id = this.data.id;
           this.http
             .put(
-              `http://127.0.0.1:8000/api/despacho-camion/${id}/`,
+              `https://control.als-inspection.cl/api_min/api/despacho-camion/${id}/`,
               registroModificado
             )
             .subscribe(
@@ -727,7 +727,7 @@ export class CrearRegistroDialog {
         fechaFormateada
       );
     }
-    
+
     const pesoBrutoCamion =
       this.despachoTransporteForm.get('pesoBrutoCamion')?.value;
     const taraCamion = this.despachoTransporteForm.get('taraCamion')?.value;
@@ -752,7 +752,7 @@ export class CrearRegistroDialog {
         const id = this.data.id;
         this.http
           .put(
-            'http://127.0.0.1:8000/api/despacho-camion/' + id + '/',
+            'https://control.als-inspection.cl/api_min/api/despacho-camion/' + id + '/',
             registroModificado
           )
           .subscribe((response) => {
@@ -879,7 +879,7 @@ export class CrearRegistroDialog {
           this.calcularTotalBodega(totalNetoHumedo, registroModificado.bodega);
           this.http
             .put(
-              `http://127.0.0.1:8000/api/despacho-camion/${id}/`,
+              `https://control.als-inspection.cl/api_min/api/despacho-camion/${id}/`,
               registroModificado
             )
             .subscribe(
@@ -987,7 +987,7 @@ export class CrearRegistroDialog {
         console.error('Error al obtener el total de la bodega:', error);
       }
     );
-    
+
   }
 
 }

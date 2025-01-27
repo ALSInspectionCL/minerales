@@ -82,7 +82,7 @@ export class InventarioComponent {
   }
 
   fetchDetallesBodega(): void {
-    this.http.get<detalleBodega[]>('http://127.0.0.1:8000/api/detalle-bodega/')
+    this.http.get<detalleBodega[]>('https://control.als-inspection.cl/api_min/api/detalle-bodega/')
       .subscribe(
         (data) => {
           this.detallesBodega = data;
@@ -93,9 +93,9 @@ export class InventarioComponent {
         }
       );
   }
-  
+
   fetchBodegas(): void {
-    this.http.get<bodega[]>('http://127.0.0.1:8000/api/bodega/')
+    this.http.get<bodega[]>('https://control.als-inspection.cl/api_min/api/bodega/')
       .subscribe(
         (data) => {
           this.bodegas = data;

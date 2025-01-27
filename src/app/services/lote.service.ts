@@ -44,13 +44,13 @@ export interface loteDespacho {
   providedIn: 'root',
 })
 export class LoteService {
-  private apiUrl = 'http://127.0.0.1:8000/api/lote'; // Reemplaza con la URL de tu API
-  private recepUrl = 'http://127.0.0.1:8000/api/lote-recepcion/?search=';
-  private despUrl = 'http://127.0.0.1:8000/api/lote-despacho/?search=';
+  private apiUrl = 'https://control.als-inspection.cl/api_min/api/lote'; // Reemplaza con la URL de tu API
+  private recepUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/?search=';
+  private despUrl = 'https://control.als-inspection.cl/api_min/api/lote-despacho/?search=';
   constructor(private http: HttpClient) {}
 
   crearLote(idServicio: number, idSolicitud: number, nLote : string, observacion : string, tipoTransporte : string) {
-    
+
     let lote = {
       nLote: nLote,
       fLote: new Date().toISOString().slice(0, 10),

@@ -7,8 +7,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class RecepcionTransporteService {
-  private apiUrl = 'http://127.0.0.1:8000/api/recepcion-transporte/';
-  private apiLotes = 'http://127.0.0.1:8000/api/lote-recepcion/'
+  private apiUrl = 'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
+  private apiLotes = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/'
   constructor(private http: HttpClient) { }
 
   getRecepcionTransporte(): Observable<any[]> {
@@ -27,9 +27,9 @@ export class RecepcionTransporteService {
   }
 
   obtenerCantidadTransportePorLote(nLote: string): Observable<{ cantCamiones: number, cantVagones: number }> {
-    return this.http.get<{ cantCamiones: number, cantVagones: number }>(`http://127.0.0.1:8000/api/lote-recepcion/${nLote}`);
+    return this.http.get<{ cantCamiones: number, cantVagones: number }>(`https://control.als-inspection.cl/api_min/api/lote-recepcion/${nLote}`);
   }
-  
+
 
 //   actualizarValoresLote(nLote : number): void {
 //     this.getRecepcionTransporteBynLote(nLote).subscribe(

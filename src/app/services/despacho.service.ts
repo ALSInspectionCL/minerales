@@ -8,9 +8,9 @@ import { loteDespacho } from '../pages/despacho/despacho.component';
   providedIn: 'root'
 })
 export class DespachoTransporteService {
-  private apiUrl = 'http://127.0.0.1:8000/api/despacho-camion/';
-  private apiLotes = 'http://127.0.0.1:8000/api/lote-despacho/'
-  private apiEmbarques = 'http://127.0.0.1:8000/api/despacho-embarque/'
+  private apiUrl = 'https://control.als-inspection.cl/api_min/api/despacho-camion/';
+  private apiLotes = 'https://control.als-inspection.cl/api_min/api/lote-despacho/'
+  private apiEmbarques = 'https://control.als-inspection.cl/api_min/api/despacho-embarque/'
   constructor(private http: HttpClient) { }
 
   getDespachoTransporte(): Observable<any[]> {
@@ -29,21 +29,21 @@ export class DespachoTransporteService {
   }
 
   obtenerCantidadTransportePorLote(nLote: string): Observable<{ cantCamiones: number, cantVagones: number }> {
-    return this.http.get<{ cantCamiones: number, cantVagones: number }>(`http://127.0.0.1:8000/api/lote-despacho/${nLote}`);
+    return this.http.get<{ cantCamiones: number, cantVagones: number }>(`https://control.als-inspection.cl/api_min/api/lote-despacho/${nLote}`);
   }
 
   getEmbarqueBynLote(nLote: string): Observable<any[]> {
     return this.http.get<any[]>(this.apiEmbarques + '?search=' + nLote);
   }
 
-  crearSubLote(data: any): Observable<any> { 
+  crearSubLote(data: any): Observable<any> {
     return this.http.post(this.apiEmbarques, data);
   }
 
   getSubLotesBynLote(nLote: string): Observable<any[]> {
     return this.http.get<any[]>(this.apiEmbarques + '?search=' + nLote);
   }
-  
+
 
 //   actualizarValoresLote(nLote : number): void {
 //     this.getRecepcionTransporteBynLote(nLote).subscribe(

@@ -164,7 +164,7 @@ export class RecepcionComponent {
   }
 
   obtenerServicios() {
-    const apiUrl = 'http://127.0.0.1:8000/api/servicio/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.servicios = data; // Asigna los servicios obtenidos a la variable
@@ -177,7 +177,7 @@ export class RecepcionComponent {
   }
 
   obtenerSolicitudes() {
-    const apiUrl = 'http://127.0.0.1:8000/api/solicitud/';
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.solicitud = data; // Asigna las solicitudes obtenidos a la variable
@@ -191,7 +191,7 @@ export class RecepcionComponent {
 
   obtenerLotes() {
     const apiUrl =
-      'http://127.0.0.1:8000/api/lote-recepcion/?' +
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?' +
       this.idServicio +
       this.idSolicitud +
       '/';
@@ -264,7 +264,7 @@ export class RecepcionComponent {
       this.dataSource1 = LOTE_DEFAULT;
       return;
     } else {
-      const apiUrl = `http://127.0.0.1:8000/api/lote-recepcion/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
+      const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
       // Hacer la solicitud HTTP para obtener los lotes
       console.log('consultando ' + apiUrl);
 
@@ -406,7 +406,7 @@ export class CrearLoteDialog {
 
       console.log('Nuevo Lote a enviar:', nuevoLote); // Verifica el objeto antes de enviarlo
 
-      const apiUrl = 'http://127.0.0.1:8000/api/lote-recepcion/';
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
 
       this.http.post(apiUrl, nuevoLote).subscribe(
         (response) => {

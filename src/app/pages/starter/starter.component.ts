@@ -19,7 +19,7 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
- 
+
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -101,7 +101,7 @@ export class StarterComponent {
   }
 
   cargarDatos(): void {
-    this.http.get<any[]>('http://127.0.0.1:8000/api/bodega/').subscribe(
+    this.http.get<any[]>('https://control.als-inspection.cl/api_min/api/bodega/').subscribe(
       (data) => {
         this.dataSource = data;
         this.pieChartOptions = {
