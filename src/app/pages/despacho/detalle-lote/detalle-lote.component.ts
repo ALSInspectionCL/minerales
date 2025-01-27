@@ -146,11 +146,13 @@ export class DetalleLoteComponent {
       });
   }
 
+
   obtenerBodegas() {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        this.bodegas = data; // Asigna las bodegas obtenidos a la variable
+        this.bodegas = data;
+
         console.log(data);
       },
       (error) => {
