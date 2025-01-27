@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Crear nuevo Lote</h2>
+<mat-dialog-content style="max-width: 500px; display: flex; justify-content: center; align-items: center;" class="mat-typography m-t-24">
+    <form [formGroup]="loteForm" (ngSubmit)="crearNuevoLote()">
+        <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+            <mat-label>Tipo de Transporte</mat-label>
+            <mat-select matInput formControlName="TipoTransporte" (selectionChange)="onTipoTransporteChange($event.value)">
+                <mat-option value="Camion">Camión</mat-option>
+                <mat-option value="Embarque">Embarque</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Campos condicionales para transporte marítimo -->
+        <div *ngIf="esTransporteMaritimo">
+            <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+                <mat-label>Nombre de Nave</mat-label>
+                <input matInput formControlName="nombreNave" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+                <mat-label>Bodega de Nave</mat-label>
+                <input matInput formControlName="bodegaNave" required>
+            </mat-form-field>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 16px;">
+            <button mat-raised-button color="primary" type="submit">Crear Lote</button>
+        </div>
+    </form>
+</mat-dialog-content>

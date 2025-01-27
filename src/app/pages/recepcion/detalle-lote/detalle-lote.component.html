@@ -1,0 +1,231 @@
+<h2 mat-dialog-title>Detalle de Lote {{lote?.nLote || 'Cargando...'}}</h2>
+<mat-dialog-content class="mat-typography m-t-24">
+    <mat-card class="cardWithShadow">
+        <mat-card-content>
+            <div class="row">
+                <form>
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Tipo de Transporte</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.tipoTransporte"  />
+                    </mat-form-field>
+    
+                    <mat-form-field *ngIf="lote?.tipoTransporte == 'Camion'" appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Cantidad de Camiones</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.cantCamiones"  />
+                    </mat-form-field>
+    
+                    <mat-form-field *ngIf="lote?.tipoTransporte == 'Vagon'" appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Cantidad de Vagones</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.cantVagones"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Diferencia de Peso</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.diferenciaPeso"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha de Lote</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.fLote | date:'yyyy-MM-dd'"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Observación</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.observacion"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Peso Bruto Húmedo</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.pesoBrutoHumedo"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Peso Neto Húmedo</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.pesoNetoHumedo"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Peso Neto Seco</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.pesoNetoSeco"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Peso Tara</mat-label>
+                        <input matInput readonly type="text" [value]="lote?.pesoTara"  />
+                    </mat-form-field>
+    
+                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                      <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Porcentaje de Humedad</mat-label>
+                      <input matInput type="number" [value]="lote?.porcHumedad" (input)="actualizarPorcentajeHumedad($event)" />
+                  </mat-form-field>
+                </form>
+            </div>
+            <div class="col" style="display: flex; justify-content: flex-end;">
+              <button mat-flat-button *ngIf="admin" (click)="guardarLote()" color="primary" class="m-t-8 m-b-8">
+                Guardar porcentaje de Humedad
+            </button>
+            </div>
+            <mat-divider></mat-divider>
+            <mat-card-title *ngIf="operator || admin" >Crear un registro</mat-card-title>
+            <div class="row m-t-16" *ngIf="operator || admin">
+              <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Bodegas</mat-label>
+                <mat-select matInput placeholder="Seleccione una bodega" [(ngModel)]="bodegaSeleccionada" name="bodegaSeleccionada" (selectionChange)="onBodegaChange($event)">
+                  <mat-option
+                    *ngFor="let bodega of bodegas"
+                    [value]="bodega">
+                    {{ bodega.nombreBodega }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <div class="col">
+                <button mat-flat-button *ngIf="admin" (click)="crearRegistro()" color="primary" class="m-t-16 m-b-8">
+                  Nuevo registro
+                </button>
+              </div>
+          </div>
+
+            <div class="row">
+                <mat-card>
+                    <mat-card-header class="m-8">
+                        <mat-card-title>Lista de {{lote?.tipoTransporte}}es registrados</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+
+                            <!-- Columna N° Lote -->
+                            <ng-container matColumnDef="nLote">
+                              <th mat-header-cell *matHeaderCellDef> N° {{lote?.tipoTransporte}} </th>
+                              <td mat-cell *matCellDef="let element; let i = index"> {{i + 1}} </td>
+                            </ng-container>
+
+                          
+                            <!-- Columna Fecha Origen -->
+                            <ng-container matColumnDef="fOrigen">
+                              <th mat-header-cell *matHeaderCellDef> Fecha de Origen </th>
+                              <td mat-cell *matCellDef="let element"> {{element.fOrigen | date}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Hora Origen -->
+                            <ng-container matColumnDef="hOrigen">
+                              <th mat-header-cell *matHeaderCellDef> Hora de Origen </th>
+                              <td mat-cell *matCellDef="let element"> {{element.hOrigen}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna ID Transporte Origen -->
+                            <ng-container matColumnDef="idTransporteOrigen">
+                              <th mat-header-cell *matHeaderCellDef> Guía Despacho </th>
+                              <td mat-cell *matCellDef="let element"> {{element.idTransporteOrigen}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna ID Carro -->
+                            <ng-container matColumnDef="idCarro">
+                              <th mat-header-cell *matHeaderCellDef> Código Carro </th>
+                              <td mat-cell *matCellDef="let element"> {{element.idCarro}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Sellos Origen -->
+                            <ng-container matColumnDef="sellosOrigen">
+                              <th mat-header-cell *matHeaderCellDef> Sellos </th>
+                              <td mat-cell *matCellDef="let element"> {{element.sellosOrigen}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Neto Húmedo Origen -->
+                            <ng-container matColumnDef="netoHumedoOrigen">
+                              <th mat-header-cell *matHeaderCellDef> Peso Neto Húmedo </th>
+                              <td mat-cell *matCellDef="let element"> {{element.netoHumedoOrigen}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna ID Transporte Destino -->
+                            <ng-container matColumnDef="idTransporteDestino">
+                              <th mat-header-cell *matHeaderCellDef> Camión </th>
+                              <td mat-cell *matCellDef="let element"> {{element.idTransporteDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna ID Carro Destino -->
+                            <ng-container matColumnDef="idCarroDestino">
+                              <th mat-header-cell *matHeaderCellDef> Batea </th>
+                              <td mat-cell *matCellDef="let element"> {{element.idCarroDestino}} </td>
+                            </ng-container>
+
+                            <!-- Columna Fecha Destino -->
+                            <ng-container matColumnDef="fDestino">
+                              <th mat-header-cell *matHeaderCellDef> Fecha de Destino </th>
+                              <td mat-cell *matCellDef="let element"> {{element.fDestino | date}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Hora Destino -->
+                            <ng-container matColumnDef="hDestino">
+                              <th mat-header-cell *matHeaderCellDef> Hora de Destino </th>
+                              <td mat-cell *matCellDef="let element"> {{element.hDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Sellos Destino -->
+                            <ng-container matColumnDef="sellosDestino">
+                              <th mat-header-cell *matHeaderCellDef> Ticket PVSA </th>
+                              <td mat-cell *matCellDef="let element"> {{element.sellosDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Bruto Destino -->
+                            <ng-container matColumnDef="brutoDestino">
+                              <th mat-header-cell *matHeaderCellDef> Peso Bruto </th>
+                              <td mat-cell *matCellDef="let element"> {{element.brutoDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Tara Destino -->
+                            <ng-container matColumnDef="taraDestino">
+                              <th mat-header-cell *matHeaderCellDef> Peso Tara </th>
+                              <td mat-cell *matCellDef="let element"> {{element.taraDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Neto Húmedo Destino -->
+                            <ng-container matColumnDef="netoHumedoDestino">
+                              <th mat-header-cell *matHeaderCellDef> Peso Neto Húmedo </th>
+                              <td mat-cell *matCellDef="let element"> {{element.netoHumedoDestino}} </td>
+                            </ng-container>
+                          
+                            <!-- Columna Diferencia Húmeda -->
+                            <ng-container matColumnDef="diferenciaHumeda">
+                              <th mat-header-cell *matHeaderCellDef> Diferencia Húmeda </th>
+                              <td mat-cell *matCellDef="let element"> {{element.diferenciaHumeda}} </td>
+                              <!-- {{element.diferenciaHumeda}} -->
+                            </ng-container>
+                          
+                            <!-- Columna Diferencia Seca -->
+                            <ng-container matColumnDef="diferenciaSeca">
+                              <th mat-header-cell *matHeaderCellDef> Diferencia Seca </th>
+                              <td mat-cell *matCellDef="let element"> {{(element.diferenciaSeca)}}</td>
+                            </ng-container>
+
+                            <!-- Columna Bodega -->
+                            <ng-container matColumnDef="bodega">
+                              <th mat-header-cell *matHeaderCellDef> N° bodega </th>
+                              <td mat-cell *matCellDef="let element"> {{element.bodega}} </td>
+                            </ng-container>
+
+                            <!-- Columna Estado -->
+                            <ng-container matColumnDef="estado">
+                              <th mat-header-cell *matHeaderCellDef>Estado</th>
+                              <td mat-cell *matCellDef="let element" 
+                                  [ngClass]="{
+                                      'estado-aprobado': element.estado === 'aprobado',
+                                      'estado-pendiente': element.estado === 'pendiente',
+                                      'estado-error': element.estado === 'error'
+                                  }">
+                                  {{element.estado}}
+                              </td>
+                          </ng-container>
+                          
+                            <tr mat-header-row *matHeaderRowDef="['nLote', 'fOrigen', 'hOrigen', 'idTransporteOrigen', 'idCarro', 'sellosOrigen', 'netoHumedoOrigen', 'idTransporteDestino', 'idCarroDestino','fDestino','sellosDestino', 'brutoDestino', 'taraDestino', 'netoHumedoDestino', 'diferenciaHumeda', 'diferenciaSeca','bodega','estado']"></tr>
+                            <tr mat-row *matRowDef="let row; columns: ['nLote','fOrigen', 'hOrigen', 'idTransporteOrigen', 'idCarro', 'sellosOrigen', 'netoHumedoOrigen', 'idTransporteDestino', 'idCarroDestino', 'fDestino','sellosDestino', 'brutoDestino', 'taraDestino', 'netoHumedoDestino', 'diferenciaHumeda', 'diferenciaSeca','bodega','estado'];" (click)="abrirDialogoModificarRegistro(row)"></tr>
+                          </table>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </mat-card-content>
+        <button mat-flat-button (click)="exportToExcel()" color="primary" class="m-t-8 m-b-8">
+          Exportar a Excel
+        </button>
+    </mat-card>
+
+</mat-dialog-content>

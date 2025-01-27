@@ -1,0 +1,289 @@
+<h2 mat-dialog-title>Detalle de Lote {{ data.lote?.nLote || "Cargando..." }}</h2>
+<mat-dialog-content class="mat-typography m-t-24">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row">
+        <form>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Tipo de Transporte</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="tipoTransporte"
+              />
+            </mat-form-field>
+          
+            <mat-form-field
+              appearance="outline"
+              class="w-50 m-8"
+              color="primary"
+            >
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Nombre de Nave</mat-label
+              >
+              <input matInput readonly type="text" [value]="data.lote?.nombreNave" />
+            </mat-form-field>
+          
+            <mat-form-field
+              appearance="outline"
+              class="w-50 m-8"
+              color="primary"
+            >
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Bodega de Nave</mat-label
+              >
+              <input matInput readonly type="text" [value]="data.lote?.bodegaNave" />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                  >Total de Sublotes</mat-label
+                >
+                <input
+                  matInput
+                  readonly
+                  type="text"
+                  [value]="lote?.cantSubLotes || 0"
+                />
+              </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Odómetros Iniciales</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="odometrosIniciales"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Odómetros Finales</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="odometrosFinales"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Fecha del Primer Registro</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="fechaPrimerRegistro | date : 'yyyy-MM-dd'"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Fecha del Último Registro</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="fechaUltimoRegistro | date : 'yyyy-MM-dd'"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Hora del Primer Registro</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="horaPrimerRegistro"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Hora del Último Registro</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="horaUltimoRegistro"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Diferencia de Peso</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="lote?.diferenciaPeso"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Fecha de Lote</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="lote?.fLote | date : 'yyyy-MM-dd'"
+              />
+            </mat-form-field>     
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Peso Neto Húmedo</mat-label
+              >
+              <input
+                matInput
+                readonly
+                type="text"
+                [value]="lote?.pesoNetoHumedo"
+              />
+            </mat-form-field>
+          
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Peso Neto Seco</mat-label
+              >
+              <input matInput readonly type="text" [value]="lote?.pesoNetoSeco" />
+            </mat-form-field>
+          
+          </form>
+        <div class="col" style="display: flex; justify-content: flex-end">
+          <button
+            mat-flat-button
+            *ngIf="admin"
+            (click)="actualizarLote()"
+            color="primary"
+            class="m-t-8 m-b-8"
+          >
+            Guardar porcentaje de Humedad
+          </button>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+      <mat-card-title *ngIf="admin || operator" class="m-t-12">Crear registro</mat-card-title>
+      <div *ngIf="admin || operator" class="row">
+        <div class="col">
+          <button
+            mat-flat-button
+            *ngIf="admin"
+            (click)="crearRegistro()"
+            color="primary"
+            class="m-t-8 m-b-8"
+          >
+            Nuevo registro
+          </button>
+          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+              >Bodegas</mat-label
+            >
+            <mat-select
+              matInput
+              placeholder="Seleccione una bodega"
+              [(ngModel)]="bodegaSeleccionada"
+              name="bodegaSeleccionada"
+              (selectionChange)="onBodegaChange($event)"
+            >
+              <mat-option *ngFor="let bodega of bodegas" [value]="bodega">
+                {{ bodega.nombreBodega }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Material disponible</mat-label>
+            <input readonly matInput [(ngModel)]="total">
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <!-- TABLA DE CAMIONES -->
+        <mat-card>
+          <mat-card-header class="m-8">
+              <mat-card-title>Lista de Camiones registrados</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+
+                <!-- Columna N° Lote -->
+                <ng-container matColumnDef="nLote">
+                    <th mat-header-cell *matHeaderCellDef> N° Sublote </th>
+                    <td mat-cell *matCellDef="let element; let i = index"> {{i + 1}} </td>
+                  </ng-container>
+              
+                <!-- Columna Fecha Inicial -->
+                <ng-container matColumnDef="fechaInicial">
+                  <th mat-header-cell *matHeaderCellDef> Fecha Inicial </th>
+                  <td mat-cell *matCellDef="let element"> {{element.fechaInicial | date}} </td>
+                </ng-container>
+              
+                <!-- Columna Hora Inicial -->
+                <ng-container matColumnDef="horaInicial">
+                  <th mat-header-cell *matHeaderCellDef> Hora Inicial </th>
+                  <td mat-cell *matCellDef="let element"> {{element.horaInicial}} </td>
+                </ng-container>
+              
+                <!-- Columna Fecha Final -->
+                <ng-container matColumnDef="fechaFinal">
+                  <th mat-header-cell *matHeaderCellDef> Fecha Final </th>
+                  <td mat-cell *matCellDef="let element"> {{element.fechaFinal | date}} </td>
+                </ng-container>
+              
+                <!-- Columna Hora Final -->
+                <ng-container matColumnDef="horaFinal">
+                  <th mat-header-cell *matHeaderCellDef> Hora Final </th>
+                  <td mat-cell *matCellDef="let element"> {{element.horaFinal}} </td>
+                </ng-container>
+              
+                <!-- Columna Peso Lote -->
+                <ng-container matColumnDef="pesoLote">
+                  <th mat-header-cell *matHeaderCellDef> Peso Lote </th>
+                  <td mat-cell *matCellDef="let element"> {{element.pesoLote}} </td>
+                </ng-container>
+              
+                <!-- Columna Porcentaje Humedad -->
+                <ng-container matColumnDef="porcHumedad">
+                  <th mat-header-cell *matHeaderCellDef> Porcentaje Humedad </th>
+                  <td mat-cell *matCellDef="let element"> {{element.porcHumedad}} </td>
+                </ng-container>
+              
+                <!-- Columna Estado -->
+                <ng-container matColumnDef="estado">
+                  <th mat-header-cell *matHeaderCellDef> Estado </th>
+                  <td mat-cell *matCellDef="let element" 
+                      [ngClass]="{
+                          'estado-aprobado': element.estado === 'aprobado',
+                          'estado-pendiente': element.estado === 'pendiente',
+                          'estado-error': element.estado === 'error'
+                      }">
+                      {{element.estado}}
+                  </td>
+                </ng-container>
+              
+                <tr mat-header-row *matHeaderRowDef="['nLote', 'fechaInicial', 'horaInicial', 'fechaFinal', 'horaFinal', 'pesoLote', 'porcHumedad', 'estado']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['nLote', 'fechaInicial', 'horaInicial', 'fechaFinal', 'horaFinal', 'pesoLote', 'porcHumedad', 'estado']" (click)="abrirDialogoModificarRegistro(row)"></tr>
+              </table>
+          </mat-card-content>
+      </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</mat-dialog-content>

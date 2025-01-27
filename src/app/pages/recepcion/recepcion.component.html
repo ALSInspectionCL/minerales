@@ -1,0 +1,145 @@
+<mat-card class="cardWithShadow">
+    <mat-card-content>
+      <mat-card-title>Recepción</mat-card-title>
+    </mat-card-content>
+  </mat-card>
+<mat-card class="cardWithShadow">
+    <mat-card-header class="d-flex">
+        <div class="row">
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+              >Servicio</mat-label
+            >
+              <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="idServicio">
+                <mat-option
+                  *ngFor="let servicio of servicios"
+                  [value]="servicio.id"
+                  >{{ servicio.nServ }}</mat-option
+                >
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+              >Solicitud</mat-label
+            >
+              <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="idSolicitud">
+                <mat-option
+                  *ngFor="let solicitud of solicitud"
+                  [value]="solicitud.id"
+                  >{{ solicitud.nSoli }}</mat-option
+                >
+              </mat-select>
+            </mat-form-field>
+            <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+              >Lote</mat-label
+            >
+              <mat-select matInput placeholder="Seleccione el numero de lote">
+                <mat-option
+                  *ngFor="let lote of lotes"
+                  [value]="lote.id"
+                  >{{ lote.nLote }}</mat-option
+                >
+                <mat-option (click) = "crearNuevoLote()">
+                  <mat-icon>
+                    <i-tabler name="plus" class="icon-20 m-r-8"></i-tabler>
+                  </mat-icon>
+                  Nuevo lote
+                </mat-option>
+              </mat-select>
+            </mat-form-field> -->
+            <button mat-flat-button (click)="cargarLotes()" color="primary" class="m-t-20">
+              Buscar Lotes
+            </button>
+            <button *ngIf="(idServicio && idSolicitud) && (admin || operator)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
+                Crear nuevo lote
+            </button>
+          </div>
+    </mat-card-header>
+    <mat-card-content>
+        <table *ngIf="(idServicio && idSolicitud && mostrarTabla)" mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+    
+
+          <!-- Columna NLote -->
+          <ng-container matColumnDef="nLote">
+            <th mat-header-cell *matHeaderCellDef> N° Lote </th>
+            <td mat-cell *matCellDef="let element"> {{element.nLote}} </td>
+          </ng-container>
+    
+          <!-- Columna FLote -->
+          <ng-container matColumnDef="fLote">
+            <th mat-header-cell *matHeaderCellDef> Fecha Lote </th>
+            <td mat-cell *matCellDef="let element"> {{element.fLote}} </td>
+          </ng-container>
+    
+          <!-- Columna TipoTransporte -->
+          <ng-container matColumnDef="tipoTransporte">
+            <th mat-header-cell *matHeaderCellDef> Tipo Transporte </th>
+            <td mat-cell *matCellDef="let element"> {{element.tipoTransporte}} </td>
+          </ng-container>
+    
+          <!-- Columna CantCamiones -->
+          <ng-container matColumnDef="cantCamiones">
+            <th mat-header-cell *matHeaderCellDef> Cantidad Camiones </th>
+            <td mat-cell *matCellDef="let element"> {{element.cantCamiones}} </td>
+          </ng-container>
+    
+          <!-- Columna CantVagones -->
+          <ng-container matColumnDef="cantVagones">
+            <th mat-header-cell *matHeaderCellDef> Cantidad Vagones </th>
+            <td mat-cell *matCellDef="let element"> {{element.cantVagones}} </td>
+          </ng-container>
+    
+          <!-- Columna CantBigbag
+          <ng-container matColumnDef="cantBigbag">
+            <th mat-header-cell *matHeaderCellDef> Cantidad Bigbag </th>
+            <td mat-cell *matCellDef="let element"> {{element.cantBigbag}} </td>
+          </ng-container> -->
+    
+          <!-- Columna PesoTara -->
+          <ng-container matColumnDef="pesoTara">
+            <th mat-header-cell *matHeaderCellDef> Peso Tara </th>
+            <td mat-cell *matCellDef="let element"> {{element.pesoTara}} </td>
+          </ng-container>
+    
+          <!-- Columna PesoNetoHumedo -->
+          <ng-container matColumnDef="pesoNetoHumedo">
+            <th mat-header-cell *matHeaderCellDef> Peso Neto Húmedo </th>
+            <td mat-cell *matCellDef="let element"> {{element.pesoNetoHumedo}} </td>
+          </ng-container>
+    
+          <!-- Columna PorcHumedad -->
+          <ng-container matColumnDef="porcHumedad">
+            <th mat-header-cell *matHeaderCellDef> % Humedad </th>
+            <td mat-cell *matCellDef="let element"> {{element.porcHumedad}} % </td>
+          </ng-container>
+    
+          <!-- Columna PesoNetoSeco -->
+          <ng-container matColumnDef="pesoNetoSeco">
+            <th mat-header-cell *matHeaderCellDef> Peso Neto Seco </th>
+            <td mat-cell *matCellDef="let element"> {{element.pesoNetoSeco}} </td>
+          </ng-container>
+    
+          <!-- Columna DiferenciaPeso -->
+          <ng-container matColumnDef="diferenciaPeso">
+            <th mat-header-cell *matHeaderCellDef> Diferencia Peso </th>
+            <td mat-cell *matCellDef="let element"> {{element.diferenciaPeso}} </td>
+          </ng-container>
+
+          <!-- Columna Detalle -->
+          <ng-container matColumnDef="detalle">
+            <th mat-header-cell *matHeaderCellDef> Detalle </th>
+            <td mat-cell *matCellDef="let element">
+              <button mat-icon-button (click)="detalleLote(element.nLote)">
+                <mat-icon>
+                  <i-tabler name="eye-edit" class="icon-20 m-r-8"></i-tabler>
+                </mat-icon>
+              </button>
+            </td>
+          </ng-container>
+    
+          <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns1;"></tr>
+        </table>
+      </mat-card-content>
+</mat-card>

@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Crear nuevo Lote</h2>
+<mat-dialog-content style="max-width: 500px; display: flex; justify-content: center; align-items: center;" class="mat-typography m-t-24">
+    <form [formGroup]="loteForm" (ngSubmit)="crearNuevoLote()">
+        <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+            <mat-label>Tipo de Transporte</mat-label>
+            <mat-select matInput formControlName="TipoTransporte">
+                <mat-option value="Camion" aria-selected="true">Camión</mat-option>
+                <mat-option value="Vagon">Vagón</mat-option>
+              </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+            <mat-label>Observación</mat-label>
+            <textarea matInput formControlName="Observacion" rows="5"></textarea>
+        </mat-form-field>
+        <div style="display: flex; justify-content: center; margin-top: 16px;">
+            <button mat-raised-button color="primary" type="submit">Crear Lote</button>
+          </div>
+    </form>
+
+
+</mat-dialog-content>

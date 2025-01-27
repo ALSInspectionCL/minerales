@@ -1,0 +1,20 @@
+.estado-aprobado {
+    background-color: rgb(0, 184, 0);
+    color: white; /* Cambia el color del texto si es necesario */
+}
+
+.estado-pendiente {
+    background-color: yellow;
+    color: black; /* Cambia el color del texto si es necesario */
+}
+
+.estado-error {
+    background-color: red;
+    color: white; /* Cambia el color del texto si es necesario */
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end; /* Alinea los botones al final */
+    margin-top: 24px; /* Si necesitas un margen superior */
+}

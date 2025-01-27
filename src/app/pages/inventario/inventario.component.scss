@@ -1,0 +1,25 @@
+.card-bodega {
+    width: 300px; // Establece el mismo ancho que la imagen
+    height: auto; // Permite que la altura se ajuste automáticamente
+    display: flex; // Usar flexbox para organizar el contenido
+    flex-direction: column; // Organiza el contenido en columna
+    align-items: center; // Centra el contenido horizontalmente
+    text-align: center; // Centra el texto
+    border: 1px solid #ccc; // Opcional: agrega un borde
+    padding: 10px; // Espaciado interno
+}
+
+.card-bodega img {
+    width: 100%; // La imagen ocupa el 100% del ancho de la card
+    height: auto; // Mantiene la proporción de la imagen
+    object-fit: cover; // Opcional: para mantener la proporción de la imagen
+}
+
+.bold-large-text {
+    font-weight: bold;  /* Hace el texto en negrita */
+    font-size: 1.5em;   /* Aumenta el tamaño del texto (ajusta según sea necesario) */
+}
+
+.mat-card-header {
+    text-align: center; /* Centra el texto horizontalmente */
+}

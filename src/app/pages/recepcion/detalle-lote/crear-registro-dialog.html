@@ -1,0 +1,172 @@
+<h2 mat-dialog-title>Registrar Recepción de Transporte</h2>
+<mat-dialog-content>
+    <form [formGroup]="recepcionTransporteForm" (ngSubmit)="onSubmit()">
+        <h3 mat-title class="m-16">Información general</h3>
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Tipo de Transporte</mat-label>
+            <input readonly matInput formControlName="tipoTransporte" required>
+            <mat-error *ngIf="recepcionTransporteForm.get('tipoTransporte')!.hasError('required')">
+                Este campo es requerido.
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>N° Lote</mat-label>
+            <input readonly matInput formControlName="nLote" required>
+            <mat-error *ngIf="recepcionTransporteForm.get('nLote')!.hasError('required')">
+                Este campo es requerido.
+            </mat-error>
+        </mat-form-field>
+
+        <mat-divider></mat-divider>
+        <h3 mat-title class="m-16">Información de Origen</h3>
+        <!-- <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Fecha de Origen</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="fOrigen">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field> -->
+        
+          <!-- <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Hora de Origen</mat-label>
+            <input matInput type="time" formControlName="hOrigen">
+        </mat-form-field> -->
+
+        <mat-form-field *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value == 'Camion'" appearance="outline" class="m-16">
+            <mat-label>Guía despacho</mat-label>
+            <input matInput formControlName="idTransporteOrigen">
+        </mat-form-field>
+        
+        <mat-form-field *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value == 'Vagon'" appearance="outline" class="m-16">
+            <mat-label>Código Carro</mat-label>
+            <input matInput formControlName="idCarro">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Sellos</mat-label>
+            <input matInput type="text" formControlName="sellosOrigen">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Neto Húmedo</mat-label>
+            <input matInput type="number" formControlName="netoHumedoOrigen">
+        </mat-form-field>
+
+        <mat-divider></mat-divider>
+        <h3 mat-title class="m-16">Información de Destino</h3>
+
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Fecha de Destino</mat-label>
+            <input matInput [matDatepicker]="picker1" formControlName="fDestino">
+            <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+            <mat-datepicker #picker1></mat-datepicker>
+          </mat-form-field>
+        
+          <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Hora de Destino</mat-label>
+            <input matInput type="time" formControlName="hDestino">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Camión</mat-label>
+            <input matInput formControlName="idTransporteDestino">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Batea</mat-label>
+            <input matInput formControlName="idCarroDestino">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Ticket PVSA</mat-label>
+            <input matInput type="text" formControlName="sellosDestino">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Bruto</mat-label>
+            <input matInput type="number" formControlName="brutoDestino">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Tara</mat-label>
+            <input matInput type="number" formControlName="taraDestino">
+        </mat-form-field>
+        
+        <!-- <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Neto Húmedo Destino</mat-label>
+            <input matInput type="number" formControlName="netoHumedoDestino">
+        </mat-form-field> -->
+        
+        <!-- <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Diferencia Húmeda</mat-label>
+            <input matInput type="number" formControlName="diferenciaHumeda">
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="m-16">
+            <mat-label>Diferencia Seca</mat-label>
+            <input matInput type="number" formControlName="diferenciaSeca">
+        </mat-form-field> -->
+        
+        
+    </form>
+    
+</mat-dialog-content>
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="end center" class="m-t-24">
+    <button *ngIf="admin" mat-flat-button (click)="guardar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Registrar</button>
+    <button mat-flat-button (click)="onCancel()">Cerrar</button>
+    <button class="m-l-48" *ngIf="admin" mat-flat-button (click)="aprobar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Aprobar</button>
+</mat-dialog-actions>
+
+
+<!-- 
+
+
+<mat-form-field appearance="fill">
+    <mat-label>Sellos Origen</mat-label>
+    <input matInput type="number" formControlName="sellosOrigen">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Neto Húmedo Origen</mat-label>
+    <input matInput type="number" formControlName="netoHumedoOrigen">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>ID Transporte Destino</mat-label>
+    <input matInput formControlName="idTransporteDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>ID Carro Destino</mat-label>
+    <input matInput formControlName="idCarroDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Sellos Destino</mat-label>
+    <input matInput type="number" formControlName="sellosDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Bruto Destino</mat-label>
+    <input matInput type="number" formControlName="brutoDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Tara Destino</mat-label>
+    <input matInput type="number" formControlName="taraDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Neto Húmedo Destino</mat-label>
+    <input matInput type="number" formControlName="netoHumedoDestino">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Diferencia Húmeda</mat-label>
+    <input matInput type="number" formControlName="diferenciaHumeda">
+</mat-form-field>
+
+<mat-form-field appearance="fill">
+    <mat-label>Diferencia Seca</mat-label>
+    <input matInput type="number" formControlName="diferenciaSeca">
+</mat-form-field> -->

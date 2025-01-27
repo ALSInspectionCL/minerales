@@ -1,0 +1,67 @@
+<!-- ============================================================== -->
+<!-- Simple four boxes Row -->
+<!-- ============================================================== -->
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <img class="responsive-image" src="assets/images/backgrounds/min-2.png" alt="Descripción de la imagen">
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="row">
+      <div class="col">
+        <mat-card class="cardWithShadow">
+          <mat-card-header class="m-8">
+            <mat-card-title>Porcentaje de material ingresado</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="b-t-1">
+            <apx-chart
+              [series]="pieChartOptions.series"
+              [chart]="pieChartOptions.chart"
+              [dataLabels]="pieChartOptions.dataLabels"
+              [plotOptions]="pieChartOptions.plotOptions"
+              [legend]="pieChartOptions.legend"
+              [colors]="pieChartOptions.colors"
+              [tooltip]="pieChartOptions.tooltip"
+            > </apx-chart>
+
+            
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col">
+        <mat-card class="cardWithShadow">
+          <mat-card-header class="m-8">
+            <mat-card-title>Cantidad de material ingresado</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div>
+              <mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+                <!-- Definición de columnas -->
+                <ng-container matColumnDef="idBodega">
+                  <mat-header-cell *matHeaderCellDef>N° Bodega</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.idBodega}}</mat-cell>
+                </ng-container>
+              
+                <ng-container matColumnDef="nombreBodega">
+                  <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.nombreBodega}}</mat-cell>
+                </ng-container>
+              
+                <ng-container matColumnDef="total">
+                  <mat-header-cell *matHeaderCellDef>Cantidad</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.total}}</mat-cell>
+                </ng-container>
+              
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+              </mat-table>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

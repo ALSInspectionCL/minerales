@@ -1,0 +1,38 @@
+<mat-card>
+  <mat-card-header class="m-8">
+    <mat-card-title>Registrar Nuevo Lote</mat-card-title>
+  </mat-card-header>
+    <mat-card-content class="m-t-8">
+      <form (ngSubmit)="guardarLote()">
+        <!-- Aquí van los campos del formulario como se mostró anteriormente -->
+         <div class="row">
+          <div class="col-md-6">
+            <mat-form-field appearance="outline">
+              <mat-label>Número de Lote</mat-label>
+              <input matInput [(ngModel)]="lote.nLote" name="nLote" required>
+            </mat-form-field>
+          </div>
+          <div class="col-md-6">
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo de Transporte</mat-label>
+              <mat-select required matInput [(ngModel)]="lote.tipoTransporte" name="tipoTransporte">
+                <mat-option value="Camiones" aria-selected="true">Camiones</mat-option>
+                <mat-option value="Vagones">Vagones</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+          <div class="row">
+            <div class="col-lg-3">
+              <mat-form-field appearance="outline">
+                <mat-label>Observaciones</mat-label>
+                <textarea matInput [(ngModel)]="lote.observacion" name="observacion" rows="4"></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+
+        <!-- Resto de campos del formulario -->
+        <button mat-raised-button color="primary" type="submit">Registrar Lote</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
