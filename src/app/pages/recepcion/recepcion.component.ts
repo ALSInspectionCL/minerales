@@ -116,6 +116,7 @@ export class RecepcionComponent {
 
   displayedColumns1: string[] = [
     'nLote',
+    'observacion',
     'fLote',
     'tipoTransporte',
     'cantCamiones',
@@ -222,13 +223,14 @@ export class RecepcionComponent {
     });
   }
 
-  detalleLote(nLote: string) {
+  detalleLote(nLote: string, numero: number) {
     const dialogRef = this.dialog.open(DetalleLoteComponent, {
       width: '90%', // Ajusta el ancho del diálogo
       height: '90%', // Ajusta la altura del diálogo
       maxWidth: '95vw', // Máximo ancho en viewport
       maxHeight: '95vh', // Máxima altura en viewport
       data: {
+        numero: numero,
         idServicio: this.idServicio,
         idSolicitud: this.idSolicitud,
         nLote: nLote,
@@ -243,6 +245,8 @@ export class RecepcionComponent {
   }
 
   mostrarTabla: boolean = false;
+
+
   cargarLotes() {
     console.log(this.idServicio);
     console.log(this.idSolicitud);

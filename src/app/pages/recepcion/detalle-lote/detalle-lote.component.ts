@@ -112,7 +112,7 @@ export class DetalleLoteComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: { idServicio: number; idSolicitud: number; nLote: string },
+    public data: { idServicio: number; idSolicitud: number; nLote: string; numero: number },
     private loteService: LoteService,
     private http: HttpClient,
     private dialog: MatDialog,
@@ -123,6 +123,7 @@ export class DetalleLoteComponent {
     console.log('ID Servicio:', this.data.idServicio);
     console.log('ID Solicitud:', this.data.idSolicitud);
     console.log('Numero de lote:', this.data.nLote);
+    console.log('Numero de lote generado:', this.data);
     let nLote = this.data.nLote;
   }
   ngOnInit() {
