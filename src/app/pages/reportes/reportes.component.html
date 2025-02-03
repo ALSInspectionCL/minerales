@@ -1,0 +1,50 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <mat-card-title class="m-8"
+      >Formulario creación de Servicios y Solicitudes</mat-card-title
+    >
+    <mat-divider></mat-divider>
+
+    <mat-form-field appearance="outline" class="m-8">
+      <mat-label>Fecha Inicial</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker1"
+        [(ngModel)]="fechaDesde"
+        placeholder="Choose a date"
+      />
+      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="m-8">
+      <mat-label>Fecha Final</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker2"
+        [(ngModel)]="fechaHasta"
+        placeholder="Choose a date"
+      />
+      <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+      <mat-datepicker #picker2></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="m-8">
+      <mat-label>Documento</mat-label>
+      <input
+        type="text"
+        matInput
+        [matAutocomplete]="auto"
+        [formControl]="documento"
+      />
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option
+          *ngFor="let opcion of opcionesFiltradas | async"
+          [value]="opcion.value"
+        >
+          {{ opcion.label }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="crearDocumento()">Generar Documento</button>
+  </mat-card-content>
+</mat-card>

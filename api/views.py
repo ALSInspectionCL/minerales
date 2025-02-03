@@ -31,7 +31,7 @@ class RecepcionTransporteViewSet(viewsets.ModelViewSet):
     queryset = RecepcionTransporte.objects.all()
     serializer_class = RecepcionTransporteSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('nLote',)
+    search_fields = ('nLote','=estado','=fOrigen','=fDestino')
     def delete(self, request, *args, **kwargs):
         # Aquí podrías eliminar todos los registros
         RecepcionTransporte.objects.all().delete()
@@ -46,7 +46,7 @@ class DespachoCamionViewSet(viewsets.ModelViewSet):
     queryset = DespachoCamion.objects.all()
     serializer_class = DespachoCamionSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=nLote','=estado')
+    search_fields = ('=nLote','=estado','=fOrigen','=fDestino')
 
 class LoteRecepcionViewSet(viewsets.ModelViewSet):
     queryset = LoteRecepcion.objects.all()
@@ -63,7 +63,7 @@ class LoteDespachoViewSet(viewsets.ModelViewSet):
     queryset = LoteDespacho.objects.all()
     serializer_class = LoteDespachoSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=tipoTransporte','=nLote')
+    search_fields = ('=tipoTransporte','=nLote','=fLote')
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -81,13 +81,13 @@ class DetalleBodegaViewSet(viewsets.ModelViewSet):
     queryset = DetalleBodega.objects.all()
     serializer_class = DetalleBodegaSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=idBodega')
+    search_fields = ('=idBodega','=fecha')
 
 class DespachoEmbarqueViewSet(viewsets.ModelViewSet):
     queryset = DespachoEmbarque.objects.all()
     serializer_class = DespachoEmbarqueSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=nLote','=estado')
+    search_fields = ('=nLote','=estado','=fechaInicial','=fechaFinal')
 
 
 def obtener_lotes_por_fechas(request):

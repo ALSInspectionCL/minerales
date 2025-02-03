@@ -7,6 +7,7 @@ import { RecepcionComponent } from './recepcion/recepcion.component';
 import { DespachoComponent } from './despacho/despacho.component';
 import { InventarioComponent } from './inventario/inventario.component';
 import { RoleGuard } from '../guards/rol.guard';
+import { ReportesComponent } from './reportes/reportes.component';
 
 
 export const PagesRoutes: Routes = [
@@ -53,6 +54,12 @@ data: {
     component: InventarioComponent,
     data: {
       title: 'Inventario de Bodegas',
+    }
+  },{
+    path: 'reportes',
+    component: ReportesComponent,
+    data: {
+      title: 'Reportabilidad',
     }
   }
 

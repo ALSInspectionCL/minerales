@@ -28,6 +28,10 @@ export const navItems: NavItem[] = [
     displayName: 'Despachos',
     iconName:  'truck-delivery',
     route: '/home/despacho'
+  },  {
+    displayName: 'Reportes',
+    iconName:  'file-analytics',
+    route: '/home/reportes'  
   },
   // {
   //   displayName: 'Inicio de Sesión',
