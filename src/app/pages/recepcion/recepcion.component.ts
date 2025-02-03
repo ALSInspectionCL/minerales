@@ -113,6 +113,7 @@ export class RecepcionComponent {
   public isDialog: boolean;
   admin: boolean;
   operator: boolean;
+  encargado: boolean;
 
   displayedColumns1: string[] = [
     'nLote',
@@ -161,6 +162,15 @@ export class RecepcionComponent {
         this.admin = false;
       }
     });
+    this.rolService.hasRole(localStorage.getItem('email') || '', 'Encargado').subscribe((hasRole) => {
+      if (hasRole) {
+        this.encargado = true;
+        console.log('El usuario tiene el rol de Encargado');
+      } else {
+        this.encargado = false;
+        console.log('El usuario no tiene el rol de Encargado');
+      }
+    });
     });
   }
 
@@ -196,6 +206,7 @@ export class RecepcionComponent {
       this.idServicio +
       this.idSolicitud +
       '/';
+    console.log('consultando ' + apiUrl);
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.lotes = data; // Asigna los lotes obtenidos a la variable
@@ -224,6 +235,8 @@ export class RecepcionComponent {
   }
 
   detalleLote(nLote: string, numero: number) {
+    console.log('Detalle del lote:', nLote); // Verifica el número de lote
+    console.log('Número del lote:', numero); // Verifica el número de lote
     const dialogRef = this.dialog.open(DetalleLoteComponent, {
       width: '90%', // Ajusta el ancho del diálogo
       height: '90%', // Ajusta la altura del diálogo
@@ -295,6 +308,7 @@ export class RecepcionComponent {
             // Verificar si LOTE_FILTRADO está vacío
             if (LOTE_FILTRADO.length === 0) {
               Notify.failure('No hay lotes para mostrar');
+              this.mostrarTabla = false;
               this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto si no hay coincidencias
             } else {
               this.mostrarTabla = true;
@@ -304,12 +318,14 @@ export class RecepcionComponent {
             Notify.failure(
               'No se encontraron lotes para la combinación de servicio y solicitud'
             );
+            this.mostrarTabla = false;
             this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto si no hay coincidencias
           }
         },
         (error) => {
           console.error('Error al obtener lotes', error);
           Notify.failure('Error al cargar los lotes: ' + error.message);
+          this.mostrarTabla = false;
           this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto en caso de error
         }
       );

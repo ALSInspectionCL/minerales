@@ -31,7 +31,7 @@
     
                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                         <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Observación</mat-label>
-                        <input matInput readonly type="text" [value]="lote?.observacion"  />
+                        <input matInput type="text" [value]="lote?.observacion" (input)="actualizarObservacion($event)"/>
                     </mat-form-field>
     
                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
@@ -61,13 +61,13 @@
                 </form>
             </div>
             <div class="col" style="display: flex; justify-content: flex-end;">
-              <button mat-flat-button *ngIf="admin" (click)="guardarLote()" color="primary" class="m-t-8 m-b-8">
-                Guardar porcentaje de Humedad
+              <button mat-flat-button *ngIf="(admin || operator || encargado)" (click)="guardarLote()" color="primary" class="m-t-8 m-b-8">
+                Actualizar Lote
             </button>
             </div>
             <mat-divider></mat-divider>
             <mat-card-title *ngIf="operator || admin" >Crear un registro</mat-card-title>
-            <div class="row m-t-16" *ngIf="operator || admin">
+            <div class="row m-t-16" *ngIf="operator || admin || encargado">
               <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                 <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Bodegas</mat-label>
                 <mat-select matInput placeholder="Seleccione una bodega" [(ngModel)]="bodegaSeleccionada" name="bodegaSeleccionada" (selectionChange)="onBodegaChange($event)">
@@ -79,7 +79,7 @@
                 </mat-select>
               </mat-form-field>
               <div class="col">
-                <button mat-flat-button *ngIf="admin" (click)="crearRegistro()" color="primary" class="m-t-16 m-b-8">
+                <button mat-flat-button *ngIf="(admin || operator || encargado)" (click)="crearRegistro()" color="primary" class="m-t-16 m-b-8">
                   Nuevo registro
                 </button>
               </div>

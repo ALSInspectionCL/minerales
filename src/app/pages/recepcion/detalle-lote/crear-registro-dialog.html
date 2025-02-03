@@ -1,4 +1,16 @@
-<h2 mat-dialog-title>Registrar Recepción de Transporte</h2>
+<div class="row" style="display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <h2 mat-dialog-title>Registrar Recepción de Transporte</h2>
+    </div>
+    <div>
+        <button *ngIf="(admin || operator || encargado)" class="btn-eliminar m-16 m-r-24" (click)="eliminarRegistro()">
+            <mat-icon>
+                <i-tabler name="trash" size="24"></i-tabler>
+            </mat-icon>
+        </button>
+    </div>
+</div>
+
 <mat-dialog-content>
     <form [formGroup]="recepcionTransporteForm" (ngSubmit)="onSubmit()">
         <h3 mat-title class="m-16">Información general</h3>
@@ -112,9 +124,9 @@
     
 </mat-dialog-content>
 <mat-dialog-actions fxLayout="row" fxLayoutAlign="end center" class="m-t-24">
-    <button *ngIf="admin" mat-flat-button (click)="guardar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Registrar</button>
+    <button *ngIf="(admin || operator || encargado)" mat-flat-button (click)="guardar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Registrar</button>
     <button mat-flat-button (click)="onCancel()">Cerrar</button>
-    <button class="m-l-48" *ngIf="admin" mat-flat-button (click)="aprobar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Aprobar</button>
+    <button class="m-l-48" *ngIf="(admin || encargado)" mat-flat-button (click)="aprobar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Aprobar</button>
 </mat-dialog-actions>
 
 

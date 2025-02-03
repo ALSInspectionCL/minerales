@@ -51,7 +51,7 @@
             <button mat-flat-button (click)="cargarLotes()" color="primary" class="m-t-20">
               Buscar Lotes
             </button>
-            <button *ngIf="(idServicio && idSolicitud) && (admin || operator)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
+            <button *ngIf="(idServicio && idSolicitud) && (admin || operator || encargado)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
                 Crear nuevo lote
             </button>
           </div>

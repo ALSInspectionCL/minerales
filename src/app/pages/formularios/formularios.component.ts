@@ -28,6 +28,7 @@ import { HttpClient } from '@angular/common/http';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import Notiflix from 'notiflix';
 import { RolService } from 'src/app/services/rol.service';
+import { LoteService } from 'src/app/services/lote.service';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -120,6 +121,7 @@ export class FormulariosComponent {
   servicios: Servicio[];
   solicitudes: Solicitud[];
   bodegas: any[];
+  admin: boolean;
   bodegaSeleccionada: {
     idBodega: number;
     nombreBodega: string;
@@ -149,9 +151,11 @@ export class FormulariosComponent {
   roles: string[] = ['Cliente', 'Operador', 'Encargado', 'Admin'];
   rolSeleccionado: string;
   userSeleccionado: string;
+  lotes: any[];
 
   constructor(
     private RolService: RolService,
+    private loteService: LoteService,
     private solicitudService: SolicitudService,
     private servicioService: ServicioService,
     private http: HttpClient
@@ -162,6 +166,7 @@ export class FormulariosComponent {
     this.obtenerSolicitudes();
     this.obtenerUsuarios();
     this.obtenerBodegas();
+    this.admin = RolService.isTokenValid();
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value || ''))
@@ -216,6 +221,72 @@ export class FormulariosComponent {
         console.error('Error al obtener los usuarios', error); // Manejar el error
       }
     );
+  }
+
+  obtenerLotes(): void {
+    const servicioId = this.selectedServicioId;
+    const solicitudId = this.selectedSolicitudId;
+
+    console.log('Servicio seleccionado:', servicioId);
+    console.log('Solicitud seleccionada:', solicitudId);
+    if (servicioId && solicitudId) {
+      const apiUrl =
+        'https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=' +
+        solicitudId +
+        '&servicio=' +
+        servicioId +
+        '/';
+      ('/');
+      this.http.get<any[]>(apiUrl).subscribe(
+        (data) => {
+          this.lotes = data.filter(
+            (lote) =>
+              lote.servicio === servicioId && lote.solicitud === solicitudId
+          );
+          console.log(this.lotes);
+        },
+        (error) => {
+          console.error('Error al obtener lotes', error);
+        }
+      );
+    }
+  }
+
+  selectedLoteId: any;
+  preEliminarLote() {
+    const loteId = this.selectedLoteId;
+    console.log('Lote seleccionado para eliminar:', this.selectedLoteId);
+    Notiflix.Confirm.show(
+      '¿Estás seguro de eliminar el lote?',
+      'Esta acción no se puede deshacer',
+      'Eliminar',
+      'Cancelar',
+      () => {
+        this.eliminarLote(loteId);
+        Notiflix.Notify.success('Lote eliminado');
+      },
+      () => {
+        Notiflix.Notify.warning('No se elimino el lote');
+      }
+    );
+  }
+
+  eliminarLote(loteId: number) {
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/${loteId}/`;
+    this.http.delete(apiUrl).subscribe(
+      (respuesta) => {
+        console.log('Lote eliminado:', respuesta);
+        this.lotes = this.lotes.filter((lote) => lote.id !== loteId);
+        this.selectedLoteId = null;
+        Notiflix.Notify.success('Lote eliminado con éxito');
+      },
+      (error) => {
+        console.error('Error al eliminar el lote:', error);
+        Notiflix.Notify.failure('Error al eliminar el lote');
+      }
+    );
+  
+  
   }
 
   enviarServicio() {
@@ -303,7 +374,7 @@ export class FormulariosComponent {
         this.obtenerBodegas(); // Llama a un método para obtener la lista actualizada
       },
       (error) => {
-        Notiflix.Notify.failure('Error al crear la bodega')
+        Notiflix.Notify.failure('Error al crear la bodega');
         console.error('Error al crear la bodega:', error);
       }
     );
@@ -392,7 +463,9 @@ export class FormulariosComponent {
 
   eliminarRegistros() {
     this.http
-      .delete('https://control.als-inspection.cl/api_min/api/recepcion-transporte/')
+      .delete(
+        'https://control.als-inspection.cl/api_min/api/recepcion-transporte/'
+      )
       .subscribe(
         (response) => {
           Notiflix.Notify.success('Registros eliminados');

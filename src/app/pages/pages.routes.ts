@@ -23,13 +23,13 @@ export const PagesRoutes: Routes = [
       title: 'Perfil de Usuario',
     },
   },{
-    path: 'formularios',
-    component: FormulariosComponent,
-    canActivate: [RoleGuard],
-    data: {
-      expectedRole: 'Admin',      
-      title: 'Cración de Servicios y Solicitudes',
-    }
+path: 'formularios',
+component: FormulariosComponent,
+canActivate: [RoleGuard],
+data: {
+  expectedRoles: ['Admin', 'Operador', 'Encargado'],     
+  title: 'Cración de Servicios y Solicitudes',
+}
   },{
     path: 'lotes',
     component: LotesComponent,

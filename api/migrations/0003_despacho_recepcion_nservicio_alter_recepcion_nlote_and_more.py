@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='recepcion',
             name='nServicio',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='api.servicio'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.servicio'),
             preserve_default=False,
         ),
         migrations.AlterField(

@@ -9,6 +9,11 @@
             </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" style="width: 100%;" class="m-8">
+            <mat-label>Observación</mat-label>
+            <input matInput formControlName="Observacion" required>
+        </mat-form-field>
+
         <!-- Campos condicionales para transporte marítimo -->
         <div *ngIf="esTransporteMaritimo">
             <mat-form-field appearance="outline" style="width: 100%;" class="m-8">

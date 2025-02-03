@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface loteRecepcion {
@@ -81,5 +81,13 @@ export class LoteService {
 }
   getLoteBynLoteD(nLote: string): Observable<loteDespacho[]> {
   return this.http.get<loteDespacho[]>(`${this.despUrl}${nLote}`);
+}
+
+getLotesByServicioAndSolicitud(servicio: number, solicitud: number): Observable<any> {
+  const params = new HttpParams()
+    .set('servicio', servicio.toString())
+    .set('solicitud', solicitud.toString());
+
+  return this.http.get(this.apiUrl, { params });
 }
 }

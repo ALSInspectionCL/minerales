@@ -18,3 +18,21 @@
     justify-content: flex-end; /* Alinea los botones al final */
     margin-top: 24px; /* Si necesitas un margen superior */
 }
+
+.btn-eliminar {
+    background-color: #ff0000; /* Color rojo */
+    border: none;
+    border-radius: 50%; /* Hacer el botón circular */
+    cursor: pointer;
+    height: 40px; /* Tamaño mediano */
+    width: 40px;
+    font-size: 24px; /* Tamaño del texto */
+    color: #ffffff; /* Color blanco */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .btn-eliminar:hover {
+    background-color: #cc0000; /* Color rojo oscuro al hacer hover */
+  }

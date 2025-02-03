@@ -34,7 +34,7 @@
             <button mat-flat-button (click)="cargarLotes()" color="primary" class="m-t-20">
               Buscar Lotes
             </button>
-            <button *ngIf="(idServicio && idSolicitud) && (admin || operator)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
+            <button *ngIf="(idServicio && idSolicitud) && (admin || operator || encargado)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
               Crear nuevo lote
             </button>
           </div>
@@ -45,8 +45,14 @@
             <!-- Columna N° Lote -->
             <ng-container matColumnDef="nLote">
                 <th mat-header-cell *matHeaderCellDef> N° Lote </th>
-                <td mat-cell *matCellDef="let element"> {{element.nLote}} </td>
+                <td mat-cell *matCellDef="let element; let i = index"> {{i + 1}} </td>
             </ng-container>
+
+            <!-- Observacion -->
+            <ng-container matColumnDef="observacion">
+              <th mat-header-cell *matHeaderCellDef> Referencia </th>
+              <td mat-cell *matCellDef="let element;"> {{element.observacion}} </td>
+            </ng-container>           
         
             <!-- Columna Fecha Lote -->
             <ng-container matColumnDef="fLote">
@@ -116,8 +122,8 @@
 
             <ng-container matColumnDef="detalle">
               <th mat-header-cell *matHeaderCellDef> Detalle </th>
-              <td mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="abrirDetalle(element)">
+              <td mat-cell *matCellDef="let element, let i = index">
+                  <button mat-icon-button (click)="abrirDetalle(element, i+1)">
                       <mat-icon>
                           <i-tabler name="eye-edit" class="icon-20 m-r-8"></i-tabler>
                       </mat-icon>

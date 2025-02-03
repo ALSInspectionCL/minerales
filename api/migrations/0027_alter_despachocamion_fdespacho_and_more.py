@@ -43,16 +43,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='despachocamion',
             name='pesoBrutoCamion',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='despachocamion',
             name='pesoNeto',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='despachocamion',
             name='taraCamion',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
     ]

@@ -70,13 +70,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='despachocamion',
             name='netoHumedoDestino',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='despachocamion',
             name='netoHumedoOrigen',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='despachocamion',
             name='taraDestino',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(

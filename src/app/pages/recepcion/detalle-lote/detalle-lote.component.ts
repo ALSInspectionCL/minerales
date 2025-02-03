@@ -106,17 +106,24 @@ export class DetalleLoteComponent {
   totalNetoSeco = 0;
   totalTara = 0;
   totalDiferencias = 0;
+  observacion = '';
   bodegaSeleccionada: any;
   bodegas: any;
   operator: boolean;
+  encargado: boolean;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: { idServicio: number; idSolicitud: number; nLote: string; numero: number },
+    public data: {
+      idServicio: number;
+      idSolicitud: number;
+      nLote: string;
+      numero: number;
+    },
     private loteService: LoteService,
     private http: HttpClient,
     private dialog: MatDialog,
-    private rolService : RolService,
+    private rolService: RolService,
     private recepcionTransporteService: RecepcionTransporteService
   ) {
     // Ahora puedes acceder a idServicio y idSolicitud a través de this.data
@@ -135,14 +142,27 @@ export class DetalleLoteComponent {
     console.log(this.dataSource1);
     this.guardarLote();
     this.admin = RolService.isTokenValid();
-    this.rolService.hasRole(localStorage.getItem('email') || '', 'Operador').subscribe(hasRole => {
-      if (hasRole) {
-        console.log('El usuario tiene el rol de operator');
-        this.operator = true;
-      } else {
-        console.log('El usuario no tiene el rol de operator');
-        this.operator = false;
-      }
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Operador')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          console.log('El usuario tiene el rol de operator');
+          this.operator = true;
+        } else {
+          console.log('El usuario no tiene el rol de operator');
+          this.operator = false;
+        }
+      });
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Encargado')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          this.encargado = true;
+          console.log('El usuario tiene el rol de Encargado');
+        } else {
+          this.encargado = false;
+          console.log('El usuario no tiene el rol de Encargado');
+        }
       });
   }
 
@@ -258,8 +278,7 @@ export class DetalleLoteComponent {
       this.lote.pesoNetoSeco = Number(this.totalNetoSeco.toFixed(2)) || 0;
       this.lote.pesoTara = Number(this.totalTara.toFixed(2)) || 0;
       this.lote.diferenciaPeso = Number(this.totalDiferencias.toFixed(2)) || 0;
-
-
+      this.lote.observacion = this.lote.observacion || '';
       this.recepcionTransporteService.actualizarLote(this.lote).subscribe(
         (response) => {
           console.log('Lote actualizado:', response);
@@ -281,6 +300,11 @@ export class DetalleLoteComponent {
     this.lote.porcHumedad = input.value; // Actualiza el valor de porcHumedad
   }
 
+  actualizarObservacion(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.observacion = input.value; // Actualiza el valor de porcHumedad
+  }
+
   abrirDialogoModificarRegistro(element: any) {
     const dialogRef = this.dialog.open(CrearRegistroDialog, {
       width: '80vh',
@@ -297,6 +321,9 @@ export class DetalleLoteComponent {
         this.dataSource1 = this.dataSource1.map((item) =>
           item.nLote === result.nLote ? result : item
         );
+      }else{
+        console.log('No se modifico ningun registro');
+        this.ngOnInit();
       }
     });
   }
@@ -362,6 +389,9 @@ export class DetalleLoteComponent {
           }
         );
     } else {
+      Notiflix.Notify.warning(
+        'Seleccione una bodega antes de guardar el registro'
+      );
       console.error(
         'No se puede crear el registro, lote no cargado / bodega no seleccionada.'
       );
@@ -412,7 +442,7 @@ export class DetalleLoteComponent {
             : 0;
 
         const pesoNetoSeco =
-        Number(pesoNetoHumedo) - Number(pesoNetoHumedo) * (porcHumedad / 100);
+          Number(pesoNetoHumedo) - Number(pesoNetoHumedo) * (porcHumedad / 100);
 
         const diferenciaPeso = registrosFiltrados.reduce(
           (total, registro) => total + registro.diferencia,
@@ -431,7 +461,10 @@ export class DetalleLoteComponent {
 
         // Realizar la llamada HTTP para actualizar el lote
         return this.http
-          .put(`https://control.als-inspection.cl/api_min/api/lote-recepcion/${this.lote.id}/`, lote)
+          .put(
+            `https://control.als-inspection.cl/api_min/api/lote-recepcion/${this.lote.id}/`,
+            lote
+          )
           .subscribe(
             (response) => {
               console.log('Lote actualizado correctamente', response);
@@ -501,9 +534,9 @@ export class DetalleLoteComponent {
 
       // Aplicar estilo a la celda
       ws[cellAddress].s = {
-        font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
-        fill: { fgColor: { rgb: "4F81BD" } }, // Fondo azul
-        alignment: { horizontal: "center" }, // Alinear al centro
+        font: { bold: true, color: { rgb: 'FFFFFF' } }, // Texto en negrita y color blanco
+        fill: { fgColor: { rgb: '4F81BD' } }, // Fondo azul
+        alignment: { horizontal: 'center' }, // Alinear al centro
       };
     }
 
@@ -550,26 +583,57 @@ export class DetalleLoteComponent {
     },
   ],
   templateUrl: './crear-registro-dialog.html',
+  styleUrl: './detalle-lote.component.scss',
 })
 export class CrearRegistroDialog {
   recepcionTransporteForm: FormGroup;
   numeroCamion = 0;
   admin: boolean;
-  lote : any;
+  operator: boolean;
+  encargado: boolean;
+  lote: any;
+  idLote: number;
   porcentajeHumedad = 0;
   ngOnInit(): void {
     this.admin = RolService.isTokenValid();
-    this.cargarLote()
+    this.admin = RolService.isTokenValid();
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Operador')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          console.log('El usuario tiene el rol de operator');
+          this.operator = true;
+        } else {
+          console.log('El usuario no tiene el rol de operator');
+          this.operator = false;
+        }
+      });
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Encargado')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          this.encargado = true;
+          console.log('El usuario tiene el rol de Encargado');
+        } else {
+          this.encargado = false;
+          console.log('El usuario no tiene el rol de Encargado');
+        }
+      });
+    this.cargarLote();
     console.log('El lote es: ' + this.lote);
     this.recepcionTransporteForm.valueChanges.subscribe((changes) => {
-      const valorPesoBruto = this.recepcionTransporteForm.get('brutoDestino')?.value;
-      const valorPesoTara = this.recepcionTransporteForm.get('taraDestino')?.value;
-      const valorPesoNeto = this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+      const valorPesoBruto =
+        this.recepcionTransporteForm.get('brutoDestino')?.value;
+      const valorPesoTara =
+        this.recepcionTransporteForm.get('taraDestino')?.value;
+      const valorPesoNeto =
+        this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
 
       if (valorPesoBruto && valorPesoTara) {
         const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
         const diferenciaHumeda = valorPesoNeto - valorPesoTara;
-        const diferenciaSeca = valorPesoNeto - (valorPesoNeto * (this.porcentajeHumedad / 100));
+        const diferenciaSeca =
+          valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
 
         this.recepcionTransporteForm.patchValue({
           diferenciaHumeda: diferenciaHumeda,
@@ -581,8 +645,10 @@ export class CrearRegistroDialog {
   }
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) 
+    public data: any,
     private loteService: LoteService,
+    private rolService: RolService,
     private http: HttpClient,
     private fb: FormBuilder,
     private bodegaService: Bodega,
@@ -628,16 +694,17 @@ export class CrearRegistroDialog {
       (response: loteRecepcion[]) => {
         console.log('Respuesta del servicio:', response);
         if (response.length > 0) {
-          console.log('guardando lote')
+          console.log('guardando lote');
           this.lote = response[0];
-          this.porcentajeHumedad = +this.lote.porcHumedad
-          console.log('porc humedad: ' + this.porcentajeHumedad)
+          this.porcentajeHumedad = +this.lote.porcHumedad;
+          console.log('porc humedad: ' + this.porcentajeHumedad);
           lotebuscado = response[0];
         } else {
           console.log('No se encontró el lote');
           this.lote = null;
         }
         console.log('Lote cargado:', this.lote);
+
         return lotebuscado;
       },
       (error) => {
@@ -646,51 +713,54 @@ export class CrearRegistroDialog {
       }
     );
   }
-  calcularDifHumeda() : number {
+  calcularDifHumeda(): number {
     const valorNetoHumedoOrigen =
-    this.recepcionTransporteForm.get('netoHumedoOrigen')?.value;
+      this.recepcionTransporteForm.get('netoHumedoOrigen')?.value;
     const valorNetoHumedoDestino =
-    this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+      this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
     let diferenciaHumeda = 0;
 
     // Calcular la diferencia húmeda si ambos valores son diferentes de 0
     if (valorNetoHumedoOrigen > 0 && valorNetoHumedoDestino > 0) {
       diferenciaHumeda = valorNetoHumedoOrigen - valorNetoHumedoDestino;
-      diferenciaHumeda = Number(diferenciaHumeda.toFixed(2))
+      diferenciaHumeda = Number(diferenciaHumeda.toFixed(2));
       console.log('la diferencia humeda es: ', diferenciaHumeda);
       return Number(diferenciaHumeda);
-    }else{
-      console.log('No se calculo la diferencia seca')
+    } else {
+      console.log('No se calculo la diferencia seca');
       return 0;
     }
   }
 
-  calcularDifSeca() : number {
+  calcularDifSeca(): number {
     const valorNetoHumedoOrigen =
-    this.recepcionTransporteForm.get('netoHumedoOrigen')?.value;
+      this.recepcionTransporteForm.get('netoHumedoOrigen')?.value;
     const valorNetoHumedoDestino =
-    this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+      this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
     let diferenciaHumeda = this.calcularDifHumeda();
     let diferenciaSeca = 0;
 
     // Calcular la diferencia húmeda si ambos valores son diferentes de 0
     if (valorNetoHumedoOrigen > 0 && valorNetoHumedoDestino > 0) {
       diferenciaSeca =
-        diferenciaHumeda - (diferenciaHumeda * (this.porcentajeHumedad) * 1/100);
-        diferenciaSeca = Number(diferenciaSeca.toFixed(2))
-        console.log('la diferencia seca es: ' + diferenciaSeca);
+        diferenciaHumeda -
+        (diferenciaHumeda * this.porcentajeHumedad * 1) / 100;
+      diferenciaSeca = Number(diferenciaSeca.toFixed(2));
+      console.log('la diferencia seca es: ' + diferenciaSeca);
       return Number(diferenciaSeca);
-    }else{
-      console.log('No se calculo la diferencia seca')
+    } else {
+      console.log('No se calculo la diferencia seca');
       return 0;
     }
   }
 
-  calcularNetoHumedo(): number{
-    const valorPesoBruto = this.recepcionTransporteForm.get('brutoDestino')?.value;
-    const valorPesoTara = this.recepcionTransporteForm.get('taraDestino')?.value;
+  calcularNetoHumedo(): number {
+    const valorPesoBruto =
+      this.recepcionTransporteForm.get('brutoDestino')?.value;
+    const valorPesoTara =
+      this.recepcionTransporteForm.get('taraDestino')?.value;
     const valorPesoNeto = valorPesoBruto - valorPesoTara;
-    console.log(valorPesoNeto.toFixed(2))
+    console.log(valorPesoNeto.toFixed(2));
     return Number(valorPesoNeto.toFixed(2));
   }
 
@@ -741,7 +811,6 @@ export class CrearRegistroDialog {
       let diferenciaHumeda = this.calcularDifHumeda();
       let diferenciaSeca = this.calcularDifSeca();
 
-
       console.log('Diferencia Húmeda:', diferenciaHumeda);
       console.log('Diferencia Seca:', diferenciaSeca);
       const registroModificado = {
@@ -782,56 +851,63 @@ export class CrearRegistroDialog {
         {}
       );
       // Aquí puedes agregar la lógica para enviar el formulario
-    }else{
+    } else {
       Notiflix.Notify.failure('No se ha guardado el registro');
     }
   }
 
   ingresoDetalleBodega(diferenciaSeca: number, bodega: number) {
-    this.bodegaService.crearDetalleBodega('Ingreso', diferenciaSeca, 0, bodega).subscribe(
-      (response: any) => {
-        console.log('Detalle de bodega creado:', response);
-      },
-      (error: any) => {
-        console.error('Error al crear el detalle de bodega:', error);
-      }
-    );
+    this.bodegaService
+      .crearDetalleBodega('Ingreso', diferenciaSeca, 0, bodega)
+      .subscribe(
+        (response: any) => {
+          console.log('Detalle de bodega creado:', response);
+        },
+        (error: any) => {
+          console.error('Error al crear el detalle de bodega:', error);
+        }
+      );
   }
 
   calcularTotalBodega(diferenciaSeca: number, idBodega: number) {
     //buscar el total actual de la bodega
     this.bodegaService.obtenerTotalBodega(idBodega).subscribe(
-      (response: { total: any; }) => {
+      (response: { total: any }) => {
         console.log('Total almacenado en bodega:', response.total);
         //sumar el total antiguo con la diferencia seca
         const totalBodega = Number(response.total) + Number(diferenciaSeca);
-        console.log(totalBodega)
+        console.log(totalBodega);
         //guardar el registro
-        this.bodegaService.modificarTotalBodega(idBodega, totalBodega).subscribe(
-          (response: any) => {
-            console.log('Total modificado:', response);
-          },
-          (error: any) => {
-            console.error('Error al modificar el total:', error);
-          }
-        );
+        this.bodegaService
+          .modificarTotalBodega(idBodega, totalBodega)
+          .subscribe(
+            (response: any) => {
+              console.log('Total modificado:', response);
+            },
+            (error: any) => {
+              console.error('Error al modificar el total:', error);
+            }
+          );
       },
       (error: any) => {
         console.error('Error al obtener el total de la bodega:', error);
       }
     );
-
   }
 
   guardar() {
-    const valorPesoBruto = this.recepcionTransporteForm.get('brutoDestino')?.value;
-    const valorPesoTara = this.recepcionTransporteForm.get('taraDestino')?.value;
-    const valorPesoNeto = this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+    const valorPesoBruto =
+      this.recepcionTransporteForm.get('brutoDestino')?.value;
+    const valorPesoTara =
+      this.recepcionTransporteForm.get('taraDestino')?.value;
+    const valorPesoNeto =
+      this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
 
     // Calcula las diferencias de peso
     const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
     const diferenciaHumeda = valorPesoNeto - valorPesoTara;
-    const diferenciaSeca = valorPesoNeto - (valorPesoNeto * (this.porcentajeHumedad / 100));
+    const diferenciaSeca =
+      valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
 
     // Actualiza los valores del formulario
     this.recepcionTransporteForm.patchValue({
@@ -906,7 +982,7 @@ export class CrearRegistroDialog {
         'No',
         () => {
           const id = this.data.id;
-          const totalNetoHumedo = this.data.netoHumedoDestino
+          const totalNetoHumedo = this.data.netoHumedoDestino;
 
           this.ingresoDetalleBodega(totalNetoHumedo, registroModificado.bodega);
           this.calcularTotalBodega(totalNetoHumedo, registroModificado.bodega);
@@ -934,8 +1010,7 @@ export class CrearRegistroDialog {
         {}
       );
       // Aquí puedes agregar la lógica para enviar el formulario
-    }
-    else{
+    } else {
       Notiflix.Notify.failure('No se ha guardado el registro');
     }
   }
@@ -956,5 +1031,34 @@ export class CrearRegistroDialog {
 
     const fechaFormateada = `${dia}/${mes}/${anio}`;
     return fechaFormateada;
+  }
+
+  eliminarRegistro(): void {
+    console.log('Eliminar registro:', this.data);
+    const idLote = this.data.id; // Asegúrate de que tengas acceso a la propiedad id del lote
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/recepcion-transporte/${idLote}/`;
+
+    Notiflix.Confirm.show(
+      '¿Desea eliminar el registro?',
+      'Esta acción no se puede deshacer',
+      'Eliminar',
+      'Cancelar',
+      () => {
+        this.http.delete(apiUrl).subscribe(
+          (response) => {
+            Notiflix.Notify.success('Se ha eliminado el registro');
+            this.onNoClick();
+            this.ngOnInit()
+          },
+          (error) => {
+            console.error('Error al eliminar el registro:', error);
+            Notiflix.Notify.failure('No se ha eliminado el registro');
+          }
+        );
+      },
+      () => {
+        this.onNoClick();
+      }
+    );
   }
 }

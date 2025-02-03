@@ -13,19 +13,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='recepciontransporte',
             name='brutoDestino',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='recepciontransporte',
             name='netoHumedoOrigen',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='recepciontransporte',
             name='taraDestino',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
     ]

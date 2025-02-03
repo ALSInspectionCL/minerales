@@ -49,13 +49,35 @@ export class RolService {
       map(response => {
         // Accede directamente al campo 'rol' en la respuesta
         console.log('Respuesta completa:', response); // Para depuración
-        console.log('Rol del usuario:', response.rol); // Para depuración
+        console.log('Rol del usuario:', response[0].rol); // Para depuración
         return response[0].rol === expectedRole;
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error al verificar el rol:', error);
 
         return of(false); // Retorna false en caso de error
+      })
+    );
+  }
+
+  hasAnyRole(email: string, roles: string[]): Observable<boolean> {
+    return this.getRoles(email).pipe(
+      map((userRoles: string[]) => roles.some((role) => userRoles.includes(role)))
+    );
+  }
+
+  getRoles(email: string): Observable<string[]> {
+    return this.checkRol(email).pipe(
+      map(response => {
+        // Accede directamente al campo 'rol' en la respuesta
+        console.log('Respuesta completa:', response); // Para depuración
+        console.log('Rol del usuario:', response[0].rol); // Para depuración
+        return [response[0].rol]; // Devuelve el rol del usuario como un arreglo
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al obtener el rol:', error);
+
+        return of([]); // Retorna un arreglo vacío en caso de error
       })
     );
   }

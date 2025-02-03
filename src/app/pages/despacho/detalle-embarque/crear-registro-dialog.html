@@ -1,0 +1,109 @@
+<h2 mat-dialog-title>Registrar Recepción de Transporte</h2>
+<mat-dialog-content>
+<form [formGroup]="embarqueTransporteForm" (ngSubmit)="onSubmit()">
+  <!-- <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Número de Lote</mat-label>
+    <input matInput formControlName="nLote" required />
+    <mat-error *ngIf="embarqueTransporteForm.get('nLote')!.hasError('required')">
+      Este campo es requerido.
+    </mat-error>
+  </mat-form-field> -->
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Odómetro Inicial</mat-label>
+    <input matInput formControlName="odometroInicial" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Odómetro Final</mat-label>
+    <input matInput formControlName="odometroFinal" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Hora Inicial</mat-label>
+    <input matInput type="time" formControlName="horaInicial" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Hora Final</mat-label>
+    <input matInput type="time" formControlName="horaFinal" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Fecha Inicial</mat-label>
+    <input matInput [matDatepicker]="picker" formControlName="fechaInicial" />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Fecha Final</mat-label>
+    <input matInput [matDatepicker]="picker2" formControlName="fechaFinal" />
+    <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+    <mat-datepicker #picker2></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Peso del Lote</mat-label>
+    <input matInput type="number" formControlName="pesoLote" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Porcentaje de Humedad</mat-label>
+    <input matInput type="number" formControlName="porcHumedad" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="m-16">
+    <mat-label>Estado</mat-label>
+    <input matInput formControlName="estado" />
+  </mat-form-field>
+</form>
+
+
+</mat-dialog-content>
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="end center" class="m-t-24">
+  <button
+    *ngIf="(admin || operator || encargado)"
+    mat-flat-button
+    (click)="guardar()"
+    color="primary"
+    [disabled]="embarqueTransporteForm.invalid"
+  >
+    Registrar
+  </button>
+  <button mat-flat-button (click)="onCancel()">Cerrar</button>
+  <button
+    class="m-l-48"
+    *ngIf="(admin || encargado)"
+    mat-flat-button
+    (click)="aprobar()"
+    type="submit"
+    color="primary"
+    [disabled]="embarqueTransporteForm.invalid"
+  >
+    Aprobar
+  </button>
+</mat-dialog-actions>
+
+
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Sellos Destino</mat-label>
+    <input matInput type="number" formControlName="sellosDestino">
+</mat-form-field> -->
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Bruto Destino</mat-label>
+    <input matInput type="number" formControlName="brutoDestino">
+</mat-form-field> -->
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Tara Destino</mat-label>
+    <input matInput type="number" formControlName="taraDestino">
+</mat-form-field> -->
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Neto Húmedo Destino</mat-label>
+    <input matInput type="number" formControlName="netoHumedoDestino">
+</mat-form-field> -->
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Diferencia Húmeda</mat-label>
+    <input matInput type="number" formControlName="diferenciaHumeda">
+</mat-form-field> -->
+
+<!-- <mat-form-field appearance="fill">
+    <mat-label>Diferencia Seca</mat-label>
+    <input matInput type="number" formControlName="diferenciaSeca">
+</mat-form-field> -->

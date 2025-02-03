@@ -16,15 +16,15 @@ class Migration(migrations.Migration):
             fields=[
                 ('idBodega', models.AutoField(primary_key=True, serialize=False)),
                 ('nombreBodega', models.CharField(max_length=200)),
-                ('total', models.DecimalField(blank=True, decimal_places=2, max_digits=200)),
+                ('total', models.DecimalField(blank=True, decimal_places=2, max_digits=20)),
             ],
         ),
         migrations.CreateModel(
             name='DetalleBodega',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ingreso', models.DecimalField(blank=True, decimal_places=2, max_digits=200)),
-                ('despacho', models.DecimalField(blank=True, decimal_places=2, max_digits=200)),
+                ('ingreso', models.DecimalField(blank=True, decimal_places=2, max_digits=20)),
+                ('despacho', models.DecimalField(blank=True, decimal_places=2, max_digits=20)),
                 ('idBodega', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.bodega')),
             ],
         ),

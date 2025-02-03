@@ -18,13 +18,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='recepciontransporte',
             name='nServicio',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='api.servicio'),
+            field=models.ForeignKey( on_delete=django.db.models.deletion.CASCADE, to='api.servicio'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='recepciontransporte',
             name='tipoTransporte',
-            field=models.CharField(default=0, max_length=20),
+            field=models.CharField( max_length=20),
             preserve_default=False,
         ),
         migrations.AlterField(

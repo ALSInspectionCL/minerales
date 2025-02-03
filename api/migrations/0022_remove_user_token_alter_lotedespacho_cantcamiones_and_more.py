@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='lotedespacho',
             name='diferenciaPeso',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='lotedespacho',
@@ -37,61 +37,61 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='lotedespacho',
             name='pesoBrutoHumedo',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='lotedespacho',
             name='pesoNetoHumedo',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='lotedespacho',
             name='pesoNetoSeco',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='lotedespacho',
             name='pesoTara',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='lotedespacho',
             name='porcHumedad',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='diferenciaPeso',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='pesoBrutoHumedo',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='pesoNetoHumedo',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='pesoNetoSeco',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='pesoTara',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=20),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='loterecepcion',
             name='porcHumedad',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=200),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=20),
         ),
     ]

@@ -110,10 +110,12 @@ export class DespachoComponent {
   solicitud: any;
   admin: boolean;
   operator: boolean;
+  encargado: boolean;
   mostrarTabla: boolean = false;
 
   displayedColumns1: string[] = [
     'nLote',
+    'observacion',
     'fLote',
     'tipoTransporte',
     'cantCamiones',
@@ -141,7 +143,7 @@ export class DespachoComponent {
     this.obtenerSolicitudes();
     this.admin = RolService.isTokenValid();
     this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'operator')
+      .hasRole(localStorage.getItem('email') || '', 'Operador')
       .subscribe((hasRole) => {
         if (hasRole) {
           console.log('El usuario tiene el rol de operator');
@@ -149,6 +151,17 @@ export class DespachoComponent {
         } else {
           console.log('El usuario no tiene el rol de operator');
           this.operator = false;
+        }
+      });
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Encargado')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          this.encargado = true;
+          console.log('El usuario tiene el rol de Encargado');
+        } else {
+          this.encargado = false;
+          console.log('El usuario no tiene el rol de Encargado');
         }
       });
   }
@@ -268,15 +281,15 @@ export class DespachoComponent {
     });
   }
 
-  abrirDetalle(element: any) {
+  abrirDetalle(element: any, numero: number) {
     if (element.tipoTransporte === 'Camion') {
-      this.abrirDetalleCamion(element.nLote);
+      this.abrirDetalleCamion(element.nLote, numero);
     } else if (element.tipoTransporte === 'Embarque') {
-      this.abrirDetalleEmbarque(element);
+      this.abrirDetalleEmbarque(element, numero);
     }
   }
 
-  abrirDetalleCamion(nLote: string) {
+  abrirDetalleCamion(nLote: string, numero: number) {
     const dialogRef = this.dialog.open(DetalleLoteComponent, {
       width: '90%', // Ajusta el ancho del diálogo
       height: '90%', // Ajusta la altura del diálogo
@@ -285,6 +298,7 @@ export class DespachoComponent {
       data: {
         idServicio: this.idServicio,
         idSolicitud: this.idSolicitud,
+        numero: numero,
         nLote: nLote,
       },
     });
@@ -298,7 +312,7 @@ export class DespachoComponent {
     });
   }
 
-  abrirDetalleEmbarque(lote: any) {
+  abrirDetalleEmbarque(lote: any, numero: number) {
     const dialogRef = this.dialog.open(DetalleEmbarqueComponent, {
       width: '90%', // Ajusta el ancho del diálogo
       height: '90%', // Ajusta la altura del diálogo
@@ -307,6 +321,7 @@ export class DespachoComponent {
       data: {
         idServicio: this.idServicio,
         idSolicitud: this.idSolicitud,
+        numero: numero,
         lote: lote,
       },
     });
@@ -427,7 +442,8 @@ export class CrearLoteDialog {
 
       console.log('Nuevo Lote a enviar:', nuevoLote); // Verifica el objeto antes de enviarlo
 
-      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+      const apiUrl =
+        'https://control.als-inspection.cl/api_min/api/lote-despacho/';
 
       this.http.post(apiUrl, nuevoLote).subscribe(
         (response) => {

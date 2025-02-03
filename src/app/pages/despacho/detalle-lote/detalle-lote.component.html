@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Detalle de Lote {{ lote?.nLote || "Cargando..." }}</h2>
+<h2 mat-dialog-title>Detalle de Lote {{data?.numero || 'Cargando...'}}</h2>
 <mat-dialog-content class="mat-typography m-t-24">
   <mat-card class="cardWithShadow">
     <mat-card-content>
@@ -68,7 +68,7 @@
             <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
               >Observación</mat-label
             >
-            <input matInput readonly type="text" [value]="lote?.observacion" />
+            <input matInput type="text" [value]="lote?.observacion" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
@@ -139,7 +139,7 @@
         <div class="col">
           <button
             mat-flat-button
-            *ngIf="admin"
+            *ngIf="(admin || operator)"
             (click)="crearRegistro()"
             color="primary"
             class="m-t-8 m-b-8"
