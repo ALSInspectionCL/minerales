@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Detalle de Lote {{data?.numero || 'Cargando...'}}</h2>
+<h2 mat-dialog-title>Detalle de Lote {{data.numero || 'Cargando...'}}</h2>
 <mat-dialog-content class="mat-typography m-t-24">
     <mat-card class="cardWithShadow">
         <mat-card-content>
@@ -132,7 +132,7 @@
                           
                             <!-- Columna Neto Húmedo Origen -->
                             <ng-container matColumnDef="netoHumedoOrigen">
-                              <th mat-header-cell *matHeaderCellDef> Peso Neto Húmedo </th>
+                              <th mat-header-cell *matHeaderCellDef> Peso Neto Origen </th>
                               <td mat-cell *matCellDef="let element"> {{element.netoHumedoOrigen}} </td>
                             </ng-container>
                           
@@ -180,13 +180,13 @@
                           
                             <!-- Columna Neto Húmedo Destino -->
                             <ng-container matColumnDef="netoHumedoDestino">
-                              <th mat-header-cell *matHeaderCellDef> Peso Neto Húmedo </th>
+                              <th mat-header-cell *matHeaderCellDef> Peso Neto Destino </th>
                               <td mat-cell *matCellDef="let element"> {{element.netoHumedoDestino}} </td>
                             </ng-container>
                           
                             <!-- Columna Diferencia Húmeda -->
                             <ng-container matColumnDef="diferenciaHumeda">
-                              <th mat-header-cell *matHeaderCellDef> Diferencia Húmeda </th>
+                              <th mat-header-cell *matHeaderCellDef> Diferencia </th>
                               <td mat-cell *matCellDef="let element"> {{element.diferenciaHumeda}} </td>
                               <!-- {{element.diferenciaHumeda}} -->
                             </ng-container>

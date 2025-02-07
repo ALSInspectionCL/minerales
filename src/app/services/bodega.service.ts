@@ -63,6 +63,11 @@ export class Bodega {
       return this.http.get<bodega>(url); // Realiza la solicitud GET
     }
 
+    getBodegas(){
+      const url = this.apiBodega; // URL para obtener todas las bodegas
+      return this.http.get<bodega[]>(url); // Realiza la solicitud GET
+    }
+
 
 
 }

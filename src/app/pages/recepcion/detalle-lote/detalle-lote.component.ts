@@ -138,8 +138,6 @@ export class DetalleLoteComponent {
     this.cargarLote();
     this.obtenerBodegas();
     this.cargarRecepcionTransporte(this.data.nLote);
-    console.log('Data de dataSource:');
-    console.log(this.dataSource1);
     this.guardarLote();
     this.admin = RolService.isTokenValid();
     this.rolService
@@ -212,6 +210,8 @@ export class DetalleLoteComponent {
       .subscribe(
         (data) => {
           this.dataSource1 = data;
+          console.log('Data de dataSource:');
+          console.log(this.dataSource1);
 
           // Inicializa los totales
           let totalCamiones = 0;
@@ -321,7 +321,7 @@ export class DetalleLoteComponent {
         this.dataSource1 = this.dataSource1.map((item) =>
           item.nLote === result.nLote ? result : item
         );
-      }else{
+      } else {
         console.log('No se modifico ningun registro');
         this.ngOnInit();
       }
@@ -349,6 +349,8 @@ export class DetalleLoteComponent {
         idCarro: null,
         sellosOrigen: null,
         netoHumedoOrigen: null,
+        brutoOrigen: null,
+        taraOrigen: null,
         idTransporteDestino: null,
         fDestino: null,
         hDestino: null,
@@ -425,7 +427,7 @@ export class DetalleLoteComponent {
         ).length;
 
         const pesoNetoHumedo = registrosFiltrados.reduce(
-          (total, registro) => total + registro.pesoNetoHumedoOrigen,
+          (total, registro) => total + registro.netoHumedoDestino,
           0
         );
 
@@ -621,31 +623,39 @@ export class CrearRegistroDialog {
       });
     this.cargarLote();
     console.log('El lote es: ' + this.lote);
-    this.recepcionTransporteForm.valueChanges.subscribe((changes) => {
-      const valorPesoBruto =
-        this.recepcionTransporteForm.get('brutoDestino')?.value;
-      const valorPesoTara =
-        this.recepcionTransporteForm.get('taraDestino')?.value;
-      const valorPesoNeto =
-        this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+    // this.recepcionTransporteForm.valueChanges.subscribe((changes) => {
+    //   const valorPesoBrutoDestino =
+    //     this.recepcionTransporteForm.get('brutoDestino')?.value;
+    //   const valorPesoTaraDestino =
+    //     this.recepcionTransporteForm.get('taraDestino')?.value;
+    //   const valorPesoNeto =
+    //     this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
 
-      if (valorPesoBruto && valorPesoTara) {
-        const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
-        const diferenciaHumeda = valorPesoNeto - valorPesoTara;
-        const diferenciaSeca =
-          valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
+    //   if (valorPesoBrutoDestino && valorPesoTaraDestino) {
+    //     const netoHumedoDestino = valorPesoBrutoDestino - valorPesoTaraDestino;
+    //       valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
 
-        this.recepcionTransporteForm.patchValue({
-          diferenciaHumeda: diferenciaHumeda,
-          diferenciaSeca: diferenciaSeca,
-          diferenciaPeso: diferenciaPeso,
-        });
-      }
-    });
+    //     this.recepcionTransporteForm.patchValue({
+    //       netoHumedoDestino: netoHumedoDestino,
+    //     });
+    //   }
+
+    //   const valorPesoBrutoOrigen =
+    //   this.recepcionTransporteForm.get('brutoOrigen')?.value;
+    //   const valorPesoTaraOrigen =
+    //   this.recepcionTransporteForm.get('taraOrigen')?.value;
+
+    //   if( valorPesoBrutoOrigen && valorPesoTaraOrigen ){
+    //     const netoHumedoOrigen = valorPesoBrutoOrigen - valorPesoTaraOrigen;
+    //     this.recepcionTransporteForm.patchValue({
+    //       netoHumedoOrigen: netoHumedoOrigen,
+    //     });
+    //   }
+    // });
   }
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) 
+    @Inject(MAT_DIALOG_DATA)
     public data: any,
     private loteService: LoteService,
     private rolService: RolService,
@@ -663,6 +673,8 @@ export class CrearRegistroDialog {
       idCarro: [this.data.idCarro],
       sellosOrigen: [this.data.sellosOrigen],
       netoHumedoOrigen: [this.data.netoHumedoOrigen],
+      brutoOrigen: [this.data.brutoOrigen],
+      taraOrigen: [this.data.taraOrigen],
       fDestino: [this.data.fDestino],
       hDestino: [this.data.hDestino],
       idTransporteDestino: [this.data.idTransporteDestino],
@@ -896,26 +908,59 @@ export class CrearRegistroDialog {
   }
 
   guardar() {
-    const valorPesoBruto =
+    // const valorPesoBruto =
+    //   this.recepcionTransporteForm.get('brutoDestino')?.value;
+    // const valorPesoTara =
+    //   this.recepcionTransporteForm.get('taraDestino')?.value;
+    // const valorPesoNeto =
+    //   this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
+
+    // // Calcula las diferencias de peso
+    // const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
+    // const diferenciaHumeda = valorPesoNeto - valorPesoTara;
+    // const diferenciaSeca =
+    //   valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
+
+    // // Actualiza los valores del formulario
+    // this.recepcionTransporteForm.patchValue({
+    //   diferenciaHumeda: diferenciaHumeda,
+    //   diferenciaSeca: diferenciaSeca,
+    //   diferenciaPeso: diferenciaPeso,
+    // });
+    // console.log(this.recepcionTransporteForm.value);
+
+    const valorPesoBrutoDestino =
       this.recepcionTransporteForm.get('brutoDestino')?.value;
-    const valorPesoTara =
+    const valorPesoTaraDestino =
       this.recepcionTransporteForm.get('taraDestino')?.value;
-    const valorPesoNeto =
+    const valorPesoNetoDestino =
       this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
 
-    // Calcula las diferencias de peso
-    const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
-    const diferenciaHumeda = valorPesoNeto - valorPesoTara;
-    const diferenciaSeca =
-      valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
+    if (valorPesoBrutoDestino && valorPesoTaraDestino) {
+      const netoHumedoDestino = valorPesoBrutoDestino - valorPesoTaraDestino;
+      valorPesoNetoDestino - valorPesoNetoDestino * (this.porcentajeHumedad / 100);
 
-    // Actualiza los valores del formulario
-    this.recepcionTransporteForm.patchValue({
-      diferenciaHumeda: diferenciaHumeda,
-      diferenciaSeca: diferenciaSeca,
-      diferenciaPeso: diferenciaPeso,
-    });
-    console.log(this.recepcionTransporteForm.value);
+      this.recepcionTransporteForm.patchValue({
+        netoHumedoDestino: netoHumedoDestino.toFixed(2),
+      });
+    }
+
+    const valorPesoBrutoOrigen =
+      this.recepcionTransporteForm.get('brutoOrigen')?.value;
+    const valorPesoTaraOrigen =
+      this.recepcionTransporteForm.get('taraOrigen')?.value;
+    const valorPesoNetoOrigen =
+      this.recepcionTransporteForm.get('netoHumedoOrigen')?.value;
+
+    if (valorPesoBrutoOrigen && valorPesoTaraOrigen) {
+      const netoHumedoOrigen = valorPesoBrutoOrigen - valorPesoTaraOrigen;
+      this.recepcionTransporteForm.patchValue({
+        netoHumedoOrigen: netoHumedoOrigen.toFixed(2),
+      });
+    }else{
+      this.recepcionTransporteForm.patchValue({netoHumedoOrigen:valorPesoNetoOrigen})
+    }
+
     this.onSubmit();
   }
 
@@ -1048,7 +1093,7 @@ export class CrearRegistroDialog {
           (response) => {
             Notiflix.Notify.success('Se ha eliminado el registro');
             this.onNoClick();
-            this.ngOnInit()
+            this.ngOnInit();
           },
           (error) => {
             console.error('Error al eliminar el registro:', error);

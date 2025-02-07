@@ -113,6 +113,8 @@ class RecepcionTransporte(models.Model):
     idTransporteOrigen = models.CharField(max_length=200,blank=True, null=True)  #id del transporte que llega, numero de patente, codigo de tren, etc
     idCarro = models.CharField(max_length=200,blank=True, null=True)
     sellosOrigen = models.CharField(max_length=200,blank=True, null=True)
+    brutoOrigen = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    taraOrigen = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     netoHumedoOrigen = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     idTransporteDestino = models.CharField(max_length=20,blank=True, null=True)
     fDestino = models.DateField(blank=True, null=True) #fecha de salida del transporte

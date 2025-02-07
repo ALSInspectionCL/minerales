@@ -230,7 +230,9 @@ export class RecepcionComponent {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.ngOnInit();
+        
       }
+      this.cargarLotes();
     });
   }
 

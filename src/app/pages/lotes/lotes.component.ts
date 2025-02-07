@@ -198,6 +198,7 @@ export class LotesComponent {
           }
         }
         (this.recepPorc = 11), 85;
+        this.recepSeco = Number(parseFloat(String(this.recepSeco)))
 
         if (this.recepLotes == 0) {
           Notiflix.Notify.warning('No se han encontrado datos');

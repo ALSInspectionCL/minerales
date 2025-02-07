@@ -3,7 +3,7 @@
     <mat-card-title class="m-8"
       >Formulario creación de Servicios y Solicitudes</mat-card-title
     >
-    <mat-divider></mat-divider>
+    <mat-divider class="m-8"></mat-divider>
 
     <mat-form-field appearance="outline" class="m-8">
       <mat-label>Fecha Inicial</mat-label>
@@ -45,6 +45,184 @@
       </mat-autocomplete>
     </mat-form-field>
 
-    <button mat-raised-button color="primary" (click)="crearDocumento()">Generar Documento</button>
+    <button
+      mat-raised-button
+      class="m-r-8"
+      color="primary"
+      (click)="crearDocumento()"
+    >
+      Generar Documento
+    </button>
+    <button mat-raised-button color="primary" (click)="descargarDocumento()">
+      <mat-icon>
+        <i-tabler name="file-download"></i-tabler>
+      </mat-icon>
+    </button>
   </mat-card-content>
+  <!-- Tabla informe camiones< -->
+  <mat-card>
+    <mat-card-content>
+      <table *ngIf="tablaCamion" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N° de Lote</th>
+            <th>Fecha de Origen</th>
+            <th>Hora de Origen</th>
+            <th>Fecha de Destino</th>
+            <th>Hora de Destino</th>
+            <th>Referencia</th>
+            <th>Guía Despacho</th>
+            <th>Patente</th>
+            <th>Batea</th>
+            <th>Bruto de Origen</th>
+            <th>Bruto de Destino</th>
+            <th>Tara de Origen</th>
+            <th>Tara de Destino</th>
+            <th>Neto Húmedo de Origen</th>
+            <th>Neto Húmedo de Destino</th>
+            <th>Diferencia Húmeda</th>
+            <th>Diferencia Seca</th>
+            <th>Bodega</th>
+            <th>Sellos de Origen</th>
+            <th>Sellos de Destino</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let camion of camionesRecepcion">
+            <td>{{ camion.posicion + 1 }}</td>
+            <td>{{ camion.fOrigen }}</td>
+            <td>{{ camion.hOrigen }}</td>
+            <td>{{ camion.fDestino }}</td>
+            <td>{{ camion.hDestino }}</td>
+            <td>{{ camion.observacion }}</td>
+            <td>{{ camion.idTransporteOrigen }}</td>
+            <td>{{ camion.idTransporteDestino }}</td>
+            <td>{{ camion.idCarroDestino }}</td>
+            <td>{{ camion.brutoOrigen }}</td>
+            <td>{{ camion.brutoDestino }}</td>
+            <td>{{ camion.taraOrigen }}</td>
+            <td>{{ camion.taraDestino }}</td>
+            <td>{{ camion.netoHumedoOrigen }}</td>
+            <td>{{ camion.netoHumedoDestino }}</td>
+            <td>{{ camion.diferenciaHumeda }}</td>
+            <td>{{ camion.diferenciaSeca }}</td>
+            <td>{{ camion.nombreBodega }}</td>
+            <td>{{ camion.sellosOrigen }}</td>
+            <td>{{ camion.sellosDestino }}</td>
+            <td>{{ camion.estado }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table *ngIf="tablaRCamion" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Referencia</th>
+            <th>Fecha de creación</th>
+            <th>Camiones Registrados</th>
+            <th>Peso Bruto</th>
+            <th>Peso Tara</th>
+            <th>Peso Neto</th>
+            <th>Diferencias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let lote of lotes; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ lote.observacion }}</td>
+            <td>{{ lote.fLote }}</td>
+            <td>{{ lote.cantCamiones }}</td>
+            <td>{{ lote.pesoBrutoHumedo }}</td>
+            <td>{{ lote.pesoTara }}</td>
+            <td>{{ lote.pesoNetoHumedo }}</td>
+            <td>{{ lote.diferenciaPeso }}</td>
+          </tr>
+        </tbody>
+
+        <tfoot>
+          <tr style="border-top: 1px solid black">
+            <td colspan="5"></td>
+            <td><b>Peso Bruto Total:</b> {{ calcularPesoBrutoTotal() }}</td>
+            <td><b>Peso Tara Total:</b> {{ calcularPesoTaraTotal() }}</td>
+            <td><b>Peso Neto Total:</b> {{ calcularPesoNetoTotal() }}</td>
+            <td><b>Diferencia Total:</b> {{ calcularDiferenciaTotal() }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <table *ngIf="tablaVagon" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N° de Lote</th>
+            <th>Fecha de Origen</th>
+            <th>Hora de Origen</th>
+            <th>Fecha de Destino</th>
+            <th>Hora de Destino</th>
+            <th>Referencia</th>
+            <th>Carro</th>
+            <th>Guía Despacho</th>
+            <th>Patente</th>
+            <th>Batea</th>
+            <th>Bruto de Origen</th>
+            <th>Bruto de Destino</th>
+            <th>Tara de Origen</th>
+            <th>Tara de Destino</th>
+            <th>Neto Húmedo de Origen</th>
+            <th>Neto Húmedo de Destino</th>
+            <th>Diferencia Húmeda</th>
+            <th>Diferencia Seca</th>
+            <th>Bodega</th>
+            <th>Sellos de Origen</th>
+            <th>Sellos de Destino</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let vagon of vagonesRecepcion">
+            <td>{{ vagon.posicion + 1 }}</td>
+            <td>{{ vagon.fOrigen }}</td>
+            <td>{{ vagon.hOrigen }}</td>
+            <td>{{ vagon.fDestino }}</td>
+            <td>{{ vagon.hDestino }}</td>
+            <td>{{ vagon.observacion }}</td>
+            <td>{{ vagon.idCarro }}</td>
+            <td>{{ vagon.idTransporteOrigen }}</td>
+            <td>{{ vagon.idTransporteDestino }}</td>
+            <td>{{ vagon.idCarroDestino }}</td>
+            <td>{{ vagon.brutoOrigen }}</td>
+            <td>{{ vagon.brutoDestino }}</td>
+            <td>{{ vagon.taraOrigen }}</td>
+            <td>{{ vagon.taraDestino }}</td>
+            <td>{{ vagon.netoHumedoOrigen }}</td>
+            <td>{{ vagon.netoHumedoDestino }}</td>
+            <td>{{ vagon.diferenciaHumeda }}</td>
+            <td>{{ vagon.diferenciaSeca }}</td>
+            <td>{{ vagon.nombreBodega }}</td>
+            <td>{{ vagon.sellosOrigen }}</td>
+            <td>{{ vagon.sellosDestino }}</td>
+            <td>{{ vagon.estado }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table *ngIf="tablaInv" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N° de Bodega</th>
+            <th>Nombre de Bodega</th>
+            <th>Material total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bodega of bodegas">
+            <td>{{ bodega.idBodega }}</td>
+            <td>{{ bodega.nombreBodega }}</td>
+            <td>{{ bodega.total }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
 </mat-card>

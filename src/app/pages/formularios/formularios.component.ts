@@ -78,6 +78,8 @@ interface User {
   rol: string;
 }
 
+filteredOptions: Observable<any[]>;
+
 @Component({
   selector: 'app-formularios',
   standalone: true,
@@ -642,4 +644,6 @@ export class FormulariosComponent {
       option.toLowerCase().includes(filterValue)
     );
   }
+
+  
 }
