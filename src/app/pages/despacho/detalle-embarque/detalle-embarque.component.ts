@@ -111,6 +111,7 @@ export class DetalleEmbarqueComponent {
   totalSublotes = 0;
   odometrosIniciales = 0.0;
   odometrosFinales = 0.0;
+  sumaPesos = 0;
   fechaPrimerRegistro = null;
   fechaUltimoRegistro = null;
   horaPrimerRegistro = null;
@@ -210,6 +211,7 @@ export class DetalleEmbarqueComponent {
         let fechaUltimoRegistro = null;
         let horaPrimerRegistro = null;
         let horaUltimoRegistro = null;
+        let sumaPesos = 0;  
 
         // Recorre cada registro y suma los valores correspondientes
         this.dataSource1.forEach((registro, index) => {
@@ -225,6 +227,7 @@ export class DetalleEmbarqueComponent {
             horaUltimoRegistro = registro.horaFinal;
           }
 
+          sumaPesos += Number(registro.pesoLote);
           odometrosIniciales += Number(registro.odometroInicial);
           odometrosFinales += Number(registro.odometroFinal);
         });
@@ -232,6 +235,7 @@ export class DetalleEmbarqueComponent {
         this.totalSublotes = totalSublotes;
         this.odometrosIniciales = odometrosIniciales;
         this.odometrosFinales = odometrosFinales;
+        this.sumaPesos = sumaPesos
 
         // this.odometrosIniciales = Number(this.odometrosIniciales.toFixed(2));
         // this.odometrosFinales = Number(this.odometrosFinales.toFixed(2));
@@ -326,6 +330,8 @@ export class DetalleEmbarqueComponent {
     const loteActualizado = {
       ...this.lote,
       cantSubLotes: cantSubLotes,
+      pesoNetoHumedo: this.sumaPesos,
+
     };
 
     this.despachoTransporteService
@@ -597,6 +603,9 @@ export class CrearRegistroDialog {
   // }
 
   guardar() {
+    this.embarqueTransporteForm.patchValue({
+      pesoLote: Math.abs(this.embarqueTransporteForm.get('odometroFinal')?.value - this.embarqueTransporteForm.get('odometroInicial')?.value).toFixed(2)
+    })
     const formData = this.embarqueTransporteForm.value;
     const valorFechaInicial =
       this.embarqueTransporteForm.get('fechaInicial')?.value;
@@ -629,24 +638,7 @@ export class CrearRegistroDialog {
       const fechaFormateada2 = this.formatDate(fechaFinal);
       formData.fechaFinal = fechaFormateada2;
 
-      if (formData.odometroInicial > formData.odometroFinal) {
-        Notiflix.Notify.failure(
-          'El odometro inicial no puede ser mayor al final'
-        );
-        return;
-      }
-      if (formData.fechaInicial > formData.fechaFinal) {
-        Notiflix.Notify.failure(
-          'La fecha inicial no puede ser mayor a la final'
-        );
-        return;
-      }
-      if (formData.horaInicial > formData.horaFinal) {
-        Notiflix.Notify.failure(
-          'La hora inicial no puede ser mayor a la final'
-        );
-        return;
-      }
+
       if (formData.porcHumedad > 100) {
         Notiflix.Notify.failure(
           'El porcentaje de humedad no puede ser mayor a 100'

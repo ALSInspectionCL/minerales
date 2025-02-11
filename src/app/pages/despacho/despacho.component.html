@@ -77,6 +77,12 @@
                 <th mat-header-cell *matHeaderCellDef> Cantidad Vagones </th>
                 <td mat-cell *matCellDef="let element"> {{element.cantVagones}} </td>
             </ng-container>
+
+            <!-- Columna Cantidad Sublotes -->
+            <ng-container matColumnDef="cantSubLotes">
+                <th mat-header-cell *matHeaderCellDef> Cantidad Sublotes </th>
+                <td mat-cell *matCellDef="let element"> {{element.cantSubLotes}} </td>
+            </ng-container>
         
             <!-- Columna Peso Tara -->
             <ng-container matColumnDef="pesoTara">

@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
     <mat-card-title class="m-8"
-      >Formulario creación de Servicios y Solicitudes</mat-card-title
+      >Documentos</mat-card-title
     >
     <mat-divider class="m-8"></mat-divider>
 
@@ -65,7 +65,7 @@
       <table *ngIf="tablaCamion" class="mat-elevation-z8">
         <thead>
           <tr>
-            <th>N° de Lote</th>
+            <!-- <th>N° de Lote</th> -->
             <th>Fecha de Origen</th>
             <th>Hora de Origen</th>
             <th>Fecha de Destino</th>
@@ -90,7 +90,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let camion of camionesRecepcion">
-            <td>{{ camion.posicion + 1 }}</td>
+            <!-- <td>{{ camion.posicion + 1 }}</td> -->
             <td>{{ camion.fOrigen }}</td>
             <td>{{ camion.hOrigen }}</td>
             <td>{{ camion.fDestino }}</td>
@@ -205,6 +205,43 @@
             <td>{{ vagon.estado }}</td>
           </tr>
         </tbody>
+      </table>
+
+      <table *ngIf="tablaRVagon" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Referencia</th>
+            <th>Fecha de creación</th>
+            <th>Vagones Registrados</th>
+            <th>Peso Bruto</th>
+            <th>Peso Tara</th>
+            <th>Peso Neto</th>
+            <th>Diferencias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let lote of lotes; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ lote.observacion }}</td>
+            <td>{{ lote.fLote }}</td>
+            <td>{{ lote.cantVagones }}</td>
+            <td>{{ lote.pesoBrutoHumedo }}</td>
+            <td>{{ lote.pesoTara }}</td>
+            <td>{{ lote.pesoNetoHumedo }}</td>
+            <td>{{ lote.diferenciaPeso }}</td>
+          </tr>
+        </tbody>
+
+        <!-- <tfoot>
+          <tr style="border-top: 1px solid black">
+            <td colspan="5"></td>
+            <td><b>Peso Bruto Total:</b> {{ calcularPesoBrutoTotal() }}</td>
+            <td><b>Peso Tara Total:</b> {{ calcularPesoTaraTotal() }}</td>
+            <td><b>Peso Neto Total:</b> {{ calcularPesoNetoTotal() }}</td>
+            <td><b>Diferencia Total:</b> {{ calcularDiferenciaTotal() }}</td>
+          </tr>
+        </tfoot> -->
       </table>
 
       <table *ngIf="tablaInv" class="mat-elevation-z8">

@@ -43,7 +43,7 @@ export interface loteDespacho {
   tipoTransporte: string;
   cantCamiones: number;
   cantVagones: number;
-  cantBigbag: number;
+  cantSubLotes: number;
   pesoTara: number;
   pesoNetoHumedo: number;
   pesoBrutoHumedo: number;
@@ -63,7 +63,7 @@ const LOTE_DEFAULT: loteDespacho[] = [
     tipoTransporte: '',
     cantCamiones: 0,
     cantVagones: 0,
-    cantBigbag: 0,
+    cantSubLotes: 0,
     pesoTara: 0,
     pesoNetoHumedo: 0,
     pesoBrutoHumedo: 0,

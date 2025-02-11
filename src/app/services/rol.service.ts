@@ -47,9 +47,6 @@ export class RolService {
   hasRole(email: string, expectedRole: string): Observable<boolean> {
     return this.checkRol(email).pipe(
       map(response => {
-        // Accede directamente al campo 'rol' en la respuesta
-        console.log('Respuesta completa:', response); // Para depuración
-        console.log('Rol del usuario:', response[0].rol); // Para depuración
         return response[0].rol === expectedRole;
       }),
       catchError((error: HttpErrorResponse) => {
@@ -69,9 +66,6 @@ export class RolService {
   getRoles(email: string): Observable<string[]> {
     return this.checkRol(email).pipe(
       map(response => {
-        // Accede directamente al campo 'rol' en la respuesta
-        console.log('Respuesta completa:', response); // Para depuración
-        console.log('Rol del usuario:', response[0].rol); // Para depuración
         return [response[0].rol]; // Devuelve el rol del usuario como un arreglo
       }),
       catchError((error: HttpErrorResponse) => {
