@@ -128,11 +128,17 @@ export class FormulariosComponent {
     idBodega: number;
     nombreBodega: string;
     total: number;
+    imagen: any;
   } = {
     nombreBodega: '',
     idBodega: 0,
     total: 0,
+    imagen: null,
   };
+
+  imagenPreview: any;
+  imagenBodega: any;
+
   usuarios: any[];
   servicio = {
     nServ: '',
@@ -287,8 +293,6 @@ export class FormulariosComponent {
         Notiflix.Notify.failure('Error al eliminar el lote');
       }
     );
-  
-  
   }
 
   enviarServicio() {
@@ -366,11 +370,17 @@ export class FormulariosComponent {
   }
 
   // Método para crear una nueva bodega
-  crearBodega(bodega: { nombreBodega: string; total?: number }) {
+  crearBodega(bodega: { nombreBodega: string; total?: number; imagen?: any}) {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/';
+    
+    const formData = new FormData();
+    formData.append('nombreBodega', bodega.nombreBodega);
+    formData.append('imagen', this.imagenBodega || null);
+    
     this.http.post(apiUrl, bodega).subscribe(
       (respuesta) => {
         console.log('Bodega creada:', respuesta);
+        console.log(bodega)
         // Aquí puedes actualizar la lista de bodegas si es necesario
         Notiflix.Notify.success('Bodega creada');
         this.obtenerBodegas(); // Llama a un método para obtener la lista actualizada
@@ -387,12 +397,19 @@ export class FormulariosComponent {
     idBodega: number;
     nombreBodega: string;
     total?: number;
+    imagen?: any;
   }) {
+    const formData = new FormData();
+    formData.append('idBodega', bodega.idBodega.toString());
+    formData.append('nombreBodega', bodega.nombreBodega);
+    formData.append('imagen', this.imagenBodega);
+
     const apiUrl = `https://control.als-inspection.cl/api_min/api/bodega/${bodega.idBodega}/`;
     //bodega.total = 0; // Si deseas actualizar el total, hazlo aquí
-    this.http.put(apiUrl, bodega).subscribe(
+    this.http.put(apiUrl, formData).subscribe(
       (respuesta) => {
         console.log('Bodega actualizada:', respuesta);
+        console.log(formData)
         Notiflix.Notify.success('La bodega ha sido actualizada con éxito');
         this.obtenerBodegas();
       },
@@ -645,5 +662,12 @@ export class FormulariosComponent {
     );
   }
 
-  
+  onFileChange(event: any) {
+    this.imagenBodega = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagenPreview = reader.result;
+    };
+    reader.readAsDataURL(this.imagenBodega);
+  }
 }

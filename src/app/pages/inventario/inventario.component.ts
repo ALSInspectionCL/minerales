@@ -23,7 +23,8 @@ import { MatTableDataSource } from '@angular/material/table';
 export interface bodega{
   idBodega: number,
   nombreBodega: string,
-  total: number
+  total: number,
+  imagen : any
 }
 
 export interface detalleBodega{

@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
+from django.http import HttpResponse
 from .utils import buscar_lotes_por_rango_fechas
 from datetime import datetime
 
@@ -103,4 +104,11 @@ def obtener_lotes_por_fechas(request):
         return JsonResponse(lotes_data, safe=False)
     
     return JsonResponse({'error': 'Fechas no válidas'}, status=400)
+
+def agregar_cors_headers(response):
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Accept'
+    return response
+
 # Create your views here.

@@ -13,7 +13,8 @@
                       <mat-card-title>{{bodega.nombreBodega}}</mat-card-title>
                       <mat-card-subtitle>Numero de bodega: {{bodega.idBodega}}</mat-card-subtitle>
                     </mat-card-header>
-                    <img mat-card-image class="img" src="https://condominioindustrialsantacruz.com/wp-content/uploads/2017/08/cisac-condominio-industrial-santa-cruz-bodegas-galeria-003.jpg" alt="Photo of a Shiba Inu">
+                    <img *ngIf="bodega.imagen == null" mat-card-image class="img" src="https://condominioindustrialsantacruz.com/wp-content/uploads/2017/08/cisac-condominio-industrial-santa-cruz-bodegas-galeria-003.jpg" alt="Foto referencial bodega">
+                    <img *ngIf="bodega.imagen != null" mat-card-image class="img" [src]="bodega.imagen" alt="Foto guardada de bodega" crossorigin="anonymous">
                     <mat-card-content>
                         <p>El total de material almacenado es:</p>
                         <p class="bold-large-text">{{bodega.total}}</p>

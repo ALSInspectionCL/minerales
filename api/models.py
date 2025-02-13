@@ -1,11 +1,13 @@
-from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
+from django.db import models # type: ignore
+from django.db.models.signals import pre_save # type: ignore
+from django.dispatch import receiver # type: ignore
+
 
 class Bodega(models.Model):
     idBodega = models.AutoField(primary_key=True)
     nombreBodega = models.CharField(max_length=200)
     total = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
+    imagen = models.ImageField(upload_to='imagenes_bodegas/', blank=True, null=True)
 
 
 class Servicio(models.Model):
