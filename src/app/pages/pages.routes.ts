@@ -61,6 +61,7 @@ data: {
     data: {
       title: 'Reportabilidad',
     }
-  }
+  },
+  
 
 ];

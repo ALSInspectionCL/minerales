@@ -734,9 +734,12 @@ export class CrearRegistroDialog {
 
     // Calcular la diferencia húmeda si ambos valores son diferentes de 0
     if (valorNetoHumedoOrigen > 0 && valorNetoHumedoDestino > 0) {
-      diferenciaHumeda = valorNetoHumedoOrigen - valorNetoHumedoDestino;
+      diferenciaHumeda = valorNetoHumedoDestino - valorNetoHumedoOrigen;
       diferenciaHumeda = Number(diferenciaHumeda.toFixed(2));
       console.log('la diferencia humeda es: ', diferenciaHumeda);
+      if(diferenciaHumeda < 0){
+        diferenciaHumeda = diferenciaHumeda * -1;
+      }
       return Number(diferenciaHumeda);
     } else {
       console.log('No se calculo la diferencia seca');
@@ -758,6 +761,9 @@ export class CrearRegistroDialog {
         diferenciaHumeda -
         (diferenciaHumeda * this.porcentajeHumedad * 1) / 100;
       diferenciaSeca = Number(diferenciaSeca.toFixed(2));
+      if (diferenciaSeca < 0){
+        diferenciaSeca = diferenciaSeca * -1;
+      }
       console.log('la diferencia seca es: ' + diferenciaSeca);
       return Number(diferenciaSeca);
     } else {
@@ -771,7 +777,12 @@ export class CrearRegistroDialog {
       this.recepcionTransporteForm.get('brutoDestino')?.value;
     const valorPesoTara =
       this.recepcionTransporteForm.get('taraDestino')?.value;
-    const valorPesoNeto = valorPesoBruto - valorPesoTara;
+    let valorPesoNeto = valorPesoTara - valorPesoBruto;
+
+    if (valorPesoNeto<0){
+      valorPesoNeto = valorPesoNeto * -1;
+    }
+
     console.log(valorPesoNeto.toFixed(2));
     return Number(valorPesoNeto.toFixed(2));
   }
@@ -963,7 +974,7 @@ export class CrearRegistroDialog {
 
     this.onSubmit();
   }
-
+  
   aprobar() {
     console.log(this.recepcionTransporteForm.value);
     if (this.recepcionTransporteForm.valid) {

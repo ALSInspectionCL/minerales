@@ -1,149 +1,103 @@
-import { bodega } from './../../services/bodega.service';
+import { filter } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Token } from '@angular/compiler';
-import { Component, ViewEncapsulation, OnInit, ViewChild } from '@angular/core';
-import { MaterialModule } from 'src/app/material.module';
-import { RolService } from 'src/app/services/rol.service';
+import { Component, Inject } from '@angular/core';
 import {
-  ApexAxisChartSeries,
-  ApexChart,
-  ChartComponent,
-  ApexDataLabels,
-  ApexYAxis,
-  ApexLegend,
-  ApexXAxis,
-  ApexTooltip,
-  ApexTheme,
-  ApexGrid,
-  ApexPlotOptions,
-  ApexFill,
-  NgApexchartsModule,
-} from 'ng-apexcharts';
-
-
-export type ChartOptions = {
-  series: ApexAxisChartSeries;
-  chart: ApexChart;
-  xaxis: ApexXAxis;
-  yaxis: ApexYAxis;
-  stroke: any;
-  theme: ApexTheme;
-  tooltip: ApexTooltip;
-  dataLabels: ApexDataLabels;
-  legend: ApexLegend;
-  colors: string[];
-  markers: any;
-  grid: ApexGrid;
-  plotOptions: ApexPlotOptions;
-  fill: ApexFill;
-  labels: string[];
-};
+  ReactiveFormsModule,
+  FormsModule,
+  FormGroup,
+  FormBuilder,
+  Validators,
+} from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule, MatCard } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
+import { MatFormFieldModule, MatFormField } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import Notiflix from 'notiflix';
+import { Notify } from 'notiflix';
+import { MaterialModule } from 'src/app/material.module';
 
 @Component({
   selector: 'app-starter',
   templateUrl: './starter.component.html',
   standalone: true,
-  imports: [NgApexchartsModule, MaterialModule],
+  imports: [
+    MatDatepickerModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatSelectModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatPaginatorModule,
+    TablerIconsModule,
+    MatCardModule,
+    MatCard,
+    MatFormField,
+    CommonModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MaterialModule,
+    MatAutocompleteModule,
+    AsyncPipe,
+    MatIconModule,
+  ],
   styleUrls: ['./starter.component.scss'],
-  encapsulation: ViewEncapsulation.None,
 })
 export class StarterComponent {
-  @ViewChild('chart') chart: ChartComponent;
-  displayedColumns: string[] = ['idBodega', 'nombreBodega', 'total'];
-  dataSource: any[] = [];
+  camiones = [];
+  pesoNetoHumedoTotal = 0;
+  despachosRealizadosEsteMes = 0;
+  fechaActual = new Date().toLocaleTimeString();
+  constructor(private http: HttpClient) { }
 
-  public pieChartOptions: Partial<ChartOptions> | any;
+ngOnInit(): void {
+  const fechaActual = new Date().toISOString().split('T')[0];
+  console.log(fechaActual)
+  this.http.get(`https://control.als-inspection.cl/api_min/api/recepcion-transporte/?fOrigen=${fechaActual}`)
+    .subscribe((response: any) => {
+      console.log(response); // Verificar la respuesta de la API
+      let data = response;
+      if (data) {
+        this.camiones = data.filter((camion: any) => camion.tipoTransporte === 'Camion' && camion.fOrigen === fechaActual);
+        this.pesoNetoHumedoTotal = this.camiones.reduce((acumulado, camion: any) => acumulado + camion.pesoNetoHumedo, 0);
 
-  constructor(private http: HttpClient) {
-    this.pieChartOptions = {
-      series: [78, 15, 27, 18, 35],
-      chart: {
-        id: 'pie-chart',
-        type: 'pie',
-        height: 350,
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        foreColor: '#adb0bb',
-        toolbar: {
-          show: false,
-        },
-      },
-      dataLabels: {
-        enabled: true,
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: '70px',
-          },
-        },
-      },
-      legend: {
-        show: true,
-        position: 'bottom',
-        width: '50px',
-      },
-      colors: ['#5D87FF', '#ECF2FF', '#49BEFF', '#E8F7FF', '#FFAE1F'],
-      tooltip: {
-        fillSeriesColor: false,
-      },
-    };
-  }
-
-  ngOnInit() {
-    console.log(localStorage.getItem('token'));
-    console.log(RolService.isTokenValid());
-    this.cargarDatos();
-    this.completarChart();
-  }
-
-  completarChart(){
-    console.log(this.dataSource)
-  }
-
-  cargarDatos(): void {
-    this.http.get<any[]>('https://control.als-inspection.cl/api_min/api/bodega/').subscribe(
-      (data) => {
-        this.dataSource = data;
-        this.pieChartOptions = {
-          series: this.dataSource.map((item) => Number(item.total)),
-          labels: this.dataSource.map((item) => String(item.nombreBodega)),
-          chart: {
-            id: 'pie-chart',
-            type: 'pie',
-            height: 350,
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-            foreColor: '#adb0bb',
-            toolbar: {
-              show: false,
-            },
-          },
-          dataLabels: {
-            enabled: true,
-          },
-          plotOptions: {
-            pie: {
-              donut: {
-                size: '70px',
-              },
-            },
-          },
-          legend: {
-            show: true,
-            position: 'bottom',
-            width: '50px',
-            formatter: (bodega: string, opts: string) => {
-              return bodega;
-            },
-          },
-          colors: ['#5D87FF', '#ECF2FF', '#49BEFF', '#E8F7FF', '#FFAE1F'],
-          tooltip: {
-            fillSeriesColor: false,
-          },
-        };
-      },
-      (error) => {
-        console.error('Error al cargar los datos:', error);
+      } else {
+        console.error('La respuesta de la API no contiene la propiedad "results"');
       }
-    );
-  }
+    });
+
+    const fechaActual2 = new Date();
+    const mesActual = fechaActual2.getMonth() + 1;
+    const añoActual = fechaActual2.getFullYear();
+    const fechaReferencia = new Date(añoActual, mesActual + 1, 0).toISOString().split('T')[0];
+    
+    this.http.get(`https://control.als-inspection.cl/api_min/api/lote-despacho/`)
+    .subscribe((response: any) => {
+      let data = response;
+      if (data) {
+        if (mesActual === 12) {
+          this.despachosRealizadosEsteMes = data.filter((lote: any) => lote.fLote >= añoActual + '-' + mesActual + '-' + '01' && lote.fLote <= añoActual + '-' + (mesActual + 1) + '-' + '01').length;
+        } else {
+          this.despachosRealizadosEsteMes = data.filter((lote: any) => lote.fLote >= añoActual + '-' + (mesActual < 10 ? '0' + mesActual : mesActual) + '-' + '01' && lote.fLote <= fechaReferencia).length;
+        }
+      } else {
+        console.error('La respuesta de la API no contiene la propiedad "results"');
+      }
+    });
+}
+
 }

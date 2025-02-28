@@ -50,11 +50,11 @@
         </mat-form-field>
         
         <mat-form-field *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value == 'Vagon'" appearance="outline" class="m-16">
-            <mat-label>Código Carro</mat-label>
+            <mat-label>Número de Vagones</mat-label>
             <input matInput formControlName="idCarro">
         </mat-form-field>
         
-        <mat-form-field appearance="outline" class="m-16">
+        <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Sellos</mat-label>
             <input matInput type="text" formControlName="sellosOrigen">
         </mat-form-field>
@@ -64,7 +64,7 @@
             <input matInput type="number" formControlName="brutoOrigen">
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="m-16">
+        <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Peso Tara Origen</mat-label>
             <input matInput type="number" formControlName="taraOrigen">
         </mat-form-field>
@@ -80,33 +80,35 @@
             <mat-datepicker #picker1></mat-datepicker>
           </mat-form-field>
         
-          <mat-form-field appearance="outline" class="m-16">
+          <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Hora de Destino</mat-label>
             <input matInput type="time" formControlName="hDestino">
         </mat-form-field>
         
-        <mat-form-field appearance="outline" class="m-16">
+        <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Camión</mat-label>
             <input matInput formControlName="idTransporteDestino">
         </mat-form-field>
         
-        <mat-form-field appearance="outline" class="m-16">
+        <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Batea</mat-label>
             <input matInput formControlName="idCarroDestino">
         </mat-form-field>
         
-        <mat-form-field appearance="outline" class="m-16">
+        <mat-form-field *ngIf="lote?.tipoTransporte === 'Camion'" appearance="outline" class="m-16">
             <mat-label>Ticket PVSA</mat-label>
             <input matInput type="text" formControlName="sellosDestino">
         </mat-form-field>
         
         <mat-form-field appearance="outline" class="m-16">
-            <mat-label>Bruto</mat-label>
+            <mat-label *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value === 'Vagon'">Integrado Inicial</mat-label>
+            <mat-label *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value === 'Camion'">Bruto</mat-label>
             <input matInput type="number" formControlName="brutoDestino">
         </mat-form-field>
         
         <mat-form-field appearance="outline" class="m-16">
-            <mat-label>Tara</mat-label>
+            <mat-label *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value === 'Camion'">Tara</mat-label>
+            <mat-label *ngIf="recepcionTransporteForm.get('tipoTransporte')?.value === 'Vagon'">Integrado Final</mat-label>
             <input matInput type="number" formControlName="taraDestino">
         </mat-form-field>
         

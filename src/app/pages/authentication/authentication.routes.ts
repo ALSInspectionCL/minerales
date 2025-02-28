@@ -3,8 +3,9 @@ import { Routes } from '@angular/router';
 import { AppErrorComponent } from './error/error.component';
 import { LoginComponent } from './login/login.component';
 import { AppSideRegisterComponent } from './side-register/side-register.component';
-import { ChangepassComponent } from './changepass/changepass.component';
 import { AppAccountSettingComponent } from '../account-setting/account-setting.component'
+import { MailresetpassComponent } from './mailresetpass/mailresetpass.component';
+import { ResetpassComponent } from './resetpass/resetpass.component';
 
 export const AuthenticationRoutes: Routes = [
   {
@@ -20,12 +21,16 @@ export const AuthenticationRoutes: Routes = [
         component: LoginComponent,
       },
       {
-        path: 'changepass',
-        component: ChangepassComponent,
-      },
-      {
         path: 'register',
         component: AppSideRegisterComponent,
+      },
+      {
+        path: 'mailresetpass',
+        component: MailresetpassComponent,
+      },
+      {
+        path: 'resetpass',
+        component: ResetpassComponent,
       },
     ],
   },
