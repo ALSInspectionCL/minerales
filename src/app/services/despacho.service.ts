@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { loteDespacho } from '../pages/despacho/despacho.component';
-
+import { loteDespachoEmbarque } from '../pages/despacho/detalle-embarque/detalle-embarque.component';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +42,10 @@ export class DespachoTransporteService {
 
   getSubLotesBynLote(nLote: string): Observable<any[]> {
     return this.http.get<any[]>(this.apiEmbarques + '?search=' + nLote);
+  }
+
+  actualizarLoteEmbarque(lote : loteDespachoEmbarque): Observable<any> {
+    return this.http.put(`${this.apiLotes}${lote.id}/`, lote);
   }
 
 

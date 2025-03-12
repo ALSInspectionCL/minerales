@@ -30,6 +30,13 @@ import Notiflix from 'notiflix';
 import { Notify } from 'notiflix';
 import { MaterialModule } from 'src/app/material.module';
 
+interface Camion {
+  tipoTransporte: string;
+  fOrigen: string;
+  netoHumedoDestino: number;
+  // Agrega otras propiedades que se esperan en la respuesta de la API
+}
+
 @Component({
   selector: 'app-starter',
   templateUrl: './starter.component.html',
@@ -58,7 +65,7 @@ import { MaterialModule } from 'src/app/material.module';
   styleUrls: ['./starter.component.scss'],
 })
 export class StarterComponent {
-  camiones = [];
+  camiones : Camion[] = [];
   pesoNetoHumedoTotal = 0;
   despachosRealizadosEsteMes = 0;
   fechaActual = new Date().toLocaleTimeString();
@@ -73,7 +80,14 @@ ngOnInit(): void {
       let data = response;
       if (data) {
         this.camiones = data.filter((camion: any) => camion.tipoTransporte === 'Camion' && camion.fOrigen === fechaActual);
-        this.pesoNetoHumedoTotal = this.camiones.reduce((acumulado, camion: any) => acumulado + camion.pesoNetoHumedo, 0);
+        console.log('estos son los camiones: ')
+        console.log(this.camiones);
+        for (let i = 0; i < this.camiones.length; i++) {
+          this.pesoNetoHumedoTotal += Number(this.camiones[i]!.netoHumedoDestino);
+        }
+        //peso neto humedo con max 2 decimales
+        this.pesoNetoHumedoTotal = Number(this.pesoNetoHumedoTotal.toFixed(2));
+        console.log(this.pesoNetoHumedoTotal)
 
       } else {
         console.error('La respuesta de la API no contiene la propiedad "results"');

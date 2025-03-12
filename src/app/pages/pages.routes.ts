@@ -41,13 +41,13 @@ data: {
     path: 'recepcion',
     component: RecepcionComponent,
     data: {
-      title: 'Gestión de Recepción',
+      title: 'Recepción',
     }
   },{
     path: 'despacho',
     component: DespachoComponent,
     data: {
-      title: 'Gestión de Despachos',
+      title: 'Despachos',
     }
   },{
     path: 'inventario',

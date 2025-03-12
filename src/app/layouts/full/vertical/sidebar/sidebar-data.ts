@@ -9,11 +9,11 @@ export const navItems: NavItem[] = [
     iconName: 'home',
     route: '/home',
   },
-  {
-    displayName: 'General',
-    iconName:  'stack-2',
-    route: '/home/lotes'
-  },
+  // {
+  //   displayName: 'General',
+  //   iconName:  'stack-2', 
+  //   route: '/home/lotes'
+  // },
   {
     displayName: 'Recepción',
     iconName:  'truck-return',

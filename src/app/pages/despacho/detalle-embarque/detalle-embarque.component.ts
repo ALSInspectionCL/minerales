@@ -44,7 +44,7 @@ import { map, Observable } from 'rxjs';
 import moment from 'moment';
 import { Bodega } from 'src/app/services/bodega.service';
 
-export interface loteDespacho {
+export interface loteDespachoEmbarque {
   id: number;
   nLote: string;
   fLote: string;
@@ -330,12 +330,14 @@ export class DetalleEmbarqueComponent {
     const loteActualizado = {
       ...this.lote,
       cantSubLotes: cantSubLotes,
-      pesoNetoHumedo: this.sumaPesos,
+      pesoNetoHumedo: this.sumaPesos.toFixed(2),
 
     };
 
+    console.log('Lote actualizado:', loteActualizado);
+
     this.despachoTransporteService
-      .actualizarLote(loteActualizado)
+      .actualizarLoteEmbarque(loteActualizado)
       .subscribe((response) => {
         console.log('Lote actualizado:', response);
         this.ngOnInit();
@@ -745,12 +747,12 @@ export class CrearRegistroDialog {
       const fechaFormateada2 = this.formatDate(fechaFinal);
       formData.fechaFinal = fechaFormateada2;
 
-      if (formData.odometroInicial > formData.odometroFinal) {
-        Notiflix.Notify.failure(
-          'El odometro inicial no puede ser mayor al final'
-        );
-        return;
-      }
+      // if (formData.odometroInicial > formData.odometroFinal) {
+      //   Notiflix.Notify.failure(
+      //     'El odometro inicial no puede ser mayor al final'
+      //   );
+      //   return;
+      // }
       if (formData.fechaInicial > formData.fechaFinal) {
         Notiflix.Notify.failure(
           'La fecha inicial no puede ser mayor a la final'
