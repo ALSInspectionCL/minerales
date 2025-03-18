@@ -1,35 +1,41 @@
-import { filter } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { CommonModule, AsyncPipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
-import {
-  ReactiveFormsModule,
-  FormsModule,
-  FormGroup,
-  FormBuilder,
-  Validators,
-} from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule, MatCard } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule, MatFormField } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+import { SolicitudService } from './../../services/solicitud.service';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { Component, Injectable } from '@angular/core';
+import { MatCard, MatCardModule } from '@angular/material/card';
+import { MatFormField, MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import Notiflix from 'notiflix';
-import { Notify } from 'notiflix';
+import { MatSelectModule } from '@angular/material/select';
+import {
+  MatDateRangeSelectionStrategy,
+  DateRange,
+  MAT_DATE_RANGE_SELECTION_STRATEGY,
+  MatDatepickerModule,
+} from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { Observable } from 'rxjs';
+import { DateAdapter } from '@angular/material/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { OnInit } from '@angular/core';
+import { map, startWith } from 'rxjs/operators';
+import { MatButtonModule } from '@angular/material/button';
+import { ServicioService } from './../../services/servicio.service';
+import { HttpClient } from '@angular/common/http';
+import { MatIconModule } from '@angular/material/icon';
+import Notiflix from 'notiflix';
+import { LoteService } from 'src/app/services/lote.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { RecepcionComponent } from '../recepcion/recepcion.component';
+import { MatDatepicker } from '@angular/material/datepicker';
+import { MatInput } from '@angular/material/input';
+import { DespachoComponent } from '../despacho/despacho.component';
+import {
+  FiveDayRangeSelectionStrategy,
+  NuevoLoteComponent,
+} from './nuevo-lote/nuevo-lote.component';
 interface Camion {
   tipoTransporte: string;
   fOrigen: string;
@@ -42,9 +48,11 @@ interface Camion {
   templateUrl: './starter.component.html',
   standalone: true,
   imports: [
+    MatInput,
     MatDatepickerModule,
     MatButtonModule,
     MatDialogModule,
+    MatDatepicker,
     MatSelectModule,
     MatCardModule,
     MatFormFieldModule,
@@ -63,55 +71,367 @@ interface Camion {
     MatIconModule,
   ],
   styleUrls: ['./starter.component.scss'],
+    providers: [
+      provideNativeDateAdapter(),
+      {
+        provide: MAT_DATE_RANGE_SELECTION_STRATEGY,
+        useClass: FiveDayRangeSelectionStrategy,
+      },
+    ],
 })
 export class StarterComponent {
-  camiones : Camion[] = [];
-  pesoNetoHumedoTotal = 0;
-  despachosRealizadosEsteMes = 0;
-  fechaActual = new Date().toLocaleTimeString();
-  constructor(private http: HttpClient) { }
+  idServicio: any;
+  idSolicitud: any;
+  fechaSeleccionadaI: Date | null = new Date();
+  fechaSeleccionadaF: Date | null = new Date();
+  bodegas: any[] = [];
 
-ngOnInit(): void {
-  const fechaActual = new Date().toISOString().split('T')[0];
-  console.log(fechaActual)
-  this.http.get(`https://control.als-inspection.cl/api_min/api/recepcion-transporte/?fOrigen=${fechaActual}`)
-    .subscribe((response: any) => {
-      console.log(response); // Verificar la respuesta de la API
-      let data = response;
-      if (data) {
-        this.camiones = data.filter((camion: any) => camion.tipoTransporte === 'Camion' && camion.fOrigen === fechaActual);
-        console.log('estos son los camiones: ')
-        console.log(this.camiones);
-        for (let i = 0; i < this.camiones.length; i++) {
-          this.pesoNetoHumedoTotal += Number(this.camiones[i]!.netoHumedoDestino);
-        }
-        //peso neto humedo con max 2 decimales
-        this.pesoNetoHumedoTotal = Number(this.pesoNetoHumedoTotal.toFixed(2));
-        console.log(this.pesoNetoHumedoTotal)
+  constructor(
+    private dialog: MatDialog,
+    private loteService: LoteService,
+    private solicitudService: SolicitudService,
+    private servicioService: ServicioService,
+    private http: HttpClient
+  ) {}
+  servicios: any;
+  solicitudes: any;
+  lotesRecepcion: any;
 
-      } else {
-        console.error('La respuesta de la API no contiene la propiedad "results"');
+  ngOnInit() {
+    this.obtenerServicios();
+    this.obtenerSolicitudes();
+    this.getBodegas();
+    this.cargarData();
+  }
+
+  obtenerServicios() {
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/';
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        this.servicios = data; // Asigna los servicios obtenidos a la variable
+        console.log(data);
+      },
+      (error) => {
+        console.error('Error al obtener servicios', error);
       }
-    });
+    );
+  }
 
-    const fechaActual2 = new Date();
-    const mesActual = fechaActual2.getMonth() + 1;
-    const añoActual = fechaActual2.getFullYear();
-    const fechaReferencia = new Date(añoActual, mesActual + 1, 0).toISOString().split('T')[0];
-    
-    this.http.get(`https://control.als-inspection.cl/api_min/api/lote-despacho/`)
-    .subscribe((response: any) => {
-      let data = response;
-      if (data) {
-        if (mesActual === 12) {
-          this.despachosRealizadosEsteMes = data.filter((lote: any) => lote.fLote >= añoActual + '-' + mesActual + '-' + '01' && lote.fLote <= añoActual + '-' + (mesActual + 1) + '-' + '01').length;
+  obtenerSolicitudes() {
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        this.solicitudes = data; // Asigna las solicitudes obtenidos a la variable
+        console.log(data);
+      },
+      (error) => {
+        console.error('Error al obtener servicios', error);
+      }
+    );
+  }
+
+  getBodegas() {
+    this.http
+      .get('https://control.als-inspection.cl/api_min/api/bodega/')
+      .subscribe((data: any) => {
+        this.bodegas = data; // Asumiendo que la respuesta es un array de bodegas
+      });
+  }
+
+  formatDate(date: Date): string {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  recepLotes = 0;
+  recepCamiones = 0;
+  recepVagones = 0;
+  recepBruto = 0;
+  recepTara = 0;
+  recepHumedo = 0;
+  recepPorc = 0;
+  recepSeco = 0;
+
+  despLotes = 0;
+  despCamiones = 0;
+  despVagones = 0;
+  despBruto = 0;
+  despTara = 0;
+  despHumedo = 0;
+  despPorc = 0;
+  despSeco = 0;
+
+  cargarData() {
+    this.recepLotes = 0;
+    this.recepCamiones = 0;
+    this.recepVagones = 0;
+    this.recepBruto = 0;
+    this.recepTara = 0;
+    this.recepHumedo = 0;
+    this.recepPorc = 0;
+    this.recepSeco = 0;
+
+    console.log(this.fechaSeleccionadaI);
+    console.log(this.fechaSeleccionadaF);
+
+    if (this.fechaSeleccionadaI != null && this.fechaSeleccionadaF == null) {
+      const fechaFormateada = this.formatDate(this.fechaSeleccionadaI);
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+      this.http.get<any[]>(apiUrl).subscribe((data) => {
+        this.lotesRecepcion = data;
+        console.log(data);
+        for (let i = 0; i < this.lotesRecepcion.length; i++) {
+          if (this.lotesRecepcion[i].fLote >= fechaFormateada) {
+            this.recepLotes = this.recepLotes + 1;
+            this.recepCamiones =
+              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+            this.recepVagones =
+              this.recepVagones + this.lotesRecepcion[i].cantVagones;
+            this.recepBruto =
+              this.recepBruto +
+              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+            this.recepTara =
+              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+            this.recepHumedo =
+              this.recepHumedo +
+              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+            this.recepPorc =
+              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+            this.recepSeco =
+              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+          }
+        }
+        (this.recepPorc = 11), 85;
+        this.recepSeco = Number(parseFloat(String(this.recepSeco)))
+
+        if (this.recepLotes == 0) {
+          Notiflix.Notify.warning('No se han encontrado datos');
         } else {
-          this.despachosRealizadosEsteMes = data.filter((lote: any) => lote.fLote >= añoActual + '-' + (mesActual < 10 ? '0' + mesActual : mesActual) + '-' + '01' && lote.fLote <= fechaReferencia).length;
+          Notiflix.Notify.success('Se han encontrado datos');
         }
-      } else {
-        console.error('La respuesta de la API no contiene la propiedad "results"');
+      });
+    } else if (
+      this.fechaSeleccionadaI == null &&
+      this.fechaSeleccionadaF != null
+    ) {
+      const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+      this.http.get<any[]>(apiUrl).subscribe((data) => {
+        this.lotesRecepcion = data;
+        console.log(data);
+        for (let i = 0; i < this.lotesRecepcion.length; i++) {
+          if (this.lotesRecepcion[i].fLote <= fechaFormateadaF) {
+            this.recepLotes = this.recepLotes + 1;
+            this.recepCamiones =
+              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+            this.recepVagones =
+              this.recepVagones + this.lotesRecepcion[i].cantVagones;
+            this.recepBruto =
+              this.recepBruto +
+              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+            this.recepTara =
+              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+            this.recepHumedo =
+              this.recepHumedo +
+              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+            this.recepPorc =
+              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+            this.recepSeco =
+              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+          }
+        }
+        (this.recepPorc = 11), 85;
+
+        if (this.recepLotes == 0) {
+          Notiflix.Notify.warning('No se han encontrado datos');
+        } else {
+          Notiflix.Notify.success('Se han encontrado datos');
+        }
+      });
+    } else if (
+      this.fechaSeleccionadaI != null &&
+      this.fechaSeleccionadaF != null
+    ) {
+      const fechaFormateadaI = this.formatDate(this.fechaSeleccionadaI);
+      const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+      this.http.get<any[]>(apiUrl).subscribe((data) => {
+        this.lotesRecepcion = data;
+        console.log(data);
+        for (let i = 0; i < this.lotesRecepcion.length; i++) {
+          if (
+            fechaFormateadaI <= this.lotesRecepcion[i].fLote &&
+            this.lotesRecepcion[i].fLote <= fechaFormateadaF
+          ) {
+            this.recepLotes = this.recepLotes + 1;
+            this.recepCamiones =
+              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+            this.recepVagones =
+              this.recepVagones + this.lotesRecepcion[i].cantVagones;
+            this.recepBruto =
+              this.recepBruto +
+              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+            this.recepTara =
+              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+            this.recepHumedo =
+              this.recepHumedo +
+              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+            this.recepPorc =
+              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+            this.recepSeco =
+              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+          }
+        }
+        (this.recepPorc = 11), 85;
+
+        if (this.recepLotes == 0) {
+          Notiflix.Notify.warning('No se han encontrado datos');
+        } else {
+          Notiflix.Notify.success('Se han encontrado datos');
+        }
+      });
+    } else {
+      if (
+        this.idServicio == null ||
+        this.idServicio == undefined ||
+        this.idServicio == 0 ||
+        this.idServicio == ''
+      ) {
+        Notiflix.Notify.failure('Por favor, seleccione un servicio');
+        this.recepLotes = 0;
+        this.recepCamiones = 0;
+        this.recepVagones = 0;
+        this.recepBruto = 0;
+        this.recepTara = 0;
+        this.recepHumedo = 0;
+        this.recepPorc = 0;
+        this.recepSeco = 0;
+        return;
       }
+      if (
+        this.idSolicitud == null ||
+        this.idSolicitud == undefined ||
+        this.idSolicitud == 0 ||
+        this.idSolicitud == ''
+      ) {
+        Notiflix.Notify.failure('Por favor, seleccione una solicitud');
+        this.recepLotes = 0;
+        this.recepCamiones = 0;
+        this.recepVagones = 0;
+        this.recepBruto = 0;
+        this.recepTara = 0;
+        this.recepHumedo = 0;
+        this.recepPorc = 0;
+        this.recepSeco = 0;
+        return;
+      }
+      if (this.idServicio && this.idSolicitud) {
+        const apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+        this.http.get<any[]>(apiUrl).subscribe((data) => {
+          this.lotesRecepcion = data;
+          console.log(data);
+          for (let i = 0; i < this.lotesRecepcion.length; i++) {
+            if (
+              this.lotesRecepcion[i].servicio == this.idServicio &&
+              this.lotesRecepcion[i].solicitud == this.idSolicitud
+            ) {
+              this.recepLotes = this.recepLotes + 1;
+              this.recepLotes = this.recepLotes + 1;
+              this.recepCamiones =
+                this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+              this.recepVagones =
+                this.recepVagones + this.lotesRecepcion[i].cantVagones;
+              this.recepBruto =
+                this.recepBruto +
+                parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+              this.recepTara =
+                this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+              this.recepHumedo =
+                this.recepHumedo +
+                parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+              this.recepPorc =
+                this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+              this.recepSeco =
+                this.recepSeco +
+                parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+            }
+          }
+          (this.recepPorc = 11), 85;
+
+          if (this.recepLotes == 0) {
+            Notiflix.Notify.warning('No se han encontrado datos');
+          } else {
+            Notiflix.Notify.success('Se han encontrado datos');
+          }
+        });
+      } else {
+        Notiflix.Notify.warning('No se han encontrado datos');
+        this.recepLotes = 0;
+        this.recepCamiones = 0;
+        this.recepVagones = 0;
+        this.recepBruto = 0;
+        this.recepTara = 0;
+        this.recepHumedo = 0;
+        this.recepPorc = 0;
+        this.recepSeco = 0;
+      }
+    }
+  }
+  // registrarLote() {
+  //   this.loteService.crearLote(idServicio, idSolicitud, nLote, obs, tipoTransporte).subscribe((response: any) => {
+  //     console.log(response);
+  //     // Maneja la respuesta de la API
+  //   }, (error: any) => {
+  //     console.error(error);
+  //     // Maneja el error
+  //   });
+  // }
+
+  crearNuevoLote() {
+    const dialogRef = this.dialog.open(NuevoLoteComponent, {
+      width: '600px',
+      data: {
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+      },
     });
+  }
+
+  verRecepcion() {
+    const dialogRef = this.dialog.open(RecepcionComponent, {
+      width: 'flex',
+      height: '600px',
+      data: {
+        titulo: 'Recepción',
+        sub: 'Aquí podrá acceder al detalle de los lotes ingresados',
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+      },
+    });
+  }
+
+  verDespacho() {
+    const dialogRef = this.dialog.open(DespachoComponent, {
+      width: 'flex',
+      height: '600px',
+      data: {
+        titulo: 'Despacho',
+        sub: 'Aquí podrá acceder al detalle de los lotes ingresados',
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+      },
+    });
+  }
+
+  verInventario(idBodega: number) {}
+
+  solicitudesFiltradas: any[];
+
+filtrarSolicitudes(servicioId: number) {
+  this.solicitudesFiltradas = this.solicitudes.filter((solicitud: { nServ: number }) => solicitud.nServ === servicioId);
 }
 
 }

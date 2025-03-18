@@ -30,7 +30,7 @@ import { LoteService } from 'src/app/services/lote.service';
 import {
   FiveDayRangeSelectionStrategy,
   NuevoLoteComponent,
-} from './nuevo-lote/nuevo-lote.component';
+} from '../starter/nuevo-lote/nuevo-lote.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RecepcionComponent } from '../recepcion/recepcion.component';
 import { MatDatepicker } from '@angular/material/datepicker';
@@ -420,4 +420,5 @@ export class LotesComponent {
   }
 
   verInventario(idBodega: number) {}
+
 }
