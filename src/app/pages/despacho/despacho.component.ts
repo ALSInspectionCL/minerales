@@ -106,12 +106,14 @@ const LOTE_FILTRADO: loteDespacho[] = [];
 export class DespachoComponent {
   idServicio: any;
   idSolicitud: any;
-  servicios: any;
-  solicitud: any;
+  servicios: any[];
+  solicitudes: any[] = [];
+  solicitudesFiltradas: any[];
   admin: boolean;
   operator: boolean;
   encargado: boolean;
   mostrarTabla: boolean = false;
+  totalPeso: number;
 
   displayedColumns1: string[] = [
     'nLote',
@@ -183,7 +185,7 @@ export class DespachoComponent {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        this.solicitud = data; // Asigna las solicitudes obtenidos a la variable
+        this.solicitudes = data; // Asigna las solicitudes obtenidos a la variable
         console.log(data);
       },
       (error) => {
@@ -223,6 +225,7 @@ export class DespachoComponent {
           const LOTE_FILTRADO: any[] = [];
 
           if (data && data.length > 0) {
+            let sumaPesos = 0;
             for (let i = 0; i < data.length; i++) {
               // Filtrar lotes por idServicio e idSolicitud
               if (
@@ -231,12 +234,13 @@ export class DespachoComponent {
               ) {
                 // Agregar a lote filtrado
                 LOTE_FILTRADO.push(data[i]);
+                sumaPesos += Number(data[i].pesoNetoHumedo);
               }
             }
 
             // Asignar el lote filtrado a dataSource1
             this.dataSource1 = LOTE_FILTRADO;
-
+            this.totalPeso = Number(sumaPesos.toFixed(2)) ;
             // Verificar si LOTE_FILTRADO está vacío
             if (LOTE_FILTRADO.length === 0) {
               Notify.failure('No hay lotes para mostrar');
@@ -279,6 +283,10 @@ export class DespachoComponent {
         this.cargarLotes();
       }
     });
+  }
+
+  filtrarSolicitudes(servicioId: any) {
+    this.solicitudesFiltradas = this.solicitudes.filter(solicitud => solicitud.nServ === servicioId);
   }
 
   abrirDetalle(element: any, numero: number) {

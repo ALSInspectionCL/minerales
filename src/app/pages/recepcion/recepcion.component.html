@@ -1,30 +1,43 @@
 <mat-card class="cardWithShadow">
+  <div class="row">
+    <div class="col-1 m-t-16 d-flex justify-content-center">
+      <i-tabler name="info-circle" class="icon-40"></i-tabler>
+    </div>
+    <div class="col-11">
+      <p>
+        En este espacio puede seleccionar el servicio y solicitud correspondiente. Al hacerlo y clickear 'Buscar Lotes' apareceran los lotes de recepción registrados bajo esa solicitud. Puede revisar el detalle de cada lote usando el botón de 'Detalle'.
+      </p>
+    </div>
+  </div>
+  </mat-card>
+<mat-card class="cardWithShadow">
     <mat-card-header class="d-flex">
         <div class="row">
-            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Servicio</mat-label
+          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Servicio</mat-label
             >
-              <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="idServicio">
-                <mat-option
-                  *ngFor="let servicio of servicios"
-                  [value]="servicio.id"
-                  >{{ servicio.nServ }}</mat-option
-                >
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Solicitud</mat-label
+            <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="idServicio" (ngModelChange)="filtrarSolicitudes($event)">
+              <mat-option
+                *ngFor="let servicio of servicios"
+                [value]="servicio.id"
+                >{{ servicio.nServ }}</mat-option
+              >
+            </mat-select>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Solicitud</mat-label
             >
-              <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="idSolicitud">
-                <mat-option
-                  *ngFor="let solicitud of solicitud"
-                  [value]="solicitud.id"
-                  >{{ solicitud.nSoli }}</mat-option
-                >
-              </mat-select>
-            </mat-form-field>
+            <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="idSolicitud">
+              <mat-option
+                *ngFor="let solicitud of solicitudesFiltradas"
+                [value]="solicitud.id"
+                >{{ solicitud.nSoli }}</mat-option
+              >
+            </mat-select>
+          </mat-form-field>
             <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
               <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
               >Lote</mat-label
@@ -49,6 +62,13 @@
             <button *ngIf="(idServicio && idSolicitud) && (admin || operator || encargado)" mat-flat-button (click)="crearLote()" color="primary" class="m-t-20 m-l-20">
                 Crear nuevo lote
             </button>
+
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+              >Toneladas de material</mat-label
+            >
+            <input type="text" matInput [(ngModel)]="totalPeso" readonly>
+            </mat-form-field>
           </div>
     </mat-card-header>
     <mat-card-content>

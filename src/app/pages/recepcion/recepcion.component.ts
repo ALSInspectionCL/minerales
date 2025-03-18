@@ -99,21 +99,24 @@ const LOTE_FILTRADO: loteRecepcion[] = [];
     MatAutocompleteModule,
     AsyncPipe,
     MatIconModule,
-  ],
+    ],
   templateUrl: './recepcion.component.html',
   styleUrl: './recepcion.component.scss',
 })
 export class RecepcionComponent {
   idServicio: any;
   idSolicitud: any;
-  servicios: any;
-  solicitud: any;
+  servicios: any[];
+  solicitudes: any[] = [];
+  solicitudesFiltradas: any[];
   lotes: any;
   sub: string;
   public isDialog: boolean;
   admin: boolean;
   operator: boolean;
   encargado: boolean;
+  totalPeso: number;
+
 
   displayedColumns1: string[] = [
     'nLote',
@@ -130,6 +133,39 @@ export class RecepcionComponent {
     'detalle',
   ];
   dataSource1 = LOTE_DEFAULT;
+
+
+  carouselOne = {
+    slides: [
+      { image: 'assets/images/decor/camion' },
+      { image: 'assets/images/decor/tren' },
+      { image: 'assets/images/decor/barco' }
+    ]
+  };
+
+  imagenes = [
+    { src: 'assets/images/decor/camion', alt: 'Imagen 1' },
+    { src: 'assets/images/decor/tren', alt: 'Imagen 2' },
+    { src: 'assets/images/decor/barco', alt: 'Imagen 3' }
+  ];
+
+  responsiveOptions = [
+    {
+      breakpoint: '1024px',
+      numVisible: 3,
+      numScroll: 3
+    },
+    {
+      breakpoint: '768px',
+      numVisible: 2,
+      numScroll: 2
+    },
+    {
+      breakpoint: '560px',
+      numVisible: 1,
+      numScroll: 1
+    }
+  ];
 
   constructor(
     private dialog: MatDialog,
@@ -191,7 +227,7 @@ export class RecepcionComponent {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/solicitud/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        this.solicitud = data; // Asigna las solicitudes obtenidos a la variable
+        this.solicitudes = data; // Asigna las solicitudes obtenidos a la variable
         console.log(data);
       },
       (error) => {
@@ -234,6 +270,10 @@ export class RecepcionComponent {
       }
       this.cargarLotes();
     });
+  }
+
+  filtrarSolicitudes(servicioId: any) {
+    this.solicitudesFiltradas = this.solicitudes.filter(solicitud => solicitud.nServ === servicioId);
   }
 
   detalleLote(nLote: string, numero: number) {
@@ -293,6 +333,7 @@ export class RecepcionComponent {
           const LOTE_FILTRADO: any[] = [];
 
           if (data && data.length > 0) {
+            let sumaPesos = 0;
             for (let i = 0; i < data.length; i++) {
               // Filtrar lotes por idServicio e idSolicitud
               if (
@@ -301,16 +342,19 @@ export class RecepcionComponent {
               ) {
                 // Agregar a lote filtrado
                 LOTE_FILTRADO.push(data[i]);
+                sumaPesos += Number(data[i].pesoNetoHumedo);
               }
             }
 
             // Asignar el lote filtrado a dataSource1
             this.dataSource1 = LOTE_FILTRADO;
+            this.totalPeso = Number(sumaPesos.toFixed(2))
 
             // Verificar si LOTE_FILTRADO está vacío
             if (LOTE_FILTRADO.length === 0) {
               Notify.failure('No hay lotes para mostrar');
               this.mostrarTabla = false;
+              this.totalPeso = 0;
               this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto si no hay coincidencias
             } else {
               this.mostrarTabla = true;
@@ -320,6 +364,7 @@ export class RecepcionComponent {
             Notify.failure(
               'No se encontraron lotes para la combinación de servicio y solicitud'
             );
+            this.totalPeso = 0;
             this.mostrarTabla = false;
             this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto si no hay coincidencias
           }

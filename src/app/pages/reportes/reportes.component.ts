@@ -138,6 +138,7 @@ export class ReportesComponent {
       console.log('Fecha desde', this.fechaDesde);
       console.log('Fecha hasta', this.fechaHasta);
       console.log('Documento', this.documento.value);
+      this.fechaDesde.setDate(this.fechaDesde.getDate() - 1);
       if (this.documento.value === 'Detalle Camiones') {
         Notiflix.Notify.success('Documento de camiones creado');
         this.http
@@ -336,8 +337,7 @@ export class ReportesComponent {
         this.tablaCamion = false;
         this.tablaRCamion = false;
         this.tablaRVagon = false;
-      } else if (this.documento.value === 'Resumen Vagones'){
-        
+      } else if (this.documento.value === 'Resumen Vagones') {
         this.http.get(apiLote).subscribe((response) => {
           const lotesResponse = response as any[];
           this.lotes = lotesResponse.filter((lote) => {
@@ -366,7 +366,8 @@ export class ReportesComponent {
         this.tablaRCamion = false;
         this.tablaRVagon = false;
       }
-    } else if(this.documento.value === 'Inventario'){
+      this.fechaDesde.setDate(this.fechaDesde.getDate() + 1);
+    } else if (this.documento.value === 'Inventario') {
       this.bodegaService.getBodegas().subscribe((response) => {
         const bodegas = response as any[];
         this.bodegas = bodegas.map((bodega) => {
@@ -386,8 +387,7 @@ export class ReportesComponent {
       this.tablaCamion = false;
       this.tablaRCamion = false;
       this.tablaRVagon = false;
-    }
-    else {
+    } else {
       Notiflix.Notify.info('Faltan datos');
     }
   }
@@ -520,85 +520,98 @@ export class ReportesComponent {
       const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
         this.lotes.map((lote, index) => ({
           'N°': index + 1,
-          'Referencia': lote.observacion,
+          Referencia: lote.observacion,
           'Fecha de creación': lote.fLote,
           'Camiones Registrados': lote.cantCamiones,
           'Peso Bruto': lote.pesoBrutoHumedo,
           'Peso Tara': lote.pesoTara,
           'Peso Neto': lote.pesoNetoHumedo,
-          'Diferencia': lote.diferenciaPeso,
+          Diferencia: lote.diferenciaPeso,
         }))
-      )
-      
+      );
+
       // Agregar un espacio en blanco al final de la tabla
-      XLSX.utils.sheet_add_json(worksheet, [{ ' ': '' }], { header: [], skipHeader: true, origin: 'A' + (this.lotes.length + 2) })
-      
+      XLSX.utils.sheet_add_json(worksheet, [{ ' ': '' }], {
+        header: [],
+        skipHeader: true,
+        origin: 'A' + (this.lotes.length + 2),
+      });
+
       // Agregar las sumas al final de la tabla
-      XLSX.utils.sheet_add_json(worksheet, [
-        {
-          'Peso Bruto': this.calcularPesoBrutoTotal(),
-          'Peso Tara': this.calcularPesoTaraTotal(),
-          'Peso Neto': this.calcularPesoNetoTotal(),
-          'Diferencia': this.calcularDiferenciaTotal(),
-        },
-      ], { header: [], skipHeader: false, origin: 'A' + (this.lotes.length + 3) })
-      
+      XLSX.utils.sheet_add_json(
+        worksheet,
+        [
+          {
+            'Peso Bruto': this.calcularPesoBrutoTotal(),
+            'Peso Tara': this.calcularPesoTaraTotal(),
+            'Peso Neto': this.calcularPesoNetoTotal(),
+            Diferencia: this.calcularDiferenciaTotal(),
+          },
+        ],
+        { header: [], skipHeader: false, origin: 'A' + (this.lotes.length + 3) }
+      );
+
       const workbook: XLSX.WorkBook = {
         Sheets: { 'Resumen Camiones': worksheet },
         SheetNames: ['Resumen Camiones'],
-      }
-      
-      XLSX.writeFile(workbook, 'Resumen Camiones.xlsx')
+      };
 
-    } else if (this.tablaRVagon){
+      XLSX.writeFile(workbook, 'Resumen Camiones.xlsx');
+    } else if (this.tablaRVagon) {
       const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
         this.lotes.map((lote, index) => ({
           'N°': index + 1,
-          'Referencia': lote.observacion,
+          Referencia: lote.observacion,
           'Fecha de creación': lote.fLote,
           'Vagones Registrados': lote.cantVagones,
           'Peso Bruto': lote.pesoBrutoHumedo,
           'Peso Tara': lote.pesoTara,
           'Peso Neto': lote.pesoNetoHumedo,
-          'Diferencia': lote.diferenciaPeso,
+          Diferencia: lote.diferenciaPeso,
         }))
-      )
-      
+      );
+
       // Agregar un espacio en blanco al final de la tabla
-      XLSX.utils.sheet_add_json(worksheet, [{ ' ': '' }], { header: [], skipHeader: true, origin: 'A' + (this.lotes.length + 2) })
-      
+      XLSX.utils.sheet_add_json(worksheet, [{ ' ': '' }], {
+        header: [],
+        skipHeader: true,
+        origin: 'A' + (this.lotes.length + 2),
+      });
+
       // Agregar las sumas al final de la tabla
-      XLSX.utils.sheet_add_json(worksheet, [
-        {
-          'Peso Bruto': this.calcularPesoBrutoTotal(),
-          'Peso Tara': this.calcularPesoTaraTotal(),
-          'Peso Neto': this.calcularPesoNetoTotal(),
-          'Diferencia': this.calcularDiferenciaTotal(),
-        },
-      ], { header: [], skipHeader: false, origin: 'A' + (this.lotes.length + 3) })
-      
+      XLSX.utils.sheet_add_json(
+        worksheet,
+        [
+          {
+            'Peso Bruto': this.calcularPesoBrutoTotal(),
+            'Peso Tara': this.calcularPesoTaraTotal(),
+            'Peso Neto': this.calcularPesoNetoTotal(),
+            Diferencia: this.calcularDiferenciaTotal(),
+          },
+        ],
+        { header: [], skipHeader: false, origin: 'A' + (this.lotes.length + 3) }
+      );
+
       const workbook: XLSX.WorkBook = {
         Sheets: { 'Resumen Vagones': worksheet },
         SheetNames: ['Resumen Vagones'],
-      }
-      
-      XLSX.writeFile(workbook, 'Resumen Vagones.xlsx')
-    } else if (this.tablaInv){
+      };
+
+      XLSX.writeFile(workbook, 'Resumen Vagones.xlsx');
+    } else if (this.tablaInv) {
       const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
         this.bodegas.map((bodega) => ({
-          'N° Bodega' : bodega.idBodega,
+          'N° Bodega': bodega.idBodega,
           'Nombre Bodega': bodega.nombreBodega,
-          'Total' : bodega.total,
+          Total: bodega.total,
         }))
-      )
+      );
       const workbook: XLSX.WorkBook = {
-        Sheets: { 'Bodegas': worksheet },
+        Sheets: { Bodegas: worksheet },
         SheetNames: ['Bodegas'],
-      }
+      };
 
-      XLSX.writeFile(workbook, 'Bodegas.xlsx')
-
-
+      XLSX.writeFile(workbook, 'Bodegas.xlsx');
     }
   }
   // } else if (this.tablaVagon){
