@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User
+from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs
 
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,6 +71,10 @@ class DespachoEmbarqueSerializer(serializers.ModelSerializer):
         model = DespachoEmbarque
         fields = '__all__'
 
+class UserLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLogs
+        fields = '__all__'
 
 
 

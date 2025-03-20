@@ -29,6 +29,7 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import Notiflix from 'notiflix';
 import { RolService } from 'src/app/services/rol.service';
 import { LoteService } from 'src/app/services/lote.service';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -76,6 +77,12 @@ interface User {
   username: string;
   email: string;
   rol: string;
+}
+
+export interface Userlogs {
+  email: string;
+  fecha: string;
+  hora: string;
 }
 
 filteredOptions: Observable<any[]>;
@@ -160,7 +167,8 @@ export class FormulariosComponent {
   rolSeleccionado: string;
   userSeleccionado: string;
   lotes: any[];
-
+  displayedColumns : string[] = ['email','fecha','hora'];
+  dataSource = new MatTableDataSource<Userlogs>();
   constructor(
     private RolService: RolService,
     private loteService: LoteService,
@@ -174,6 +182,7 @@ export class FormulariosComponent {
     this.obtenerSolicitudes();
     this.obtenerUsuarios();
     this.obtenerBodegas();
+    this.obtenerLogs();
     this.admin = RolService.isTokenValid();
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
@@ -230,6 +239,20 @@ export class FormulariosComponent {
       }
     );
   }
+
+  logs : any;
+  obtenerLogs() {
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/user-logs/';
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        this.dataSource.data = data.reverse();
+        console.log(data);
+      },
+      (error) => {
+        console.error('Error al obtener los logs', error);
+      }
+    );
+    }
 
   obtenerLotes(): void {
     const servicioId = this.selectedServicioId;

@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import filters
 from rest_framework import viewsets
-from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, UserSerializer
-from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, User
+from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, UserLogSerializer, UserSerializer
+from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, User, UserLogs
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -90,6 +90,11 @@ class DespachoEmbarqueViewSet(viewsets.ModelViewSet):
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=nLote','=estado','=fechaInicial','=fechaFinal')
 
+class UserLogsViewSet(viewsets.ModelViewSet):
+    queryset = UserLogs.objects.all()
+    serializer_class = UserLogSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=email','=fecha')
 
 def obtener_lotes_por_fechas(request):
     fecha1_str = request.GET.get('fecha1')

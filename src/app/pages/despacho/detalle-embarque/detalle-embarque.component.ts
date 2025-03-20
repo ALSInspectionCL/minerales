@@ -112,6 +112,8 @@ export class DetalleEmbarqueComponent {
   odometrosIniciales = 0.0;
   odometrosFinales = 0.0;
   sumaPesos = 0;
+  porcHumedad = 0;
+  pesoSeco = 0;
   fechaPrimerRegistro = null;
   fechaUltimoRegistro = null;
   horaPrimerRegistro = null;
@@ -212,6 +214,8 @@ export class DetalleEmbarqueComponent {
         let horaPrimerRegistro = null;
         let horaUltimoRegistro = null;
         let sumaPesos = 0;  
+        let porcHumedad = 0;
+        let pesoSeco = 0;
 
         // Recorre cada registro y suma los valores correspondientes
         this.dataSource1.forEach((registro, index) => {
@@ -228,14 +232,20 @@ export class DetalleEmbarqueComponent {
           }
 
           sumaPesos += Number(registro.pesoLote);
+          porcHumedad += Number(registro.porcHumedad);
           odometrosIniciales += Number(registro.odometroInicial);
           odometrosFinales += Number(registro.odometroFinal);
         });
-
+        // Calcula el porcentaje de humedad promedio
+        porcHumedad = porcHumedad / totalSublotes;
+        this.porcHumedad = porcHumedad;
         this.totalSublotes = totalSublotes;
         this.odometrosIniciales = odometrosIniciales;
         this.odometrosFinales = odometrosFinales;
         this.sumaPesos = sumaPesos
+
+        //calcular el peso seco
+        this.pesoSeco = this.sumaPesos - (this.sumaPesos * (this.porcHumedad / 100));
 
         // this.odometrosIniciales = Number(this.odometrosIniciales.toFixed(2));
         // this.odometrosFinales = Number(this.odometrosFinales.toFixed(2));
@@ -249,6 +259,9 @@ export class DetalleEmbarqueComponent {
         console.log('Fecha Ultimo Registro:', this.fechaUltimoRegistro);
         console.log('Hora Primer Registro:', this.horaPrimerRegistro);
         console.log('Hora Ultimo Registro:', this.horaUltimoRegistro);
+        console.log('Suma Pesos:', this.sumaPesos);
+        console.log('Porcentaje Humedad:', this.porcHumedad);
+        console.log('Peso Seco:', this.pesoSeco);
       },
       (error: any) => {
         console.error('Error fetching data', error);
@@ -331,7 +344,8 @@ export class DetalleEmbarqueComponent {
       ...this.lote,
       cantSubLotes: cantSubLotes,
       pesoNetoHumedo: this.sumaPesos.toFixed(2),
-
+      porcHumedad: this.porcHumedad.toFixed(2),
+      pesoNetoSeco: this.pesoSeco.toFixed(2),
     };
 
     console.log('Lote actualizado:', loteActualizado);

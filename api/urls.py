@@ -18,6 +18,7 @@ router.register(r'user',views.UserViewSet)
 router.register(r'bodega',views.BodegaViewSet)
 router.register(r'detalle-bodega',views.DetalleBodegaViewSet)
 router.register(r'despacho-embarque',views.DespachoEmbarqueViewSet)
+router.register(r'user-logs',views.UserLogsViewSet)
 
 urlpatterns=[
     path('', include(router.urls)),

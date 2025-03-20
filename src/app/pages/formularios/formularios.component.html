@@ -379,6 +379,27 @@
         Asignar roll
       </button>
     </mat-card-content>
+    <mat-card-content class="m-t-20">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <!-- Definición de columnas aquí -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef> Usuario </th>
+          <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+        </ng-container>
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef> Fecha </th>
+          <td mat-cell *matCellDef="let element"> {{element.fecha}} </td>
+        </ng-container>
+        <ng-container matColumnDef ="hora">
+          <th mat-header-cell *matHeaderCellDef> Fecha </th>
+          <td mat-cell *matCellDef="let element"> {{element.hora}} </td>
+        </ng-container>
+  
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+    </mat-card-content>
   </mat-card>
 </div>
 

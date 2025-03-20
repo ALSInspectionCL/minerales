@@ -183,6 +183,11 @@ class User(models.Model):
     email = models.EmailField(unique=True, null=False, blank = False)
     rol = models.CharField(max_length=50,  null=False, blank = False)
 
+class UserLogs(models.Model):
+    email = models.CharField(max_length=50,  null=False, blank = False)
+    fecha = models.DateField()
+    hora = models.TimeField()
+
 class DetalleBodega(models.Model):
     idBodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=50)
