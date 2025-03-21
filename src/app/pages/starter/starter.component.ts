@@ -846,4 +846,5 @@ export class StarterComponent {
       })
       .catch(error => console.error(error));
   }
+
 }

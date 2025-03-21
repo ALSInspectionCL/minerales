@@ -1,10 +1,10 @@
 import { Token } from '@angular/compiler';
 import { SolicitudService } from './../../services/solicitud.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, ViewChild } from '@angular/core';
 import { MatCard, MatCardModule } from '@angular/material/card';
 import { MatFormField, MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import {
@@ -120,6 +120,8 @@ filteredOptions: Observable<any[]>;
   ],
 })
 export class FormulariosComponent {
+  dataSource = new MatTableDataSource<any>();
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   myControl = new FormControl('');
   options: string[] = ['Ventanas', 'San Antonio', 'Otro'];
   filteredOptions: Observable<string[]>;
@@ -168,7 +170,6 @@ export class FormulariosComponent {
   userSeleccionado: string;
   lotes: any[];
   displayedColumns : string[] = ['email','fecha','hora'];
-  dataSource = new MatTableDataSource<Userlogs>();
   constructor(
     private RolService: RolService,
     private loteService: LoteService,
@@ -692,5 +693,9 @@ export class FormulariosComponent {
       this.imagenPreview = reader.result;
     };
     reader.readAsDataURL(this.imagenBodega);
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
   }
 }

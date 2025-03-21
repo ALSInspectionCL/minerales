@@ -55,6 +55,8 @@ class LoteRecepcion(models.Model):
     porcHumedad = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     pesoNetoSeco = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     diferenciaPeso = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
+    CuOrigen = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    CuDestino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     solicitud = models.ForeignKey(Solicitud, on_delete=models.CASCADE)
 
@@ -129,6 +131,7 @@ class RecepcionTransporte(models.Model):
     diferenciaHumeda = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     diferenciaSeca = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     bodegaDescarga = models.CharField(max_length=200,blank=True, null=True)
+    CuFino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
     estado = models.CharField(max_length=20)
 

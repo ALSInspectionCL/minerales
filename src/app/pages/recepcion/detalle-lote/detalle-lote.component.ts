@@ -300,6 +300,16 @@ export class DetalleLoteComponent {
     this.lote.porcHumedad = input.value; // Actualiza el valor de porcHumedad
   }
 
+  actualizarCuOrigen(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.CuOrigen = input.value; // Actualiza el valor de cuOrigen
+  }
+
+  actualizarCuDestino(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.CuDestino = input.value; // Actualiza el valor de cuOrigen
+  }
+
   actualizarObservacion(event: Event): void {
     const input = event.target as HTMLInputElement; // Aserción de tipo
     this.lote.observacion = input.value; // Actualiza el valor de porcHumedad
@@ -361,6 +371,7 @@ export class DetalleLoteComponent {
         netoHumedoDestino: null,
         diferenciaHumeda: null,
         diferenciaSeca: null,
+        CuFino : null,
         bodega: this.bodegaSeleccionada.idBodega,
         estado: 'pendiente',
       };
@@ -548,6 +559,29 @@ export class DetalleLoteComponent {
 
     // Guardar el archivo Excel usando xlsx-style
     XLSX.writeFile(wb, 'datos_lote.xlsx');
+  }
+
+  calcularTotalSeco(netoHumedoDestino: number, porcentajeHumedad: number) {
+    const totalSeco = (netoHumedoDestino - (netoHumedoDestino * porcentajeHumedad / 100)).toFixed(2);
+    return totalSeco;
+  }
+
+  calcularCobreFino(totalSeco : number) {
+    // Verificar el Cobre de Origen y Cobre de Destino
+    const CuOrigen = this.lote.CuOrigen;
+    const CuDestino = this.lote.CuDestino;
+    if(CuOrigen == 0 && CuDestino != 0) {
+      // Calcular el Cobre Fino
+      const CuFino = totalSeco * (totalSeco * CuDestino/ 100);
+      return CuFino;
+    }else if (CuOrigen != 0 && CuDestino == 0) {
+      // Calcular el Cobre Fino
+      const CuFino = totalSeco * (totalSeco * CuOrigen/ 100);
+      return CuFino;
+    }else{
+      return 0;
+    }
+
   }
 }
 
@@ -787,6 +821,26 @@ export class CrearRegistroDialog {
     return Number(valorPesoNeto.toFixed(2));
   }
 
+  calcularTotalSeco(netoHumedoDestino: number, porcentajeHumedad: number) {
+    const totalSeco = (netoHumedoDestino - (netoHumedoDestino * porcentajeHumedad / 100)).toFixed(2);
+    return totalSeco;
+  }
+
+  calcularCobreFino(totalSeco : number) {
+    // Verificar el Cobre de Origen y Cobre de Destino
+    const CuOrigen = this.lote.CuOrigen;
+    const CuDestino = this.lote.CuDestino;
+    let CuFino = 0;
+    if(CuDestino != 0) {
+      CuFino = totalSeco * (totalSeco * CuDestino/ 100);
+    }else if (CuOrigen != 0) {
+      CuFino = totalSeco * (totalSeco * CuOrigen/ 100);
+    }else{
+      CuFino = 0;
+    }
+    return CuFino.toFixed(2);
+  }
+
   //peso neto humedo de destino es peso bruto destino menos peso tara destino
 
   onSubmit(): void {
@@ -833,7 +887,10 @@ export class CrearRegistroDialog {
       let pesoNetoHumedoDestino = this.calcularNetoHumedo();
       let diferenciaHumeda = this.calcularDifHumeda();
       let diferenciaSeca = this.calcularDifSeca();
-
+      let totalSeco = this.calcularTotalSeco(pesoNetoHumedoDestino, this.porcentajeHumedad);
+      let CuFino = this.calcularCobreFino(Number(totalSeco));
+      console.log('Total Seco:', totalSeco);
+      console.log('CuFino:', CuFino);
       console.log('Diferencia Húmeda:', diferenciaHumeda);
       console.log('Diferencia Seca:', diferenciaSeca);
       const registroModificado = {
@@ -841,6 +898,7 @@ export class CrearRegistroDialog {
         diferenciaHumeda: diferenciaHumeda,
         diferenciaSeca: diferenciaSeca,
         netoHumedoDestino: pesoNetoHumedoDestino,
+        CuFino : CuFino,
       };
       console.log(registroModificado);
       Notiflix.Confirm.show(
