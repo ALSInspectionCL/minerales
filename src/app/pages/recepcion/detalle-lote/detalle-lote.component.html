@@ -206,7 +206,7 @@
           <mat-card-content>
             <table
               mat-table
-              [dataSource]="dataSource1"
+              [dataSource]="dataSource2"
               class="mat-elevation-z8"
               *ngIf = "lote?.tipoTransporte== 'Camion'"
             >
@@ -441,7 +441,7 @@
             </table>
             <table
             mat-table
-            [dataSource]="dataSource1"
+            [dataSource]="dataSource2"
             class="mat-elevation-z8"
             *ngIf = "lote?.tipoTransporte == 'Vagon'"
           >
@@ -626,6 +626,7 @@
               (click)="abrirDialogoModificarRegistro(row)"
             ></tr>
           </table>
+          <mat-paginator [length]="dataSource1.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" (page)="onPageEvent($event)"></mat-paginator>
           </mat-card-content>
         </mat-card>
       </div>

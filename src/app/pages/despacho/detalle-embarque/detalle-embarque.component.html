@@ -58,7 +58,7 @@
                   matInput
                   readonly
                   type="text"
-                  [value]="lote?.cantSubLotes || 0"
+                  [value]="lote?.cantSubLotes || 0 + ' Sublotes'"
                 />
               </mat-form-field>
         
@@ -129,7 +129,38 @@
               <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
                 >Peso Lote</mat-label
               >
-              <input matInput readonly type="text" [value]="sumaPesos.toFixed(2)" />
+              <input matInput readonly type="text" [value]="sumaPesos.toFixed(2) + ' Ton'" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Peso Seco</mat-label
+              >
+              <input matInput readonly type="text" [value]="lote?.pesoNetoSeco + ' Ton'" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >% Cobre Embarque</mat-label
+              >
+              <input
+                matInput
+                type="number"
+                [value]="lote?.CuOrigen"
+                (input)="actualizarCuOrigen($event)"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+                >Cobre Fino</mat-label
+              >
+              <input matInput
+               readonly 
+               type="text" 
+               [value]="lote?.CuFino + ' Ton'"
+               (input)="actualizarCuFino($event)"
+               />
             </mat-form-field>
           
           </form>
@@ -185,7 +216,7 @@
         <!-- TABLA DE CAMIONES -->
         <mat-card>
           <mat-card-header class="m-8">
-              <mat-card-title>Lista de Camiones registrados</mat-card-title>
+              <mat-card-title>Lista de Sublotes registrados</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">

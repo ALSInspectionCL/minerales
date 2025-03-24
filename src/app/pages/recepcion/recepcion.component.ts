@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormsModule,
@@ -22,7 +22,7 @@ import {
 import { MatFormFieldModule, MatFormField } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import Notiflix from 'notiflix';
@@ -33,6 +33,7 @@ import { ServicioService } from 'src/app/services/servicio.service';
 import { SolicitudService } from 'src/app/services/solicitud.service';
 import { DetalleLoteComponent } from './detalle-lote/detalle-lote.component';
 import { RolService } from 'src/app/services/rol.service';
+import { MatTableDataSource } from '@angular/material/table';
 
 export interface loteRecepcion {
   id: number;
@@ -104,6 +105,7 @@ const LOTE_FILTRADO: loteRecepcion[] = [];
   styleUrl: './recepcion.component.scss',
 })
 export class RecepcionComponent {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   idServicio: any;
   idSolicitud: any;
   servicios: any[];
@@ -133,6 +135,7 @@ export class RecepcionComponent {
     'detalle',
   ];
   dataSource1 = LOTE_DEFAULT;
+  dataSource2 = new MatTableDataSource<any>();
 
 
   carouselOne = {
@@ -208,6 +211,10 @@ export class RecepcionComponent {
       }
     });
     });
+  }
+
+  onPageEvent(event: any) {
+    this.dataSource2.paginator = this.paginator;
   }
 
   obtenerServicios() {
@@ -348,6 +355,8 @@ export class RecepcionComponent {
 
             // Asignar el lote filtrado a dataSource1
             this.dataSource1 = LOTE_FILTRADO;
+            this.dataSource2 = new MatTableDataSource<any>(LOTE_FILTRADO);
+            this.dataSource2.paginator = this.paginator;
             this.totalPeso = Number(sumaPesos.toFixed(2))
 
             // Verificar si LOTE_FILTRADO está vacío

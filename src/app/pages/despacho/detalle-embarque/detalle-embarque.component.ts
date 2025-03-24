@@ -61,6 +61,9 @@ export interface loteDespachoEmbarque {
   diferenciaPeso: number;
   nombreNave: string;
   bodegaNave: string;
+  CuFino: number;
+  CuOrigen: number;
+  CuDestino: number;
   servicio: number;
   solicitud: number;
 }
@@ -114,6 +117,7 @@ export class DetalleEmbarqueComponent {
   sumaPesos = 0;
   porcHumedad = 0;
   pesoSeco = 0;
+  CuFino = 0;
   fechaPrimerRegistro = null;
   fechaUltimoRegistro = null;
   horaPrimerRegistro = null;
@@ -142,8 +146,9 @@ export class DetalleEmbarqueComponent {
 
   ngOnInit() {
     this.lote = this.data.lote;
+    console.log('Lote:', this.lote);
     this.obtenerBodegas();
-    this.nLote = this.lote.nLote;
+    this.nLote = this.data.lote.nLote;
     this.cargarDespachosEmbarque(this.nLote);
     this.admin = RolService.isTokenValid();
     this.rolService
@@ -168,22 +173,6 @@ export class DetalleEmbarqueComponent {
           console.log('El usuario no tiene el rol de Encargado');
         }
       });
-
-    // this.cargarDespachoTransporte(this.data.nLote);
-    // console.log('Data de dataSource:');
-    // console.log(this.dataSource1);
-    // this.admin = RolService.isTokenValid();
-    // this.rolService
-    //   .hasRole(localStorage.getItem('email') || '', 'Operador')
-    //   .subscribe((hasRole) => {
-    //     if (hasRole) {
-    //       console.log('El usuario tiene el rol de operator');
-    //       this.operator = true;
-    //     } else {
-    //       console.log('El usuario no tiene el rol de operator');
-    //       this.operator = false;
-    //     }
-    //   });
   }
 
   obtenerBodegas() {
@@ -213,7 +202,7 @@ export class DetalleEmbarqueComponent {
         let fechaUltimoRegistro = null;
         let horaPrimerRegistro = null;
         let horaUltimoRegistro = null;
-        let sumaPesos = 0;  
+        let sumaPesos = 0;
         let porcHumedad = 0;
         let pesoSeco = 0;
 
@@ -242,10 +231,14 @@ export class DetalleEmbarqueComponent {
         this.totalSublotes = totalSublotes;
         this.odometrosIniciales = odometrosIniciales;
         this.odometrosFinales = odometrosFinales;
-        this.sumaPesos = sumaPesos
+        this.sumaPesos = sumaPesos;
+        this.CuFino = Number(
+          this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
+        );
 
         //calcular el peso seco
-        this.pesoSeco = this.sumaPesos - (this.sumaPesos * (this.porcHumedad / 100));
+        this.pesoSeco =
+          this.sumaPesos - this.sumaPesos * (this.porcHumedad / 100);
 
         // this.odometrosIniciales = Number(this.odometrosIniciales.toFixed(2));
         // this.odometrosFinales = Number(this.odometrosFinales.toFixed(2));
@@ -262,6 +255,7 @@ export class DetalleEmbarqueComponent {
         console.log('Suma Pesos:', this.sumaPesos);
         console.log('Porcentaje Humedad:', this.porcHumedad);
         console.log('Peso Seco:', this.pesoSeco);
+        console.log('Cu Fino:', this.CuFino);
       },
       (error: any) => {
         console.error('Error fetching data', error);
@@ -272,6 +266,21 @@ export class DetalleEmbarqueComponent {
   actualizarPorcentajeHumedad(event: Event): void {
     const input = event.target as HTMLInputElement; // Aserción de tipo
     this.lote.porcHumedad = input.value; // Actualiza el valor de porcHumedad
+  }
+
+  actualizarCuOrigen(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.CuOrigen = input.value; // Actualiza el valor de cuOrigen
+  }
+
+  actualizarCuDestino(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.CuDestino = input.value; // Actualiza el valor de cuOrigen
+  }
+
+  actualizarCuFino(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.CuFino = input.value; // Actualiza el valor de cuOrigen
   }
 
   obtenerFechasYHoras(data: any): void {
@@ -336,7 +345,6 @@ export class DetalleEmbarqueComponent {
       }
     }
   }
-
   actualizarLote() {
     const cantSubLotes = this.dataSource1.length;
 
@@ -346,17 +354,38 @@ export class DetalleEmbarqueComponent {
       pesoNetoHumedo: this.sumaPesos.toFixed(2),
       porcHumedad: this.porcHumedad.toFixed(2),
       pesoNetoSeco: this.pesoSeco.toFixed(2),
+      CuFino: this.calcularCobreFino(Number(this.pesoSeco.toFixed(2))),
     };
-
-    console.log('Lote actualizado:', loteActualizado);
+    this.lote.CuFino = Number(
+      this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
+    );
 
     this.despachoTransporteService
       .actualizarLoteEmbarque(loteActualizado)
       .subscribe((response) => {
         console.log('Lote actualizado:', response);
+        this.data.lote = this.lote;
         this.ngOnInit();
         Notiflix.Notify.success('Se ha actualizado el lote correctamente');
       });
+  }
+
+  calcularCobreFino(totalSeco: number) {
+    // Verificar el Cobre de Origen y Cobre de Destino
+    const CuOrigen = this.lote.CuOrigen;
+    const CuDestino = this.lote.CuDestino;
+    console.log('Cobre Origen:', CuOrigen);
+    console.log('Cobre Destino:', CuDestino);
+    console.log('Total Seco:', totalSeco);
+    let CuFino = 0;
+    if (CuDestino != 0) {
+      CuFino = totalSeco - (totalSeco * CuDestino) / 100;
+    } else if (CuOrigen != 0) {
+      CuFino = totalSeco - (totalSeco * CuOrigen) / 100;
+    } else {
+      CuFino = 0;
+    }
+    return CuFino.toFixed(2);
   }
 
   onBodegaChange(event: MatSelectChange) {
@@ -620,8 +649,11 @@ export class CrearRegistroDialog {
 
   guardar() {
     this.embarqueTransporteForm.patchValue({
-      pesoLote: Math.abs(this.embarqueTransporteForm.get('odometroFinal')?.value - this.embarqueTransporteForm.get('odometroInicial')?.value).toFixed(2)
-    })
+      pesoLote: Math.abs(
+        this.embarqueTransporteForm.get('odometroFinal')?.value -
+          this.embarqueTransporteForm.get('odometroInicial')?.value
+      ).toFixed(2),
+    });
     const formData = this.embarqueTransporteForm.value;
     const valorFechaInicial =
       this.embarqueTransporteForm.get('fechaInicial')?.value;
@@ -653,7 +685,6 @@ export class CrearRegistroDialog {
       }
       const fechaFormateada2 = this.formatDate(fechaFinal);
       formData.fechaFinal = fechaFormateada2;
-
 
       if (formData.porcHumedad > 100) {
         Notiflix.Notify.failure(
@@ -725,7 +756,7 @@ export class CrearRegistroDialog {
 
   onNoClick(): void {
     this.dialogRef.close();
-    this.ngOnInit() // Cierra el diálogo sin devolver valor
+    this.ngOnInit(); // Cierra el diálogo sin devolver valor
   }
 
   aprobar() {
@@ -804,21 +835,26 @@ export class CrearRegistroDialog {
       }
     }
     console.log(this.embarqueTransporteForm.value);
-    if(this.embarqueTransporteForm.value.odometroInicial === 0 || this.embarqueTransporteForm.value.odometroFinal === 0){
+    if (
+      this.embarqueTransporteForm.value.odometroInicial === 0 ||
+      this.embarqueTransporteForm.value.odometroFinal === 0
+    ) {
       Notiflix.Notify.failure('Debe ingresar los odometros para aprobar');
       return;
     }
-    if (this.embarqueTransporteForm.value.id === null || this.embarqueTransporteForm.value.id === undefined) {
+    if (
+      this.embarqueTransporteForm.value.id === null ||
+      this.embarqueTransporteForm.value.id === undefined
+    ) {
       Notiflix.Notify.failure('Debe guardar el registro antes de aprobar');
       return;
     }
-    if(this.embarqueTransporteForm.value.estado === 'aprobado'){
+    if (this.embarqueTransporteForm.value.estado === 'aprobado') {
       Notiflix.Notify.failure('El registro ya se encuentra aprobado');
       return;
     }
     console.log('Formulario enviado:', formData);
-    if(this.embarqueTransporteForm.valid){
-      
+    if (this.embarqueTransporteForm.valid) {
       Notiflix.Confirm.show(
         '¿Desea aprobar el registro de embarque de transporte?',
         'Al aprobar el registro, no podrá ser modificado',
@@ -827,33 +863,31 @@ export class CrearRegistroDialog {
         () => {
           formData.estado = 'aprobado';
           this.http
-          .put(
-            'https://control.als-inspection.cl/api_min/api/despacho-embarque/' +
-              this.embarqueTransporteForm.value.id +
-              '/',
-            formData
-          )
-          .subscribe(
-            (response) => {
-              console.log('Formulario enviado correctamente:', response);
-              Notiflix.Notify.success('Embarque aprobado correctamente');
-              this.dialogRef.close(true);
-            },
-            (error) => {
-              console.error('Error al enviar el formulario:', error);
-              Notiflix.Notify.failure('Error al enviar el formulario');
-            }
-          );
+            .put(
+              'https://control.als-inspection.cl/api_min/api/despacho-embarque/' +
+                this.embarqueTransporteForm.value.id +
+                '/',
+              formData
+            )
+            .subscribe(
+              (response) => {
+                console.log('Formulario enviado correctamente:', response);
+                Notiflix.Notify.success('Embarque aprobado correctamente');
+                this.dialogRef.close(true);
+              },
+              (error) => {
+                console.error('Error al enviar el formulario:', error);
+                Notiflix.Notify.failure('Error al enviar el formulario');
+              }
+            );
         },
         () => {
           Notiflix.Notify.failure('No se aprobo el registro');
           this.dialogRef.close();
-        },
+        }
       );
-
-    }else{
+    } else {
       Notiflix.Notify.failure('El formulario no es válido');
     }
   }
-
 }

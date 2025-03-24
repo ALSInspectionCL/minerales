@@ -86,6 +86,9 @@ class LoteDespacho(models.Model):
     diferenciaPeso = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     nombreNave = models.CharField(max_length=200,blank=True, null=True)#Para el despacho maritimo
     bodegaNave = models.CharField(max_length=200,blank=True, null=True)#Para el despacho maritimo
+    CuOrigen = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    CuDestino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    CuFino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     solicitud = models.ForeignKey(Solicitud, on_delete=models.CASCADE)
 
@@ -165,6 +168,7 @@ class DespachoCamion(models.Model):
     netoHumedoDestino = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     diferenciaHumeda = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     diferenciaSeca = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
+    CuFino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     bodega = models.ForeignKey(Bodega, on_delete=models.CASCADE)
     estado = models.CharField(max_length=20)
 
@@ -176,6 +180,7 @@ class DespachoEmbarque(models.Model):
     horaFinal = models.TimeField(blank=True, null=True)
     fechaInicial = models.DateField()
     fechaFinal = models.DateField(blank=True, null=True)
+    CuFino = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     pesoLote = models.DecimalField(decimal_places=2,max_digits=10) #Diferencia entre odometroInicial y odometroFinal
     porcHumedad = models.DecimalField(decimal_places=2,max_digits=10) #Porcentaje de humedad de sub Lote
     estado = models.CharField(max_length=20)

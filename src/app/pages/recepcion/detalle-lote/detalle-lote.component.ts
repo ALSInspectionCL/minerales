@@ -1,7 +1,7 @@
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { Data } from '@angular/router';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Component, NgModule } from '@angular/core';
+import { Component, NgModule, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormsModule,
@@ -24,7 +24,7 @@ import {
 import { MatFormFieldModule, MatFormField } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
@@ -44,6 +44,7 @@ import { map, Observable } from 'rxjs';
 import { Bodega } from 'src/app/services/bodega.service';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
+import { MatTableDataSource } from '@angular/material/table';
 // import * as Xlsxstyle from 'xlsx-style';
 
 export interface loteRecepcion {
@@ -93,7 +94,10 @@ export interface loteRecepcion {
   styleUrl: './detalle-lote.component.scss',
 })
 export class DetalleLoteComponent {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   dataSource1: any[] = [];
+  dataSource2 = new MatTableDataSource<any>();
+  
   nLote = '0';
   lote: any | null = null;
   recepcionTransporteForm: FormGroup;
@@ -164,6 +168,10 @@ export class DetalleLoteComponent {
       });
   }
 
+  onPageEvent(event: any) {
+    this.dataSource2.paginator = this.paginator;
+  }
+
   obtenerBodegas() {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
@@ -210,6 +218,8 @@ export class DetalleLoteComponent {
       .subscribe(
         (data) => {
           this.dataSource1 = data;
+          this.dataSource2 = new MatTableDataSource(data);;
+          this.dataSource2.paginator = this.paginator;
           console.log('Data de dataSource:');
           console.log(this.dataSource1);
 
@@ -832,9 +842,9 @@ export class CrearRegistroDialog {
     const CuDestino = this.lote.CuDestino;
     let CuFino = 0;
     if(CuDestino != 0) {
-      CuFino = totalSeco * (totalSeco * CuDestino/ 100);
+      CuFino = totalSeco - (totalSeco * CuDestino/ 100);
     }else if (CuOrigen != 0) {
-      CuFino = totalSeco * (totalSeco * CuOrigen/ 100);
+      CuFino = totalSeco - (totalSeco * CuOrigen/ 100);
     }else{
       CuFino = 0;
     }
