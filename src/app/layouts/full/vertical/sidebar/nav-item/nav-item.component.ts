@@ -51,7 +51,7 @@ export class AppNavItemComponent implements OnChanges {
   @Input() item: NavItem | any;
   @Input() depth: any;
 
-  constructor(public navService: NavService, public router: Router) {
+  constructor(public navService: NavService, public router: Router, private rol : RolService) {
     if (this.depth === undefined) {
       this.depth = 0;
     }
@@ -60,16 +60,26 @@ export class AppNavItemComponent implements OnChanges {
   showItem: boolean;
 
   ngOnInit(): void{
-    if(this.item.displayName === 'MIN-USUARIO'  || this.item.displayName === 'Servicios y solicitudes' ||  this.item.displayName === 'Gestión de Recepción' ||  this.item.displayName === 'Gestión de Despachos'){
-      if(RolService.isTokenValid())
-        this.showItem = true;
-      else{
-        this.showItem = false;
-      }
+    const adminSections = ['Administración'];
 
-  }else{
-    this.showItem = true;
-  }
+    // Verificamos si la sección actual es una de administración
+    if (adminSections.includes(this.item.displayName)) {
+      this.rol.checkRol(localStorage.getItem('email')!).subscribe((res) => {
+        // Comprobamos el rol del usuario
+        const userRole = res[0].rol;
+    
+        // Si es un cliente, ocultamos la sección de administración
+        if (userRole === 'Cliente') {
+          this.item.displayName === 'Recepción'  || this.item.displayName === 'Inventario' || this.item.displayName === 'Despachos' || this.item.displayName === 'Reportes' || this.item.displayName === 'Inicio'
+          this.showItem = false;
+        } else {
+          this.showItem = true; // Si no es cliente, mostramos la sección
+        }
+      });
+    } else {
+      // Si no es una sección de administración, la mostramos
+      this.showItem = true;
+    }
 }
 
 

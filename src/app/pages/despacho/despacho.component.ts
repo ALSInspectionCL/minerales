@@ -143,27 +143,28 @@ export class DespachoComponent {
   ngOnInit() {
     this.obtenerServicios();
     this.obtenerSolicitudes();
-    this.admin = RolService.isTokenValid();
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          console.log('El usuario tiene el rol de operator');
-          this.operator = true;
-        } else {
-          console.log('El usuario no tiene el rol de operator');
+    this.rolService.getRoles(localStorage.getItem('email') || '')
+      .subscribe(roles => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
-        }
-      });
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Encargado')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.encargado = true;
-          console.log('El usuario tiene el rol de Encargado');
-        } else {
           this.encargado = false;
-          console.log('El usuario no tiene el rol de Encargado');
+          return;
+        }else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        }
+        else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+          } else {
+            this.admin = false;
+            this.operator = false;
+            this.encargado = false;
         }
       });
   }

@@ -53,7 +53,7 @@ class LoteRecepcionViewSet(viewsets.ModelViewSet):
     queryset = LoteRecepcion.objects.all()
     serializer_class = LoteRecepcionSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=tipoTransporte','=nLote','=fLote')
+    search_fields = ('=tipoTransporte','=nLote','=fLote','=servicio','=solicitud')
 
 
 class LoteInventarioViewSet(viewsets.ModelViewSet):
@@ -64,7 +64,7 @@ class LoteDespachoViewSet(viewsets.ModelViewSet):
     queryset = LoteDespacho.objects.all()
     serializer_class = LoteDespachoSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=tipoTransporte','=nLote','=fLote')
+    search_fields = ('=tipoTransporte','=nLote','=fLote','=servicio','=solicitud')
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

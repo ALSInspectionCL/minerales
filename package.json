@@ -32,12 +32,14 @@
     "ngx-scrollbar": "^11.0.0",
     "notiflix": "^3.2.7",
     "primeng": "^19.0.9",
+    "qrcode-reader": "^1.0.4",
     "rxjs": "~7.5.0",
     "sass": "^1.57.1",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
     "xlsx-style": "^0.8.13",
-    "zone.js": "~0.14.7"
+    "zone.js": "~0.14.7",
+    "zxing": "^0.1.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.0.3",

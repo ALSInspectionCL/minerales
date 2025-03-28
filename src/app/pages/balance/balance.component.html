@@ -1,0 +1,137 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <mat-card-title class="m-8">Calcular Balance</mat-card-title>
+    <mat-divider class="m-8"></mat-divider>
+
+    <div class="container">
+      <mat-card-content>
+        <mat-card-title class="m-8">Fechas de Inicio y Fin</mat-card-title>
+        <mat-divider class="m-8"></mat-divider>
+        <mat-card-subtitle class="m-8"
+          >Seleccione las fechas de inicio y fin para calcular el balance. Dejar
+          los espacios en blanco se utilizarán las fechas de este
+          mes.</mat-card-subtitle
+        >
+        <mat-form-field appearance="outline" class="m-8">
+          <mat-label>Fecha Inicial</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker1"
+            [(ngModel)]="fechaDesde"
+            placeholder="Choose a date"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker1"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="m-8">
+          <mat-label>Fecha Final</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker2"
+            [(ngModel)]="fechaHasta"
+            placeholder="Choose a date"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker2"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      </mat-card-content>
+    </div>
+
+    <mat-divider class="m-8"></mat-divider>
+
+    <div class="container">
+      <mat-card-content>
+        <mat-card-title class="m-8">Filtros</mat-card-title>
+        <mat-divider class="m-8"></mat-divider>
+        <mat-card-subtitle class="m-8"
+          >Seleccione los filtros que desea aplicar al
+          balance.</mat-card-subtitle
+        >
+
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Servicio</mat-label
+          >
+          <mat-select
+            matInput
+            placeholder="Seleccione un servicio"
+            [(ngModel)]="idServicio"
+            (ngModelChange)="filtrarSolicitudes($event)"
+          >
+            <mat-option
+              *ngFor="let servicio of servicios"
+              [value]="servicio.id"
+              >{{ servicio.nServ }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Solicitud</mat-label
+          >
+          <mat-select
+            matInput
+            placeholder="Seleccione una solicitud"
+            [(ngModel)]="idSolicitud"
+          >
+            <mat-option
+              *ngFor="let solicitud of solicitudesFiltradas"
+              [value]="solicitud.id"
+              >{{ solicitud.nSoli }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label>Tipo de Balance</mat-label>
+          <mat-select [(ngModel)]="tipoBalance">
+            <mat-option value="ingresos">Solo ingresos</mat-option>
+            <mat-option value="despachos">Solo despachos</mat-option>
+            <mat-option value="todos">Todos</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label>Tipo de vehículo</mat-label>
+          <mat-select [(ngModel)]="tipoVehiculo">
+            <mat-option value="camion">Camión</mat-option>
+            <mat-option value="vagon">Vagón</mat-option>
+            <mat-option value="todos">Todos</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label>Estado</mat-label>
+          <mat-select [(ngModel)]="estado">
+            <mat-option value="aprobado">Aprobado</mat-option>
+            <mat-option value="pendiente">Pendiente</mat-option>
+            <mat-option value="todos">Todos</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-card-content>
+    </div>
+    <button
+      mat-raised-button
+      class="m-r-8"
+      color="primary"
+      (click)="generarDocumento()"
+    >
+      Generar Documento
+    </button>
+    <button
+      mat-raised-button
+      class="m-r-8 enviarDocumento"
+      color="primary"
+      (click)="generarDocumento()"
+    >
+      Enviar Documento
+    </button>
+  </mat-card-content>
+</mat-card>

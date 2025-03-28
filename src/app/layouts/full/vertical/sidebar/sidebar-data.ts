@@ -28,18 +28,16 @@ export const navItems: NavItem[] = [
     displayName: 'Despachos',
     iconName:  'truck-delivery',
     route: '/home/despacho'
-  },  {
+  },
+  {
+    displayName: 'Balance',
+    iconName:  'file-analytics',
+    route: '/home/balance'  
+  },
+  {
     displayName: 'Reportes',
     iconName:  'file-analytics',
     route: '/home/reportes'  
-  },
-  // {
-  //   displayName: 'Inicio de Sesión',
-  //   iconName: 'lock',
-  //   route: '/authentication/login',
-  // },
-  {
-    navCap: 'MIN-USUARIO',
   },
   {
     displayName: 'Administración',

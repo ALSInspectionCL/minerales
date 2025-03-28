@@ -97,7 +97,7 @@ export class DetalleLoteComponent {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   dataSource1: any[] = [];
   dataSource2 = new MatTableDataSource<any>();
-  
+
   nLote = '0';
   lote: any | null = null;
   recepcionTransporteForm: FormGroup;
@@ -143,27 +143,52 @@ export class DetalleLoteComponent {
     this.obtenerBodegas();
     this.cargarRecepcionTransporte(this.data.nLote);
     this.guardarLote();
-    this.admin = RolService.isTokenValid();
+    // this.admin = RolService.isTokenValid();
+    // this.rolService
+    //   .hasRole(localStorage.getItem('email') || '', 'Operador')
+    //   .subscribe((hasRole) => {
+    //     if (hasRole) {
+    //       console.log('El usuario tiene el rol de operator');
+    //       this.operator = true;
+    //     } else {
+    //       console.log('El usuario no tiene el rol de operator');
+    //       this.operator = false;
+    //     }
+    //   });
+    // this.rolService
+    //   .hasRole(localStorage.getItem('email') || '', 'Encargado')
+    //   .subscribe((hasRole) => {
+    //     if (hasRole) {
+    //       this.encargado = true;
+    //       console.log('El usuario tiene el rol de Encargado');
+    //     } else {
+    //       this.encargado = false;
+    //       console.log('El usuario no tiene el rol de Encargado');
+    //     }
+    //   });
+
     this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          console.log('El usuario tiene el rol de operator');
-          this.operator = true;
-        } else {
-          console.log('El usuario no tiene el rol de operator');
+      .getRoles(localStorage.getItem('email') || '')
+      .subscribe((roles) => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
-        }
-      });
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Encargado')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.encargado = true;
-          console.log('El usuario tiene el rol de Encargado');
-        } else {
           this.encargado = false;
-          console.log('El usuario no tiene el rol de Encargado');
+          return;
+        } else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+        } else {
+          this.admin = false;
+          this.operator = false;
+          this.encargado = false;
         }
       });
   }
@@ -218,7 +243,7 @@ export class DetalleLoteComponent {
       .subscribe(
         (data) => {
           this.dataSource1 = data;
-          this.dataSource2 = new MatTableDataSource(data);;
+          this.dataSource2 = new MatTableDataSource(data);
           this.dataSource2.paginator = this.paginator;
           console.log('Data de dataSource:');
           console.log(this.dataSource1);
@@ -381,7 +406,7 @@ export class DetalleLoteComponent {
         netoHumedoDestino: null,
         diferenciaHumeda: null,
         diferenciaSeca: null,
-        CuFino : null,
+        CuFino: null,
         bodega: this.bodegaSeleccionada.idBodega,
         estado: 'pendiente',
       };
@@ -545,53 +570,84 @@ export class DetalleLoteComponent {
     );
   }
 
-  exportToExcel(): void {
-    // Crear una hoja de trabajo de Excel
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.dataSource1);
+exportToExcel(): void {
+  // Crear un arreglo con los datos filtrados y con los nombres de los campos
+  const datos = this.dataSource1.map((dato) => {
+    const bodega = this.bodegas.find((b: any) => b.idBodega === dato.bodega);
+    return {
+      ID: dato.id,
+      'Fecha Origen': dato.fOrigen,
+      'Hora Origen': dato.hOrigen,
+      'Guía Despacho': dato.tipoTransporte,
+      'ID Transporte Origen': dato.idTransporteOrigen,
+      'Sellos Origen': dato.sellosOrigen,
+      'Bruto Origen': dato.brutoOrigen,
+      'Tara Origen': dato.taraOrigen,
+      'Neto Húmedo Origen': dato.netoHumedoOrigen,
+      'Patente Origen': dato.idTransporteDestino,
+      'Fecha Destino': dato.fDestino,
+      'Hora Destino': dato.hDestino,
+      'Patente Destino': dato.idCarroDestino,
+      'Sellos Destino': dato.sellosDestino,
+      'Bruto Destino': dato.brutoDestino,
+      'Tara Destino': dato.taraDestino,
+      'Neto Húmedo Destino': dato.netoHumedoDestino,
+      'Diferencia Húmeda': dato.diferenciaHumeda,
+      'Diferencia Seca': dato.diferenciaSeca,
+      'Cu Fino': dato.CuFino,
+      Bodega: bodega ? bodega.nombreBodega : 'No encontrada',
+      Estado: dato.estado,
+    };
+  });
 
-    // Aplicar estilos a la primera fila (encabezado)
-    const headerRange = XLSX.utils.decode_range(ws['!ref']!); // Obtener el rango de la hoja
-    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col }); // Obtener la dirección de la celda (fila 0, columna col)
-      if (!ws[cellAddress]) continue; // Si la celda no existe, continuar
+  // Crear una hoja de trabajo de Excel
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datos);
 
-      // Aplicar estilo a la celda
-      ws[cellAddress].s = {
-        font: { bold: true, color: { rgb: 'FFFFFF' } }, // Texto en negrita y color blanco
-        fill: { fgColor: { rgb: '4F81BD' } }, // Fondo azul
-        alignment: { horizontal: 'center' }, // Alinear al centro
-      };
-    }
+  // Aplicar estilos a la primera fila (encabezado)
+  const headerRange = XLSX.utils.decode_range(ws['!ref']!); // Obtener el rango de la hoja
+  for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col }); // Obtener la dirección de la celda (fila 0, columna col)
+    if (!ws[cellAddress]) continue; // Si la celda no existe, continuar
 
-    // Crear un libro de trabajo y agregar la hoja de trabajo
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Datos');
-
-    // Guardar el archivo Excel usando xlsx-style
-    XLSX.writeFile(wb, 'datos_lote.xlsx');
+    // Aplicar estilo a la celda
+    ws[cellAddress].s = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } }, // Texto en negrita y color blanco
+      fill: { fgColor: { rgb: '4F81BD' } }, // Fondo azul
+      alignment: { horizontal: 'center' }, // Alinear al centro
+    };
   }
 
+  // Crear un libro de trabajo y agregar la hoja de trabajo
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+
+  // Guardar el archivo Excel usando xlsx-style
+  XLSX.writeFile(wb, 'datos_lote.xlsx');
+}
+
   calcularTotalSeco(netoHumedoDestino: number, porcentajeHumedad: number) {
-    const totalSeco = (netoHumedoDestino - (netoHumedoDestino * porcentajeHumedad / 100)).toFixed(2);
+    const totalSeco = (
+      netoHumedoDestino -
+      (netoHumedoDestino * porcentajeHumedad) / 100
+    ).toFixed(2);
     return totalSeco;
   }
 
-  calcularCobreFino(totalSeco : number) {
+  calcularCobreFino(totalSeco: number) {
     // Verificar el Cobre de Origen y Cobre de Destino
     const CuOrigen = this.lote.CuOrigen;
     const CuDestino = this.lote.CuDestino;
-    if(CuOrigen == 0 && CuDestino != 0) {
+    if (CuOrigen == 0 && CuDestino != 0) {
       // Calcular el Cobre Fino
-      const CuFino = totalSeco * (totalSeco * CuDestino/ 100);
+      const CuFino = totalSeco * ((totalSeco * CuDestino) / 100);
       return CuFino;
-    }else if (CuOrigen != 0 && CuDestino == 0) {
+    } else if (CuOrigen != 0 && CuDestino == 0) {
       // Calcular el Cobre Fino
-      const CuFino = totalSeco * (totalSeco * CuOrigen/ 100);
+      const CuFino = totalSeco * ((totalSeco * CuOrigen) / 100);
       return CuFino;
-    }else{
+    } else {
       return 0;
     }
-
   }
 }
 
@@ -641,61 +697,32 @@ export class CrearRegistroDialog {
   idLote: number;
   porcentajeHumedad = 0;
   ngOnInit(): void {
-    this.admin = RolService.isTokenValid();
-    this.admin = RolService.isTokenValid();
     this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          console.log('El usuario tiene el rol de operator');
-          this.operator = true;
-        } else {
-          console.log('El usuario no tiene el rol de operator');
+      .getRoles(localStorage.getItem('email') || '')
+      .subscribe((roles) => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
-        }
-      });
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Encargado')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.encargado = true;
-          console.log('El usuario tiene el rol de Encargado');
-        } else {
           this.encargado = false;
-          console.log('El usuario no tiene el rol de Encargado');
+          return;
+        } else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+        } else {
+          this.admin = false;
+          this.operator = false;
+          this.encargado = false;
         }
       });
     this.cargarLote();
     console.log('El lote es: ' + this.lote);
-    // this.recepcionTransporteForm.valueChanges.subscribe((changes) => {
-    //   const valorPesoBrutoDestino =
-    //     this.recepcionTransporteForm.get('brutoDestino')?.value;
-    //   const valorPesoTaraDestino =
-    //     this.recepcionTransporteForm.get('taraDestino')?.value;
-    //   const valorPesoNeto =
-    //     this.recepcionTransporteForm.get('netoHumedoDestino')?.value;
-
-    //   if (valorPesoBrutoDestino && valorPesoTaraDestino) {
-    //     const netoHumedoDestino = valorPesoBrutoDestino - valorPesoTaraDestino;
-    //       valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
-
-    //     this.recepcionTransporteForm.patchValue({
-    //       netoHumedoDestino: netoHumedoDestino,
-    //     });
-    //   }
-
-    //   const valorPesoBrutoOrigen =
-    //   this.recepcionTransporteForm.get('brutoOrigen')?.value;
-    //   const valorPesoTaraOrigen =
-    //   this.recepcionTransporteForm.get('taraOrigen')?.value;
-
-    //   if( valorPesoBrutoOrigen && valorPesoTaraOrigen ){
-    //     const netoHumedoOrigen = valorPesoBrutoOrigen - valorPesoTaraOrigen;
-    //     this.recepcionTransporteForm.patchValue({
-    //       netoHumedoOrigen: netoHumedoOrigen,
-    //     });
-    //   }
-    // });
   }
 
   constructor(
@@ -781,7 +808,7 @@ export class CrearRegistroDialog {
       diferenciaHumeda = valorNetoHumedoDestino - valorNetoHumedoOrigen;
       diferenciaHumeda = Number(diferenciaHumeda.toFixed(2));
       console.log('la diferencia humeda es: ', diferenciaHumeda);
-      if(diferenciaHumeda < 0){
+      if (diferenciaHumeda < 0) {
         diferenciaHumeda = diferenciaHumeda * -1;
       }
       return Number(diferenciaHumeda);
@@ -805,7 +832,7 @@ export class CrearRegistroDialog {
         diferenciaHumeda -
         (diferenciaHumeda * this.porcentajeHumedad * 1) / 100;
       diferenciaSeca = Number(diferenciaSeca.toFixed(2));
-      if (diferenciaSeca < 0){
+      if (diferenciaSeca < 0) {
         diferenciaSeca = diferenciaSeca * -1;
       }
       console.log('la diferencia seca es: ' + diferenciaSeca);
@@ -823,7 +850,7 @@ export class CrearRegistroDialog {
       this.recepcionTransporteForm.get('taraDestino')?.value;
     let valorPesoNeto = valorPesoTara - valorPesoBruto;
 
-    if (valorPesoNeto<0){
+    if (valorPesoNeto < 0) {
       valorPesoNeto = valorPesoNeto * -1;
     }
 
@@ -832,20 +859,23 @@ export class CrearRegistroDialog {
   }
 
   calcularTotalSeco(netoHumedoDestino: number, porcentajeHumedad: number) {
-    const totalSeco = (netoHumedoDestino - (netoHumedoDestino * porcentajeHumedad / 100)).toFixed(2);
+    const totalSeco = (
+      netoHumedoDestino -
+      (netoHumedoDestino * porcentajeHumedad) / 100
+    ).toFixed(2);
     return totalSeco;
   }
 
-  calcularCobreFino(totalSeco : number) {
+  calcularCobreFino(totalSeco: number) {
     // Verificar el Cobre de Origen y Cobre de Destino
     const CuOrigen = this.lote.CuOrigen;
     const CuDestino = this.lote.CuDestino;
     let CuFino = 0;
-    if(CuDestino != 0) {
-      CuFino = totalSeco - (totalSeco * CuDestino/ 100);
-    }else if (CuOrigen != 0) {
-      CuFino = totalSeco - (totalSeco * CuOrigen/ 100);
-    }else{
+    if (CuDestino != 0) {
+      CuFino = totalSeco - (totalSeco * CuDestino) / 100;
+    } else if (CuOrigen != 0) {
+      CuFino = totalSeco - (totalSeco * CuOrigen) / 100;
+    } else {
       CuFino = 0;
     }
     return CuFino.toFixed(2);
@@ -897,7 +927,10 @@ export class CrearRegistroDialog {
       let pesoNetoHumedoDestino = this.calcularNetoHumedo();
       let diferenciaHumeda = this.calcularDifHumeda();
       let diferenciaSeca = this.calcularDifSeca();
-      let totalSeco = this.calcularTotalSeco(pesoNetoHumedoDestino, this.porcentajeHumedad);
+      let totalSeco = this.calcularTotalSeco(
+        pesoNetoHumedoDestino,
+        this.porcentajeHumedad
+      );
       let CuFino = this.calcularCobreFino(Number(totalSeco));
       console.log('Total Seco:', totalSeco);
       console.log('CuFino:', CuFino);
@@ -908,7 +941,7 @@ export class CrearRegistroDialog {
         diferenciaHumeda: diferenciaHumeda,
         diferenciaSeca: diferenciaSeca,
         netoHumedoDestino: pesoNetoHumedoDestino,
-        CuFino : CuFino,
+        CuFino: CuFino,
       };
       console.log(registroModificado);
       Notiflix.Confirm.show(
@@ -1017,7 +1050,8 @@ export class CrearRegistroDialog {
 
     if (valorPesoBrutoDestino && valorPesoTaraDestino) {
       const netoHumedoDestino = valorPesoBrutoDestino - valorPesoTaraDestino;
-      valorPesoNetoDestino - valorPesoNetoDestino * (this.porcentajeHumedad / 100);
+      valorPesoNetoDestino -
+        valorPesoNetoDestino * (this.porcentajeHumedad / 100);
 
       this.recepcionTransporteForm.patchValue({
         netoHumedoDestino: netoHumedoDestino.toFixed(2),
@@ -1036,13 +1070,15 @@ export class CrearRegistroDialog {
       this.recepcionTransporteForm.patchValue({
         netoHumedoOrigen: netoHumedoOrigen.toFixed(2),
       });
-    }else{
-      this.recepcionTransporteForm.patchValue({netoHumedoOrigen:valorPesoNetoOrigen})
+    } else {
+      this.recepcionTransporteForm.patchValue({
+        netoHumedoOrigen: valorPesoNetoOrigen,
+      });
     }
 
     this.onSubmit();
   }
-  
+
   aprobar() {
     console.log(this.recepcionTransporteForm.value);
     if (this.recepcionTransporteForm.valid) {

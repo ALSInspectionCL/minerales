@@ -184,7 +184,7 @@ export class FormulariosComponent {
     this.obtenerUsuarios();
     this.obtenerBodegas();
     this.obtenerLogs();
-    this.admin = RolService.isTokenValid();
+    this.admin = true;
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value || ''))

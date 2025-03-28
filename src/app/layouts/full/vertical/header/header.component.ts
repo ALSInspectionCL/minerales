@@ -11,7 +11,7 @@ import { navItems } from '../sidebar/sidebar-data';
 import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
-import { RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { CommonModule, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -53,6 +53,7 @@ interface quicklinks {
   encapsulation: ViewEncapsulation.None,
 })
 export class HeaderComponent {
+
 
 
   // Aquí podrías tener lógica para obtener las iniciales del usuario desde localStorage o cualquier otra fuente
@@ -138,6 +139,11 @@ export class HeaderComponent {
     this.translate.use(lang.code);
     this.selectedLanguage = lang;
   }
+  
+  logout(): void {
+    localStorage.clear();
+  }
+
 
   notifications: notifications[] = [
     {

@@ -1,3 +1,4 @@
+import { BalanceComponent } from './balance/balance.component';
 import { Routes } from '@angular/router';
 import { StarterComponent } from './starter/starter.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component'
@@ -29,7 +30,7 @@ component: FormulariosComponent,
 canActivate: [RoleGuard],
 data: {
   expectedRoles: ['Admin', 'Operador', 'Encargado'],     
-  title: 'Cración de Servicios y Solicitudes',
+  title: 'Creación de Servicios y Solicitudes',
 }
   },{
     path: 'lotes',
@@ -60,6 +61,12 @@ data: {
     component: ReportesComponent,
     data: {
       title: 'Reportabilidad',
+    }
+  },{
+    path: 'balance',
+    component: BalanceComponent,
+    data: {
+      title: 'Gestión de Balance',
     }
   },
   

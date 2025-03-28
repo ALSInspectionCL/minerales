@@ -187,7 +187,7 @@
       </div>
 
       <div class="p-y-12 p-x-32">
-        <a [routerLink]="['authentication/login']" mat-stroked-button color="primary" class="w-100">Logout</a>
+        <a [routerLink]="['authentication/login']" mat-stroked-button color="primary" (click)="logout()" class="w-100">Logout</a>
       </div>
     </ng-scrollbar>
   </mat-menu>
