@@ -138,11 +138,12 @@ export class BalanceComponent {
   }
 
   obtenerLoteDespacho() {
-    const apiUrl =  'https://control.als-inspection.cl/api_min/api/lote-despacho/?' +
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/lote-despacho/?' +
       this.idServicio +
       this.idSolicitud +
       '/';
-      console.log('consultando ' + apiUrl);
+    console.log('consultando ' + apiUrl);
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.lotesDespacho = data; // Asigna los lotes obtenidos a
@@ -203,7 +204,6 @@ export class BalanceComponent {
     Notiflix.Notify.warning('En construcción');
   }
 
-
   generarDocumento() {
     this.wip();
     console.log('Generar documento segun las siguientes opciones');
@@ -214,86 +214,221 @@ export class BalanceComponent {
 
     if (this.fechaDesde && this.fechaHasta) {
       let fechaDesde = this.formatDate(this.fechaDesde);
-      let fechaHasta = this.formatDate(this.fechaHasta); 
-    }else{
+      let fechaHasta = this.formatDate(this.fechaHasta);
+    } else {
       this.fechaDesde = new Date();
       this.fechaDesde = this.obtenerPrimerDiaDelMes(this.fechaDesde);
       //fechaDesde empieza desde el dia 01 de este mes
-      let fechaHasta = new Date()
-      this.fechaHasta = new Date()
+      let fechaHasta = new Date();
+      this.fechaHasta = new Date();
       //fechaHasta termina en el dia de hoy
     }
-
     //buscar los registros segun el servicio y solicitud. Si no tiene servicio ni solicitud, buscar todos los registros
-    let apiUrl = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    let apiUrl ='https://control.als-inspection.cl/api_min/api/lote-recepcion/';
     if (this.idServicio) {
       apiUrl += '?nServ=' + this.idServicio + '&';
     }
     if (this.idSolicitud) {
-      apiUrl += '?nSolicitud=' + this.idSolicitud + '&';
+      apiUrl += '?nSolicitud=' + this.idSolicitud;
     }
     //guardar una lista con los nLotes para buscar los registros de cada nLote
-    let nLotes :string[]= [];
+    let nLotes: string[] = [];
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        if (this.tipoVehiculo === 'camion') {
-          this.tablaCamion = true;
-        } else if (this.tipoVehiculo === 'vagon') {
-          this.tablaVagon = true;
-        }
-
         // Verificar si existen nServ y nSoli
         if (this.idServicio && !this.idSolicitud) {
-          nLotes = data.filter(lote => lote.servicio === this.idServicio).map(lote => lote.nLote);
-        }
-        else if (this.idServicio && this.idSolicitud) {
+          nLotes = data
+            .filter((lote) => lote.servicio === this.idServicio)
+            .map((lote) => lote.nLote);
+        } else if (this.idServicio && this.idSolicitud) {
           // Filtrar datos para solo almacenar nLotes que coinciden con nServ y nSoli
-          nLotes = data.filter(lote => lote.servicio === this.idServicio && lote.solicitud === this.idSolicitud).map(lote => lote.nLote);
+          nLotes = data
+            .filter(
+              (lote) =>
+                lote.servicio === this.idServicio &&
+                lote.solicitud === this.idSolicitud
+            )
+            .map((lote) => lote.nLote);
         } else {
           // Almacenar todos los nLotes si no existen nServ y nSoli
-          nLotes = data.map(lote => lote.nLote);
+          nLotes = data.map((lote) => lote.nLote);
         }
-
         console.log('Cantidad de lotes encontrados: ' + nLotes.length);
         // Recorrer cada nLote para obtener los registros de cada uno
-
-        let apiLotes = 'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
-        this.http.get<any[]>(apiLotes).subscribe(
-          (data) => {
-          //filtrar data por nLote
-          let registrosPorNLote = data.filter(registro => nLotes.includes(registro.nLote));
-          console.log('Registros por nLote: ' + registrosPorNLote.length);
-          //filtrar registros por fecha
-          let registrosFiltrados = registrosPorNLote.filter(registro => {
-            let fOrigen = new Date(registro.fOrigen);
-            return fOrigen >= this.fechaDesde && fOrigen <= this.fechaHasta;
-          });
-          console.log('Registros filtrados por fecha: ' + registrosFiltrados.length);
-          //filtrar registros por estado
-          if (this.estado === 'pendiente' || this.estado === 'aprobado') {
-            registrosFiltrados = registrosFiltrados.filter(registro => registro.estado === this.estado);
-            }
-          console.log('Registros filtrados por estado: ' + registrosFiltrados.length);
-          //filtrar registros por tipo de vehiculo
-          if (this.tipoVehiculo === 'camion' || this.tipoVehiculo === 'vagon') {
-            registrosFiltrados = registrosFiltrados.filter(registro => registro.tipoTransporte === this.tipoVehiculo);  
-            }
-          console.log('Registros filtrados por tipo de vehiculo: ' + registrosFiltrados.length);
-          //generar documento
-          this.descargarDocumento(registrosFiltrados);
-          },
-          (error) => {
-            console.error('Error al obtener registros', error);
-          }
-          
-        );
       },
       (error) => {
         console.error('Error al obtener registros', error);
       }
     );
+    let apiLotes =
+    'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
+    this.http.get<any[]>(apiLotes).subscribe(
+      (data) => {
+        // Filtrar data por nLote
+        let registrosPorNLote = data.filter((registro) =>
+          nLotes.includes(registro.nLote)
+        );
+        console.log('Registros por nLote: ' + registrosPorNLote.length);
 
+        // Filtrar registros por fecha
+        let registrosFiltradosPorFecha = registrosPorNLote.filter(
+          (registro) => {
+            let fOrigen = new Date(registro.fOrigen);
+            return fOrigen >= this.fechaDesde && fOrigen <= this.fechaHasta;
+          }
+        );
+        console.log(
+          'Registros filtrados por fecha: ' +
+            registrosFiltradosPorFecha.length
+        );
+
+        // Filtrar registros por estado
+        let registrosFiltradosPorEstado;
+        if (this.estado === 'pendiente' || this.estado === 'aprobado') {
+          registrosFiltradosPorEstado = registrosFiltradosPorFecha.filter(
+            (registro) => registro.estado === this.estado
+          );
+        } else {
+          registrosFiltradosPorEstado = registrosFiltradosPorFecha;
+        }
+        console.log(
+          'Registros filtrados por estado: ' +
+            registrosFiltradosPorEstado.length
+        );
+
+        // Filtrar registros por tipo de vehiculo
+        let registrosFiltradosPorTipoVehiculo;
+        if (
+          this.tipoVehiculo === 'Camion' ||
+          this.tipoVehiculo === 'Vagon'
+        ) {
+          registrosFiltradosPorTipoVehiculo =
+            registrosFiltradosPorEstado.filter(
+              (registro) => registro.tipoTransporte === this.tipoVehiculo
+            );
+        } else {
+          registrosFiltradosPorTipoVehiculo = registrosFiltradosPorEstado;
+        }
+        console.log(
+          'Registros filtrados por tipo de vehiculo: ' +
+            registrosFiltradosPorTipoVehiculo.length
+        );
+
+        // Generar documento
+        let registrosIngresos = registrosFiltradosPorTipoVehiculo;
+        console.log(registrosIngresos);
+        this.descargarDocumento(registrosIngresos)
+      },
+      (error) => {
+        console.error('Error al obtener registros', error);
+      }
+    );
   }
+
+  // descargarDocumento(registrosIngresos: any[], registrosDespachos: any[]) {
+  //   console.log('Descargando documento...');
+  //   console.log(registrosIngresos.length);
+  //   console.log(registrosDespachos.length);
+  // }
+
+  descargarDocumento(registros: any[]) {
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(registros);
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Registros');
+    const excelBuffer: any = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array',
+    });
+    const blob: Blob = new Blob([excelBuffer], {
+      type: this.getMimeType('xlsx'),
+    });
+    const fileName = 'registros.xlsx';
+    this.saveAs(blob, fileName);
+  }
+
+  // Agregar estas funciones a la clase BalanceComponent
+
+private getMimeType(fileExtension: string): string {
+  switch (fileExtension) {
+    case 'xlsx':
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+private saveAs(blob: Blob, fileName: string): void {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+  porAgregar() {
+    let nLotes: string[] = [];
+    let apiEmbarque =
+      'https://control.als-inspection.cl/api_min/api/despacho-embarque/';
+    this.http.get<any[]>(apiEmbarque).subscribe(
+      (data) => {
+        // Filtrar data por nLote
+        let registrosPorNLote = data.filter((registro) =>
+          nLotes.includes(registro.nLote)
+        );
+        console.log('Registros por nLote: ' + registrosPorNLote.length);
+
+        // Filtrar registros por fecha
+        let registrosFiltradosPorFecha = registrosPorNLote.filter(
+          (registro) => {
+            let fOrigen = new Date(registro.fOrigen);
+            return fOrigen >= this.fechaDesde && fOrigen <= this.fechaHasta;
+          }
+        );
+        console.log(
+          'Registros filtrados por fecha: ' + registrosFiltradosPorFecha.length
+        );
+
+        // Filtrar registros por estado
+        let registrosFiltradosPorEstado;
+        if (this.estado === 'pendiente' || this.estado === 'aprobado') {
+          registrosFiltradosPorEstado = registrosFiltradosPorFecha.filter(
+            (registro) => registro.estado === this.estado
+          );
+        } else {
+          registrosFiltradosPorEstado = registrosFiltradosPorFecha;
+        }
+        console.log(
+          'Registros filtrados por estado: ' +
+            registrosFiltradosPorEstado.length
+        );
+
+        // Filtrar registros por tipo de vehiculo
+        let registrosFiltradosPorTipoVehiculo;
+        if (this.tipoVehiculo === 'Camion' || this.tipoVehiculo === 'Vagon') {
+          registrosFiltradosPorTipoVehiculo =
+            registrosFiltradosPorEstado.filter(
+              (registro) => registro.tipoTransporte === this.tipoVehiculo
+            );
+        } else {
+          registrosFiltradosPorTipoVehiculo = registrosFiltradosPorEstado;
+        }
+        console.log(
+          'Registros filtrados por tipo de vehiculo: ' +
+            registrosFiltradosPorTipoVehiculo.length
+        );
+
+        // Generar documento
+        this.registrosPorNLote = registrosFiltradosPorTipoVehiculo;
+        console.log(this.registrosPorNLote);
+        return this.registrosPorNLote;
+      },
+      (error) => {
+        console.error('Error al obtener registros', error);
+      }
+    );
+  }
+
   obtenerPrimerDiaDelMes(fecha: Date): Date {
     const primerDia = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
     this.formatDate(primerDia);
@@ -306,11 +441,6 @@ export class BalanceComponent {
     const day = date.getDate().toString().padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-  }
-
-  descargarDocumento(registros: any[]) {
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(registros);
-    this.wip();
   }
 
   filtrarSolicitudes(servicioId: any) {

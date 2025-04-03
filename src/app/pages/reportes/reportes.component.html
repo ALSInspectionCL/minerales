@@ -61,30 +61,72 @@
   </mat-card-content>
   <!-- Tabla informe camiones< -->
   <mat-card>
-    <mat-card-content>
-      <table *ngIf="tablaCamion" class="mat-elevation-z8">
+    <mat-card-content style="overflow-x: auto;">
+      <table *ngIf="tablaRCamion || tablaCamion" class="mat-elevation-z8">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Referencia</th>
+            <th>Camiones Registrados</th>
+            <th>Neto Humedo Despacho</th>
+            <th>Neto Humedo Recepción</th>
+            <th>Porcentaje de Humedad</th>
+            <th>Neto Seco</th>
+            <th>Diferencia Humeda</th>
+            <th>Diferencia Seca</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let lote of lotesResumen; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ lote.observacion }}</td>
+            <td>{{ lote.cantidadCamiones }}</td>
+            <td>{{ lote.netoHumedoOrigen }}</td>
+            <td>{{ lote.netoHumedoDestino }}</td>
+            <td>{{ lote.porcHumedad }}</td>
+            <td>{{ lote.netoSeco }}</td>
+            <td>{{ lote.diferenciaHumeda }}</td>
+            <td>{{ lote.diferenciaSeca }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <br>
+      <td><b>Cantidad de Camiones:</b> {{calcularTotalCamiones()}}</td>
+      <td><b>Peso Neto Despacho Total:</b> {{ calcularPesoNetoDespachoTotal() }}</td>
+      <td><b>Peso Neto Recepción Total:</b> {{ calcularPesoNetoRecepcionTotal() }}</td>
+      <td><b>Porcentaje Humedad Promedio:</b> {{ calcularPromedioHumedades() }}</td>
+      <td><b>Peso Neto Seco Total:</b> {{ calcularPesoNetoSecoTotal() }}</td>
+      <td><b>Diferencia Humeda Total:</b> {{ calcularDiferenciaHumedaTotal() }}</td>
+      <td><b>Diferencia Seca Total:</b> {{ calcularDiferenciaSecaTotal() }}</td>
+      <br>
+      <br>
+
+      <table *ngIf="tablaCamion" style="overflow-x: auto;" class="mat-elevation-z8">
         <thead>
           <tr>
             <!-- <th>N° de Lote</th> -->
-            <th>Fecha de Origen</th>
-            <th>Hora de Origen</th>
-            <th>Fecha de Destino</th>
-            <th>Hora de Destino</th>
+            <th>Fecha Despacho</th>
+            <th>Hora Despacho</th>
+            <th>Fecha Recepción</th>
+            <th>Hora Recepción</th>
             <th>Referencia</th>
             <th>Guía Despacho</th>
             <th>Patente</th>
             <th>Batea</th>
-            <th>Bruto de Origen</th>
-            <th>Bruto de Destino</th>
-            <th>Tara de Origen</th>
-            <th>Tara de Destino</th>
-            <th>Neto Húmedo de Origen</th>
-            <th>Neto Húmedo de Destino</th>
+            <th>Bruto Despacho</th>
+            <th>Bruto Recepción</th>
+            <th>Tara Despacho</th>
+            <th>Tara Recepción</th>
+            <th>Neto Húmedo Despacho</th>
+            <th>Neto Húmedo Recepción</th>
+            <th>Porcentaje Humedad</th>
+            <th>Neto Seco</th>
             <th>Diferencia Húmeda</th>
             <th>Diferencia Seca</th>
             <th>Bodega</th>
-            <th>Sellos de Origen</th>
-            <th>Sellos de Destino</th>
+            <th>Sellos Despacho</th>
+            <th>Sellos Recepción</th>
             <th>Estado</th>
           </tr>
         </thead>
@@ -105,6 +147,8 @@
             <td>{{ camion.taraDestino }}</td>
             <td>{{ camion.netoHumedoOrigen }}</td>
             <td>{{ camion.netoHumedoDestino }}</td>
+            <td>{{ camion.porcHumedad }}</td>
+            <td>{{ camion.netoSeco}}</td>
             <td>{{ camion.diferenciaHumeda }}</td>
             <td>{{ camion.diferenciaSeca }}</td>
             <td>{{ camion.nombreBodega }}</td>
@@ -113,43 +157,6 @@
             <td>{{ camion.estado }}</td>
           </tr>
         </tbody>
-      </table>
-
-      <table *ngIf="tablaRCamion" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <th>N°</th>
-            <th>Referencia</th>
-            <th>Fecha de creación</th>
-            <th>Camiones Registrados</th>
-            <th>Peso Bruto</th>
-            <th>Peso Tara</th>
-            <th>Peso Neto</th>
-            <th>Diferencias</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let lote of lotes; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ lote.observacion }}</td>
-            <td>{{ lote.fLote }}</td>
-            <td>{{ lote.cantCamiones }}</td>
-            <td>{{ lote.pesoBrutoHumedo }}</td>
-            <td>{{ lote.pesoTara }}</td>
-            <td>{{ lote.pesoNetoHumedo }}</td>
-            <td>{{ lote.diferenciaPeso }}</td>
-          </tr>
-        </tbody>
-
-        <tfoot>
-          <tr style="border-top: 1px solid black">
-            <td colspan="4"></td>
-            <td><b>Peso Bruto Total:</b> {{ calcularPesoBrutoTotal() }}</td>
-            <td><b>Peso Tara Total:</b> {{ calcularPesoTaraTotal() }}</td>
-            <td><b>Peso Neto Total:</b> {{ calcularPesoNetoTotal() }}</td>
-            <td><b>Diferencia Total:</b> {{ calcularDiferenciaTotal() }}</td>
-          </tr>
-        </tfoot>
       </table>
 
       <table *ngIf="tablaVagon" class="mat-elevation-z8">

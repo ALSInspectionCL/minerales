@@ -117,6 +117,7 @@ export class ReportesComponent {
 
   camionesRecepcion: any[] = [];
   vagonesRecepcion: any[] = [];
+  lotesResumen: any[] = [];
   bodegas: any[] = [];
   lotes: any[] = [];
   crearDocumento() {
@@ -135,10 +136,7 @@ export class ReportesComponent {
       'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
 
     if (this.fechaDesde && this.fechaHasta && this.documento.value) {
-      console.log('Fecha desde', this.fechaDesde);
-      console.log('Fecha hasta', this.fechaHasta);
-      console.log('Documento', this.documento.value);
-      this.fechaDesde.setDate(this.fechaDesde.getDate() - 1);
+      this.fechaDesde.setDate(this.fechaDesde.getDate() - 2);
       if (this.documento.value === 'Detalle Camiones') {
         Notiflix.Notify.success('Documento de camiones creado');
         this.http
@@ -184,6 +182,53 @@ export class ReportesComponent {
                     nLotes.includes(lote.nLote)
                   );
                   console.log(lotes);
+                  camionesRecepcion.forEach((camion: any) => {
+                    const lote = lotes.find(
+                      (lote: any) => lote.nLote === camion.nLote
+                    );
+                    if (lote) {
+                      camion.porcHumedad = lote.porcHumedad;
+                      camion.netoSeco = (
+                        camion.netoHumedoDestino -
+                        (camion.netoHumedoDestino * lote.porcHumedad) / 100
+                      ).toFixed(2);
+                      camion.diferenciaHumeda = (
+                        camion.netoHumedoOrigen - camion.netoHumedoDestino
+                      ).toFixed(2);
+                      camion.diferenciaSeca = (
+                        camion.netoHumedoOrigen -
+                        (camion.netoHumedoOrigen * lote.porcHumedad) / 100 -
+                        camion.netoSeco
+                      ).toFixed(2);
+                    } else {
+                      camion.netoSeco = camion.netoHumedoDestino;
+                    }
+                  });
+                  this.lotesResumen = this.camionesRecepcion.reduce((lotes, camion) => {
+                    const indice = lotes.findIndex((lote:any) => lote.nLote === camion.nLote);
+                    if (indice === -1) {
+                      lotes.push({
+                        nLote: camion.nLote,
+                        observacion: camion.observacion,
+                        porcHumedad: camion.porcHumedad || 0,                        cantidadCamiones: 1,
+                        netoHumedoOrigen: parseFloat(camion.netoHumedoOrigen).toFixed(2),
+                        netoHumedoDestino: parseFloat(camion.netoHumedoDestino).toFixed(2),
+                        netoSeco: parseFloat(camion.netoSeco).toFixed(2),
+                        diferenciaHumeda: parseFloat(camion.diferenciaHumeda).toFixed(2),
+                        diferenciaSeca: parseFloat(camion.diferenciaSeca).toFixed(2),
+                      });
+                    } else {
+                      lotes[indice].cantidadCamiones += 1;
+                      lotes[indice].netoHumedoOrigen = (parseFloat(lotes[indice].netoHumedoOrigen) + parseFloat(camion.netoHumedoOrigen)).toFixed(2);
+                      lotes[indice].netoHumedoDestino = (parseFloat(lotes[indice].netoHumedoDestino) + parseFloat(camion.netoHumedoDestino)).toFixed(2);
+                      lotes[indice].netoSeco = (parseFloat(lotes[indice].netoSeco) + parseFloat(camion.netoSeco)).toFixed(2);
+                      lotes[indice].diferenciaHumeda = (parseFloat(lotes[indice].diferenciaHumeda) + parseFloat(camion.diferenciaHumeda)).toFixed(2);
+                      lotes[indice].diferenciaSeca = (parseFloat(lotes[indice].diferenciaSeca) + parseFloat(camion.diferenciaSeca)).toFixed(2);
+                    }
+                    return lotes;
+                  }, []);
+                  console.log('Lotes resumen:');
+                  console.log(this.lotesResumen);
                 });
 
               //buscar los registros de los lotes de camiones de nLotes
@@ -223,6 +268,7 @@ export class ReportesComponent {
               this.tablaVagon = false;
             }
           });
+
       } else if (this.documento.value === 'Resumen Camiones') {
         this.http.get(apiLote).subscribe((response) => {
           const lotesResponse = response as any[];
@@ -392,6 +438,18 @@ export class ReportesComponent {
     }
   }
 
+  private calcularNetoSeco(
+    netoHumedoDestino: number,
+    porcentajeHumedad: number
+  ): number {
+    if (porcentajeHumedad === 0 || !porcentajeHumedad) {
+      return netoHumedoDestino;
+    }
+    const netoSeco =
+      netoHumedoDestino - netoHumedoDestino * (porcentajeHumedad / 100);
+    return parseFloat(netoSeco.toFixed(2));
+  }
+
   obtenerObservaciones(camionesRecepcion: any[]) {
     let ultimonLoteRevisado = '';
     camionesRecepcion.forEach((camion: any) => {
@@ -448,39 +506,78 @@ export class ReportesComponent {
   descargarDocumento() {
     console.log('Descargar documento');
     if (this.tablaCamion) {
+      const sumas = [
+        {
+          'Total de Camiones': this.calcularTotalCamiones(),
+          'Peso Neto Despacho Total': this.calcularPesoNetoDespachoTotal(),
+          'Peso Neto Recepción Total': this.calcularPesoNetoRecepcionTotal(),
+          'Peso Neto Seco Total': this.calcularPesoNetoSecoTotal(),
+          'Diferencia Seca Total': this.calcularDiferenciaSecaTotal(),
+          'Promedio de Humedades': this.calcularPromedioHumedades(),
+        },
+      ];
+      const resumen = this.lotesResumen.map(
+        (lote: any) =>({
+          'Lote': lote.observacion,
+          'Total de Camiones': lote.cantidadCamiones,
+          'Neto Humedo Despacho': lote.netoHumedoOrigen,
+          'Neto Humedo Recepción': lote.netoHumedoDestino,
+          'Porcentaje de Humedad':lote.porcHumedad,
+          'Neto Seco':lote.netoSeco,
+          'Diferencia Humeda':lote.diferenciaHumeda,
+          'Diferencia Seca':lote.diferenciaSeca
+        })
+      )
       const camionesRecepcionFormateados = this.camionesRecepcion.map(
         (camion) => ({
-          'Fecha de Origen': camion.fOrigen,
-          'Hora de Origen': camion.hOrigen,
-          'Fecha de Destino': camion.fDestino,
-          'Hora de Destino': camion.hDestino,
+          'Fecha Despacho': camion.fOrigen,
+          'Hora Despacho': camion.hOrigen,
+          'Fecha Recepción': camion.fDestino,
+          'Hora Recepción': camion.hDestino,
           Referencia: camion.observacion,
           // 'N° de Lote': camion.posicion + 1,
           'Guía Despacho': camion.idTransporteOrigen,
           Patente: camion.idTransporteDestino,
           Batea: camion.idCarroDestino,
-          'Bruto de Origen': camion.brutoOrigen,
-          'Bruto de Destino': camion.brutoDestino,
-          'Tara de Origen': camion.taraOrigen,
-          'Tara de Destino': camion.taraDestino,
-          'Neto Húmedo de Origen': camion.netoHumedoOrigen,
-          'Neto Húmedo de Destino': camion.netoHumedoDestino,
+          'Bruto Despacho': camion.brutoOrigen,
+          'Bruto Recepción': camion.brutoDestino,
+          'Tara Despacho': camion.taraOrigen,
+          'Tara Recepción': camion.taraDestino,
+          'Neto Húmedo Despacho': camion.netoHumedoOrigen,
+          'Neto Húmedo Recepción': camion.netoHumedoDestino,
+          'Porcentaje Humedad': camion.porcHumedad,
+          'Neto Seco': camion.netoSeco,
           'Diferencia Húmeda': camion.diferenciaHumeda,
           'Diferencia Seca': camion.diferenciaSeca,
           Bodega: camion.nombreBodega,
-          'Sellos de Origen': camion.sellosOrigen,
+          'Sellos Despacho': camion.sellosOrigen,
           'Sellos de Destino': camion.sellosDestino,
           Estado: camion.estado,
         })
       );
-      Notiflix.Notify.success('Documento de camiones descargado');
-      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
-        camionesRecepcionFormateados
-      );
-      const workbook: XLSX.WorkBook = {
+      const resumenWorksheet = XLSX.utils.json_to_sheet(resumen);
+      const worksheet = XLSX.utils.json_to_sheet(camionesRecepcionFormateados);
+      
+      if (worksheet['!rows']) {
+        for (let i = 0; i < 4; i++) {
+          worksheet['!rows'].push({}); // Agregar un objeto vacío en lugar de un arreglo vacío
+        }
+      }
+      const workbook: any = {
         Sheets: { 'Camiones de Recepción': worksheet },
         SheetNames: ['Camiones de Recepción'],
       };
+      // Agregar la tabla resumen al workbook
+      (workbook.Sheets as any)['Resumen'] = resumenWorksheet;
+      (workbook.SheetNames as any).unshift('Resumen');
+      
+      XLSX.utils.sheet_add_json((workbook.Sheets as any)['Resumen'], sumas, {
+        header: [],
+        skipHeader: false,
+        origin: 'A' + (resumen.length + 6),
+      });
+
+      Notiflix.Notify.success('Documento de camiones descargado');
       XLSX.writeFile(workbook, 'Camiones de Recepción.xlsx');
     } else if (this.tablaVagon) {
       const vagonRecepcionFormateados = this.vagonesRecepcion.map((vagon) => ({
@@ -631,15 +728,22 @@ export class ReportesComponent {
 
   calcularPesoBrutoTotal(): number {
     return parseFloat(
-      this.lotes
+      this.lotesResumen
         .reduce((total, lote) => total + parseFloat(lote.pesoBrutoHumedo), 0)
+        .toFixed(2)
+    );
+  }
+  calcularPesoNetoDespacho(): number {
+    return parseFloat(
+      this.lotesResumen
+        .reduce((total, lote) => total + parseFloat(lote.pesoNetoHumedo), 0)
         .toFixed(2)
     );
   }
 
   calcularPesoTaraTotal(): number {
     return parseFloat(
-      this.lotes
+      this.lotesResumen
         .reduce((total, lote) => total + parseFloat(lote.pesoTara), 0)
         .toFixed(2)
     );
@@ -647,7 +751,7 @@ export class ReportesComponent {
 
   calcularPesoNetoTotal(): number {
     return parseFloat(
-      this.lotes
+      this.lotesResumen
         .reduce((total, lote) => total + parseFloat(lote.pesoNetoHumedo), 0)
         .toFixed(2)
     );
@@ -655,9 +759,60 @@ export class ReportesComponent {
 
   calcularDiferenciaTotal(): number {
     return parseFloat(
-      this.lotes
+      this.lotesResumen
         .reduce((total, lote) => total + parseFloat(lote.diferenciaPeso), 0)
         .toFixed(2)
     );
   }
+
+// Función para calcular el peso neto despacho total
+calcularPesoNetoDespachoTotal() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + parseFloat(lote.netoHumedoOrigen);
+  }, 0).toFixed(2);
+}
+
+// Función para calcular el peso neto recepción total
+calcularPesoNetoRecepcionTotal() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + parseFloat(lote.netoHumedoDestino);
+  }, 0).toFixed(2);
+}
+
+// Función para calcular el peso neto seco total
+calcularPesoNetoSecoTotal() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + parseFloat(lote.netoSeco);
+  }, 0).toFixed(2);
+}
+
+// Función para calcular la diferencia seca total
+calcularDiferenciaSecaTotal() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + parseFloat(lote.diferenciaSeca);
+  }, 0).toFixed(2);
+}
+calcularDiferenciaHumedaTotal() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + parseFloat(lote.diferenciaHumeda);
+  }, 0).toFixed(2);
+}
+
+calcularTotalCamiones() {
+  return this.lotesResumen.reduce((suma, lote) => {
+    return suma + lote.cantidadCamiones;
+  }, 0);
+}
+
+
+// Función para calcular el promedio de humedades
+calcularPromedioHumedades() {
+  const lotesConHumedad = this.lotesResumen.filter(lote => lote.porcHumedad !== 0);
+  const sumaHumedades = lotesConHumedad.reduce((suma, lote) => {
+    return suma + (parseFloat(lote.porcHumedad) || 0);
+  }, 0);
+  const totalCamiones = lotesConHumedad.length;
+  return (sumaHumedades / totalCamiones).toFixed(2);
+}
+
 }

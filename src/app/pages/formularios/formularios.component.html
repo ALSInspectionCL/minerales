@@ -241,7 +241,7 @@
         </form>
       </mat-card-content>
     </mat-card-content>
-    <button
+    <!-- <button
       mat-flat-button
       color="primary"
       class="m-t-20"
@@ -249,7 +249,7 @@
       (click)="eliminarRegistros()"
     >
       Eliminar Registros de Camiones
-    </button>
+    </button> -->
   </mat-card>
 
   <mat-divider></mat-divider>
@@ -326,6 +326,34 @@
   </mat-card>
 </div>
 
+<div class="m-t-20">
+  <mat-card class="b-1 col-md-6">
+    <mat-card-header>
+      <mat-card-title>Cierre de Día</mat-card-title>
+      <mat-card-subtitle>Aquí puede generar y enviar el informe de cierre de día</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+    <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">
+      Correo electrónico</mat-label
+      >
+      <mat-form-field appearance="outline" color="primary">
+        <input matInput type="email" [(ngModel)]="correoElectronico">
+        <mat-error *ngIf="verificarCorreo.invalid">Por favor, ingresa un correo electrónico válido</mat-error>
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-actions>
+      <button
+        type="submit"
+        mat-raised-button
+        color="primary"
+        (click)="cierreDia()"
+      >
+        Enviar informe
+      </button>
+    </mat-card-actions>
+  </mat-card>    
+</div>
+
 <div *ngIf="admin" class="row m-b-16">
   <mat-card class="col-md-12">
     <mat-card-header class="m-b-16">
@@ -357,7 +385,7 @@
         <form (ngSubmit)="preEliminarSolicitud()">
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
             <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Roll</mat-label
+              >Rol</mat-label
             >
             <mat-select [(value)]="rolSeleccionado">
               <mat-option *ngFor="let rol of roles" [value]="rol">
@@ -376,7 +404,7 @@
         (click)="asignarRol()"
         type="submit"
       >
-        Asignar roll
+        Asignar rol
       </button>
     </mat-card-content>
     <mat-card-content class="m-t-20">
@@ -443,6 +471,19 @@
               matInput
               [(ngModel)]="bodegaSeleccionada.nombreBodega"
               name="nombreBodega"
+            />
+          </mat-form-field>
+
+          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
+          >Total de Material</mat-label
+        >
+          <mat-form-field appearance="outline" class="w-100" color="primary">
+            <input
+              type="number"
+              matInput
+              [(ngModel)]="bodegaSeleccionada.total"
+              name="totalBodega"
+              placeholder="Total Bodega"
             />
           </mat-form-field>
 

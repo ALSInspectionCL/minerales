@@ -135,6 +135,7 @@
     <button *ngIf="(admin || operator || encargado)" mat-flat-button (click)="guardar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Registrar</button>
     <button mat-flat-button (click)="onCancel()">Cerrar</button>
     <button class="m-l-48" *ngIf="(admin || encargado)" mat-flat-button (click)="aprobar()" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Aprobar</button>
+    <button class="m-l-48" *ngIf="(admin || encargado)" mat-flat-button (click)="generarCodigo(lote.id)" type="submit" color="primary" [disabled]="recepcionTransporteForm.invalid">Generar Codigo</button>
 </mat-dialog-actions>
 
 

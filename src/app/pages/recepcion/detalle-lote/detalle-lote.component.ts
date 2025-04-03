@@ -44,7 +44,10 @@ import { map, Observable } from 'rxjs';
 import { Bodega } from 'src/app/services/bodega.service';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
+import * as jsBarcode from 'jsbarcode';
 import { MatTableDataSource } from '@angular/material/table';
+import JsBarcode from 'jsbarcode';
+
 // import * as Xlsxstyle from 'xlsx-style';
 
 export interface loteRecepcion {
@@ -649,6 +652,35 @@ exportToExcel(): void {
       return 0;
     }
   }
+
+  generarCodigo(nLote: string) {
+
+    // Unir nLote y sellosOrigen para formar el código de barra
+    const codigoBarra = `${nLote}`;
+
+    // Crear un elemento de canvas para mostrar el código de barra
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    // Generar la imagen del código de barra
+    JsBarcode(canvas, codigoBarra, {
+      format: 'code128',
+      width: 2,
+      height: 100,
+      fontSize: 16,
+      font: 'Arial',
+      fontOptions: 'bold',
+      text: codigoBarra,
+      textPosition: 'bottom',
+      textMargin: 2,
+    });
+  
+    // Descargar la imagen del código de barra
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `codigo_barra_${nLote}.png`;
+    link.click();
+  }
 }
 
 @Component({
@@ -1220,5 +1252,37 @@ export class CrearRegistroDialog {
         this.onNoClick();
       }
     );
+  }
+
+  generarCodigo(nLote: string) {
+    let sellosOrigen = this.recepcionTransporteForm.get('sellosOrigen')?.value;
+    if (!sellosOrigen) {
+      sellosOrigen = 0;
+      }
+    // Unir nLote y sellosOrigen para formar el código de barra
+    const codigoBarra = `${nLote}-${sellosOrigen}`;
+
+    // Crear un elemento de canvas para mostrar el código de barra
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    // Generar la imagen del código de barra
+    JsBarcode(canvas, codigoBarra, {
+      format: 'code128',
+      width: 2,
+      height: 100,
+      fontSize: 16,
+      font: 'Arial',
+      fontOptions: 'bold',
+      text: codigoBarra,
+      textPosition: 'bottom',
+      textMargin: 2,
+    });
+  
+    // Descargar la imagen del código de barra
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `codigo_barra_${nLote}_${sellosOrigen}.png`;
+    link.click();
   }
 }

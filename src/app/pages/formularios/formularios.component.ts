@@ -14,7 +14,7 @@ import {
   MatDatepickerModule,
 } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { Observable } from 'rxjs';
@@ -30,6 +30,9 @@ import Notiflix from 'notiflix';
 import { RolService } from 'src/app/services/rol.service';
 import { LoteService } from 'src/app/services/lote.service';
 import { MatTableDataSource } from '@angular/material/table';
+import { Bodega } from 'src/app/services/bodega.service';
+import { ReportesComponent } from 'src/app/pages/reportes/reportes.component';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -144,10 +147,13 @@ export class FormulariosComponent {
     total: 0,
     imagen: null,
   };
+  correoElectronico = '';
+
+  // const reportes = new ReportesComponent(http, loteService,Bodega);
 
   imagenPreview: any;
   imagenBodega: any;
-
+  verificarCorreo = new FormControl('', [Validators.required, Validators.email]);
   usuarios: any[];
   servicio = {
     nServ: '',
@@ -169,10 +175,11 @@ export class FormulariosComponent {
   rolSeleccionado: string;
   userSeleccionado: string;
   lotes: any[];
-  displayedColumns : string[] = ['email','fecha','hora'];
+  displayedColumns: string[] = ['email', 'fecha', 'hora'];
   constructor(
     private RolService: RolService,
     private loteService: LoteService,
+    private bodegaService: Bodega,
     private solicitudService: SolicitudService,
     private servicioService: ServicioService,
     private http: HttpClient
@@ -241,7 +248,7 @@ export class FormulariosComponent {
     );
   }
 
-  logs : any;
+  logs: any;
   obtenerLogs() {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/user-logs/';
     this.http.get<any[]>(apiUrl).subscribe(
@@ -253,7 +260,7 @@ export class FormulariosComponent {
         console.error('Error al obtener los logs', error);
       }
     );
-    }
+  }
 
   obtenerLotes(): void {
     const servicioId = this.selectedServicioId;
@@ -394,17 +401,17 @@ export class FormulariosComponent {
   }
 
   // Método para crear una nueva bodega
-  crearBodega(bodega: { nombreBodega: string; total?: number; imagen?: any}) {
+  crearBodega(bodega: { nombreBodega: string; total?: number; imagen?: any }) {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/';
-    
+
     const formData = new FormData();
     formData.append('nombreBodega', bodega.nombreBodega);
     formData.append('imagen', this.imagenBodega || null);
-    
+
     this.http.post(apiUrl, bodega).subscribe(
       (respuesta) => {
         console.log('Bodega creada:', respuesta);
-        console.log(bodega)
+        console.log(bodega);
         // Aquí puedes actualizar la lista de bodegas si es necesario
         Notiflix.Notify.success('Bodega creada');
         this.obtenerBodegas(); // Llama a un método para obtener la lista actualizada
@@ -420,20 +427,21 @@ export class FormulariosComponent {
   actualizarBodega(bodega: {
     idBodega: number;
     nombreBodega: string;
-    total?: number;
+    total: number;
     imagen?: any;
   }) {
     const formData = new FormData();
     formData.append('idBodega', bodega.idBodega.toString());
     formData.append('nombreBodega', bodega.nombreBodega);
-    formData.append('imagen', this.imagenBodega);
+    formData.append('imagen', bodega.imagen || this.imagenBodega);
+    formData.append('total', bodega.total.toFixed(2).toString() || '0'); // Asegúrate de que el total sea un número
 
     const apiUrl = `https://control.als-inspection.cl/api_min/api/bodega/${bodega.idBodega}/`;
     //bodega.total = 0; // Si deseas actualizar el total, hazlo aquí
     this.http.put(apiUrl, formData).subscribe(
       (respuesta) => {
         console.log('Bodega actualizada:', respuesta);
-        console.log(formData)
+        console.log(formData);
         Notiflix.Notify.success('La bodega ha sido actualizada con éxito');
         this.obtenerBodegas();
       },
@@ -698,4 +706,366 @@ export class FormulariosComponent {
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
   }
+
+  camionesRecepcion : any = [];
+  lotesResumen : any = [];
+  cierreDia() {
+    //Generar y enviar el informe de cierre de día. Es el mismo que se genera en reportes.
+    let apirecepcion =
+      'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
+    let apiLote =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+
+    //fecha desde es la fecha de hoy - 2
+    let fechaDesde = new Date();
+    fechaDesde.setDate(fechaDesde.getDate() - 1);
+    let fechaHasta = new Date();
+    Notiflix.Notify.success('Documento de camiones creado');
+    this.http
+      .get(
+        `${apirecepcion}?fOrigen=${fechaDesde}&?fOrigen=${fechaHasta}/`
+      )
+      .subscribe((response) => {
+        const camionesRecepcion = (response as any[]).filter(
+          (camion: any) =>
+            camion.tipoTransporte === 'Camion' &&
+            new Date(camion.fOrigen) >= new Date(fechaDesde) &&
+            new Date(camion.fOrigen) <= new Date(fechaHasta)
+        );
+        this.camionesRecepcion = camionesRecepcion;
+        if (camionesRecepcion.length === 0) {
+          Notiflix.Notify.warning('No hay camiones para la fecha seleccionada');
+        } else {
+          let lastnLote = '';
+          let nLotes: any[] = [];
+          if (camionesRecepcion.length > 0) {
+            lastnLote = camionesRecepcion[0].nLote;
+          }
+          this.obtenerObservaciones(camionesRecepcion);
+          this.obtenerNombreBodega(camionesRecepcion);
+          camionesRecepcion.forEach((camion: any) => {
+            if (camion.nLote === lastnLote && !nLotes.includes(camion.nLote)) {
+              nLotes.push(camion.nLote);
+            }
+            lastnLote = camion.nLote;
+          });
+          console.log(nLotes);
+
+          //buscar los lotes en la api lote-recepcion para comparar su posición y asignarsela al camión
+          this.http
+            .get(`${apiLote}?nLote=${nLotes.join(',')}/`)
+            .subscribe((response) => {
+              const lotes = (response as any[]).filter((lote: any) =>
+                nLotes.includes(lote.nLote)
+              );
+              console.log(lotes);
+              camionesRecepcion.forEach((camion: any) => {
+                const lote = lotes.find(
+                  (lote: any) => lote.nLote === camion.nLote
+                );
+                if (lote) {
+                  camion.porcHumedad = lote.porcHumedad;
+                  camion.netoSeco = (
+                    camion.netoHumedoDestino -
+                    (camion.netoHumedoDestino * lote.porcHumedad) / 100
+                  ).toFixed(2);
+                  camion.diferenciaHumeda = (
+                    camion.netoHumedoOrigen - camion.netoHumedoDestino
+                  ).toFixed(2);
+                  camion.diferenciaSeca = (
+                    camion.netoHumedoOrigen -
+                    (camion.netoHumedoOrigen * lote.porcHumedad) / 100 -
+                    camion.netoSeco
+                  ).toFixed(2);
+                } else {
+                  camion.netoSeco = camion.netoHumedoDestino;
+                }
+              });
+              this.lotesResumen = this.camionesRecepcion.reduce(
+                (lotes : any, camion : any) => {
+                  const indice = lotes.findIndex(
+                    (lote: any) => lote.nLote === camion.nLote
+                  );
+                  if (indice === -1) {
+                    lotes.push({
+                      nLote: camion.nLote,
+                      observacion: camion.observacion,
+                      porcHumedad: camion.porcHumedad || 0,
+                      cantidadCamiones: 1,
+                      netoHumedoOrigen: parseFloat(
+                        camion.netoHumedoOrigen
+                      ).toFixed(2),
+                      netoHumedoDestino: parseFloat(
+                        camion.netoHumedoDestino
+                      ).toFixed(2),
+                      netoSeco: parseFloat(camion.netoSeco).toFixed(2),
+                      diferenciaHumeda: parseFloat(
+                        camion.diferenciaHumeda
+                      ).toFixed(2),
+                      diferenciaSeca: parseFloat(camion.diferenciaSeca).toFixed(
+                        2
+                      ),
+                    });
+                  } else {
+                    lotes[indice].cantidadCamiones += 1;
+                    lotes[indice].netoHumedoOrigen = (
+                      parseFloat(lotes[indice].netoHumedoOrigen) +
+                      parseFloat(camion.netoHumedoOrigen)
+                    ).toFixed(2);
+                    lotes[indice].netoHumedoDestino = (
+                      parseFloat(lotes[indice].netoHumedoDestino) +
+                      parseFloat(camion.netoHumedoDestino)
+                    ).toFixed(2);
+                    lotes[indice].netoSeco = (
+                      parseFloat(lotes[indice].netoSeco) +
+                      parseFloat(camion.netoSeco)
+                    ).toFixed(2);
+                    lotes[indice].diferenciaHumeda = (
+                      parseFloat(lotes[indice].diferenciaHumeda) +
+                      parseFloat(camion.diferenciaHumeda)
+                    ).toFixed(2);
+                    lotes[indice].diferenciaSeca = (
+                      parseFloat(lotes[indice].diferenciaSeca) +
+                      parseFloat(camion.diferenciaSeca)
+                    ).toFixed(2);
+                  }
+                  console.log(lotes)
+                  return lotes;
+                },
+                []
+              );
+              console.log('Lotes resumen:');
+              console.log(this.lotesResumen);
+            });
+
+          //buscar los registros de los lotes de camiones de nLotes
+          const lotesCamiones: any[] = [];
+          let camionesLote: any[] = [];
+          for (let i = 0; i < nLotes.length; i++) {
+            this.http
+              .get(
+                `https://control.als-inspection.cl/api_min/api/recepcion-transporte/?nLote=${nLotes[i]}/`
+              )
+              .subscribe((response) => {
+                camionesLote = (response as any[]).filter(
+                  (camion) =>
+                    camion.tipoTransporte === 'Camion' &&
+                    camion.nLote === nLotes[i]
+                );
+                camionesLote.forEach((camion, index) => {
+                  lotesCamiones.push({ id: camion.id, index: index });
+                });
+
+                for (let i = 0; i < lotesCamiones.length; i++) {
+                  for (let j = 0; j < camionesRecepcion.length; j++) {
+                    if (camionesRecepcion[j].id === lotesCamiones[i].id) {
+                      camionesRecepcion[j].posicion = lotesCamiones[i].index;
+                    }
+                  }
+                }
+              });
+            console.log(camionesRecepcion);
+          }
+          console.log()
+
+          Notiflix.Notify.success('Camiones encontrados');
+          this.descargarDocumento(camionesRecepcion,this.lotesResumen)
+        }
+      });
+  }
+
+  descargarDocumento(camionesRecepcion:any, loteResumen:any){
+          const sumas = [
+            {
+              'Total de Camiones': this.calcularTotalCamiones(),
+              'Peso Neto Despacho Total': this.calcularPesoNetoDespachoTotal(),
+              'Peso Neto Recepción Total': this.calcularPesoNetoRecepcionTotal(),
+              'Peso Neto Seco Total': this.calcularPesoNetoSecoTotal(),
+              'Diferencia Seca Total': this.calcularDiferenciaSecaTotal(),
+              'Promedio de Humedades': this.calcularPromedioHumedades(),
+            },
+          ];
+          const resumen = loteResumen.map(
+            (lote: any) =>({
+              'Lote': lote.observacion,
+              'Total de Camiones': lote.cantidadCamiones,
+              'Neto Humedo Despacho': lote.netoHumedoOrigen,
+              'Neto Humedo Recepción': lote.netoHumedoDestino,
+              'Porcentaje de Humedad':lote.porcHumedad,
+              'Neto Seco':lote.netoSeco,
+              'Diferencia Humeda':lote.diferenciaHumeda,
+              'Diferencia Seca':lote.diferenciaSeca
+            })
+          )
+          const camionesRecepcionFormateados = camionesRecepcion.map(
+            (camion:any) => ({
+              'Fecha Despacho': camion.fOrigen,
+              'Hora Despacho': camion.hOrigen,
+              'Fecha Recepción': camion.fDestino,
+              'Hora Recepción': camion.hDestino,
+              'Referencia': camion.observacion,
+              // 'N° de Lote': camion.posicion + 1,
+              'Guía Despacho': camion.idTransporteOrigen,
+              Patente: camion.idTransporteDestino,
+              Batea: camion.idCarroDestino,
+              'Bruto Despacho': camion.brutoOrigen,
+              'Bruto Recepción': camion.brutoDestino,
+              'Tara Despacho': camion.taraOrigen,
+              'Tara Recepción': camion.taraDestino,
+              'Neto Húmedo Despacho': camion.netoHumedoOrigen,
+              'Neto Húmedo Recepción': camion.netoHumedoDestino,
+              'Porcentaje Humedad': camion.porcHumedad,
+              'Neto Seco': camion.netoSeco,
+              'Diferencia Húmeda': camion.diferenciaHumeda,
+              'Diferencia Seca': camion.diferenciaSeca,
+              Bodega: camion.nombreBodega,
+              'Sellos Despacho': camion.sellosOrigen,
+              'Sellos de Destino': camion.sellosDestino,
+              Estado: camion.estado,
+            })
+          );
+          const resumenWorksheet = XLSX.utils.json_to_sheet(resumen);
+          const worksheet = XLSX.utils.json_to_sheet(camionesRecepcionFormateados);
+          
+          if (worksheet['!rows']) {
+            for (let i = 0; i < 4; i++) {
+              worksheet['!rows'].push({}); // Agregar un objeto vacío en lugar de un arreglo vacío
+            }
+          }
+          const workbook: any = {
+            Sheets: { 'Camiones de Recepción': worksheet },
+            SheetNames: ['Camiones de Recepción'],
+          };
+          // Agregar la tabla resumen al workbook
+          (workbook.Sheets as any)['Resumen'] = resumenWorksheet;
+          (workbook.SheetNames as any).unshift('Resumen');
+          
+          XLSX.utils.sheet_add_json((workbook.Sheets as any)['Resumen'], sumas, {
+            header: [],
+            skipHeader: false,
+            origin: 'A' + (resumen.length + 6),
+          });
+    
+          Notiflix.Notify.success('Documento de camiones descargado');
+          XLSX.writeFile(workbook, 'Camiones de Recepción.xlsx');
+  }
+
+
+
+  
+  private calcularNetoSeco(
+    netoHumedoDestino: number,
+    porcentajeHumedad: number
+  ): number {
+    if (porcentajeHumedad === 0 || !porcentajeHumedad) {
+      return netoHumedoDestino;
+    }
+    const netoSeco =
+      netoHumedoDestino - netoHumedoDestino * (porcentajeHumedad / 100);
+    return parseFloat(netoSeco.toFixed(2));
+  }
+
+obtenerObservaciones(camionesRecepcion: any[]) {
+  let ultimonLoteRevisado = '';
+  let resultados = [];
+  camionesRecepcion.forEach((camion: any) => {
+    if (camion.nLote !== ultimonLoteRevisado) {
+      this.loteService.getLoteBynLote(camion.nLote).subscribe((response) => {
+        const lote = (response as any[])[0];
+        camion.observacion = lote.observacion;
+        ultimonLoteRevisado = camion.nLote;
+        resultados.push(camion);
+        if (resultados.length === camionesRecepcion.length) {
+          this.camionesRecepcion = resultados;
+        }
+      });
+    } else {
+      resultados.push(camion);
+    }
+  });
+}
+
+obtenerNombreBodega(camionesRecepcion: any[]) {
+  //buscar todas las bodegas
+  this.bodegaService.getBodegas().subscribe((response) => {
+    const bodegas = response as any[];
+    console.log(bodegas);
+    let resultados = [];
+    camionesRecepcion.forEach((camion: any) => {
+      const bodega = bodegas.find(
+        (bodega: any) => bodega.idBodega === camion.bodega
+      );
+      if (bodega) {
+        camion.nombreBodega = bodega.nombreBodega;
+      }
+      resultados.push(camion);
+      if (resultados.length === camionesRecepcion.length) {
+        this.camionesRecepcion = resultados;
+      }
+    });
+  });
+}
+
+  private registrosPorNLote: any[] = [];
+  private nLoteAnterior: any;
+
+  getNroLote(camion: any): number {
+    if (camion.nLote !== this.nLoteAnterior) {
+      this.nLoteAnterior = camion.nLote;
+      this.registrosPorNLote = [];
+      console.log(this.nLoteAnterior);
+      // this.http.get(`https://control.als-inspection.cl/api_min/api/recepcion-transporte/?nLote=${camion.nLote}/`)
+      //   .subscribe(response => {
+      //     this.registrosPorNLote = response as any[];
+      //     console.log(this.registrosPorNLote);
+      //   });
+    } else {
+      console.log('No hay cambios');
+    }
+    const posicion = this.registrosPorNLote.findIndex(
+      (registro) => registro.id === camion.id
+    );
+    return posicion + 1;
+  }
+
+  calcularTotalCamiones() {
+    return this.lotesResumen.reduce((suma : any, lote : any) => {
+      return suma + lote.cantidadCamiones;
+    }, 0);
+  }
+  calcularPesoNetoDespachoTotal() {
+    return this.lotesResumen.reduce((suma:any, lote:any) => {
+      return suma + parseFloat(lote.netoHumedoOrigen);
+    }, 0).toFixed(2);
+  }
+  
+  // Función para calcular el peso neto recepción total
+  calcularPesoNetoRecepcionTotal() {
+    return this.lotesResumen.reduce((suma:any, lote:any) => {
+      return suma + parseFloat(lote.netoHumedoDestino);
+    }, 0).toFixed(2);
+  }
+
+  calcularPesoNetoSecoTotal() {
+    return this.lotesResumen.reduce((suma:any, lote:any) => {
+      return suma + parseFloat(lote.netoSeco);
+    }, 0).toFixed(2);
+  }
+  
+  // Función para calcular la diferencia seca total
+  calcularDiferenciaSecaTotal() {
+    return this.lotesResumen.reduce((suma:any, lote:any) => {
+      return suma + parseFloat(lote.diferenciaSeca);
+    }, 0).toFixed(2);
+  }
+
+  calcularPromedioHumedades() {
+    const lotesConHumedad = this.lotesResumen.filter((lote:any) => lote.porcHumedad !== 0);
+    const sumaHumedades = lotesConHumedad.reduce((suma:any, lote:any) => {
+      return suma + (parseFloat(lote.porcHumedad) || 0);
+    }, 0);
+    const totalCamiones = lotesConHumedad.length;
+    return (sumaHumedades / totalCamiones).toFixed(2);
+  }
+  
 }

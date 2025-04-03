@@ -89,21 +89,21 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
           <mat-label>Tipo de Balance</mat-label>
           <mat-select [(ngModel)]="tipoBalance">
             <mat-option value="ingresos">Solo ingresos</mat-option>
             <mat-option value="despachos">Solo despachos</mat-option>
             <mat-option value="todos">Todos</mat-option>
           </mat-select>
-        </mat-form-field>
+        </mat-form-field> -->
 
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
           <mat-label>Tipo de vehículo</mat-label>
           <mat-select [(ngModel)]="tipoVehiculo">
-            <mat-option value="camion">Camión</mat-option>
-            <mat-option value="vagon">Vagón</mat-option>
-            <mat-option value="todos">Todos</mat-option>
+            <mat-option value="Camion">Camión</mat-option>
+            <mat-option value="Vagon">Vagón</mat-option>
+            <mat-option value="todos" selected>Todos</mat-option>
           </mat-select>
         </mat-form-field>
 
