@@ -1,0 +1,26 @@
+::ng-deep .mat-dialog-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column; /* Asegura que el contenido se apile verticalmente */
+    justify-content: center; /* Centra el contenido verticalmente */
+    align-items: center; /* Centra el contenido horizontalmente */
+    padding: 0; /* Elimina los márgenes internos */
+  }
+  
+  ::ng-deep .mat-dialog-container {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Permite que el contenido se ajuste al espacio */
+  }

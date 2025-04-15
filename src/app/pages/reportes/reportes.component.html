@@ -91,16 +91,27 @@
         </tbody>
       </table>
       <br>
-      <br>
-      <td><b>Cantidad de Camiones:</b> {{calcularTotalCamiones()}}</td>
-      <td><b>Peso Neto Despacho Total:</b> {{ calcularPesoNetoDespachoTotal() }}</td>
-      <td><b>Peso Neto Recepción Total:</b> {{ calcularPesoNetoRecepcionTotal() }}</td>
-      <td><b>Porcentaje Humedad Promedio:</b> {{ calcularPromedioHumedades() }}</td>
-      <td><b>Peso Neto Seco Total:</b> {{ calcularPesoNetoSecoTotal() }}</td>
-      <td><b>Diferencia Humeda Total:</b> {{ calcularDiferenciaHumedaTotal() }}</td>
-      <td><b>Diferencia Seca Total:</b> {{ calcularDiferenciaSecaTotal() }}</td>
-      <br>
-      <br>
+      <table ng-if="tablaRCamion || tablaCamion" class="mat-elevation-z8">
+        <tr ng-if="tablaRCamion || tablaCamion" class="mat-elevation-z8">
+          <thead ng-if="tablaRCamion || tablaCamion" >
+          <th><b>Cantidad de Camiones:</b></th>
+          <th><b>Peso Neto Despacho Total:</b></th> 
+          <th><b>Peso Neto Recepción Total:</b></th> 
+          <th><b>Porcentaje Humedad Promedio:</b></th>
+          <th><b>Peso Neto Seco Total:</b></th> 
+          <th><b>Diferencia Humeda Total:</b></th> 
+          <th><b>Diferencia Seca Total:</b></th> 
+        </thead>
+        <tbody>
+          <td>{{ calcularTotalCamiones() }}</td>
+          <td>{{ calcularPesoNetoDespachoTotal() }}</td>
+          <td>{{ calcularPesoNetoRecepcionTotal() }}</td>
+          <td>{{ calcularPromedioHumedades() }}</td>
+          <td>{{ calcularPesoNetoSecoTotal() }}</td>
+          <td>{{ calcularDiferenciaHumedaTotal() }}</td>
+        </tbody>
+        </tr>
+      </table>
 
       <table *ngIf="tablaCamion" style="overflow-x: auto;" class="mat-elevation-z8">
         <thead>

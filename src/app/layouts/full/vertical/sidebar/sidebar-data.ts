@@ -35,6 +35,11 @@ export const navItems: NavItem[] = [
     route: '/home/balance'  
   },
   {
+    displayName: 'Trazabilidad',
+    iconName:  'timeline',
+    route: '/home/trazabilidad'  
+  },
+  {
     displayName: 'Reportes',
     iconName:  'file-analytics',
     route: '/home/reportes'  

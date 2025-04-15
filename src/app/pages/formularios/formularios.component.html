@@ -328,28 +328,68 @@
 
 <div class="m-t-20">
   <mat-card class="b-1 col-md-6">
-    <mat-card-header>
+    <mat-card-header class="m-b-8">
       <mat-card-title>Cierre de Día</mat-card-title>
       <mat-card-subtitle>Aquí puede generar y enviar el informe de cierre de día</mat-card-subtitle>
     </mat-card-header>
-    <mat-card-content>
-    <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">
-      Correo electrónico</mat-label
-      >
-      <mat-form-field appearance="outline" color="primary">
+    <mat-card-content class="m-8">
+      <mat-form-field appearance="outline" class="m-16" color="primary">
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">
+          Correo electrónico</mat-label
+          >
         <input matInput type="email" [(ngModel)]="correoElectronico">
         <mat-error *ngIf="verificarCorreo.invalid">Por favor, ingresa un correo electrónico válido</mat-error>
       </mat-form-field>
+
+      <mat-form-field appearance="outline" class="m-16" color="primary">
+        <mat-label>Fecha inicial del informe</mat-label>
+        <input matInput [matDatepicker]="pickerFechaInicial" [(ngModel)]="fechaInicial" name="fechaInicial">
+        <mat-datepicker-toggle matIconSuffix [for]="pickerFechaInicial"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFechaInicial></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="m-16" color="primary">
+        <mat-label>Fecha final del informe</mat-label>
+        <input matInput [matDatepicker]="pickerFechaFinal" [(ngModel)]="fechaFinal" name="fechaFinal">
+        <mat-datepicker-toggle matIconSuffix [for]="pickerFechaFinal"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFechaFinal></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="m-16" color="primary">
+        <mat-label>Hora inicial del informe</mat-label>
+        <mat-select [(ngModel)]="horaInicial">
+          <mat-option *ngFor="let hora of horas" [value]="hora">{{ hora }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="m-16" color="primary">
+        <mat-label>Hora final del informe</mat-label>
+        <mat-select [(ngModel)]="horaFinal">
+          <mat-option *ngFor="let hora of horas" [value]="hora">{{ hora }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
     </mat-card-content>
     <mat-card-actions>
       <button
         type="submit"
+        class="m-r-8"
         mat-raised-button
         color="primary"
-        (click)="cierreDia()"
+        (click)="cierreD()"
       >
-        Enviar informe
+        Generar Informe
       </button>
+      <button
+      *ngIf="generado && correoElectronico"
+      type="submit"
+      class="m-l-8"
+      mat-raised-button
+      color="primary"
+      (click)="descargarExcel()"
+    >
+      Enviar y descargar
+    </button>
     </mat-card-actions>
   </mat-card>    
 </div>

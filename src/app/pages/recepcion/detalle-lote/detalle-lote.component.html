@@ -153,6 +153,15 @@
       </div>
       <div class="col" style="display: flex; justify-content: flex-end">
         <button
+        *ngIf="admin || operator || encargado"
+          mat-flat-button
+          (click)="exportToExcel()"
+          color="primary"
+          class="m-t-8 m-b-8 m-r-16"
+        >
+          Exportar a Excel
+        </button>
+        <button
           mat-flat-button
           *ngIf="admin || operator || encargado"
           (click)="guardarLote()"
@@ -162,14 +171,14 @@
           Actualizar Lote
         </button>
         <button
-        mat-flat-button
-        *ngIf="admin || operator || encargado"
-        (click)="generarCodigo(lote.nLote)"
-        color="primary"
-        class="m-t-8 m-b-8 m-l-16"
-      >
-        Generar Codigo
-      </button>
+          mat-flat-button
+          *ngIf="admin || operator || encargado"
+          (click)="generarCodigo(lote.nLote)"
+          color="primary"
+          class="m-t-8 m-b-8 m-l-16"
+        >
+          Generar Codigo
+        </button>
       </div>
       <mat-divider></mat-divider>
       <mat-card-title *ngIf="operator || admin"
@@ -217,7 +226,7 @@
               mat-table
               [dataSource]="dataSource2"
               class="mat-elevation-z8"
-              *ngIf = "lote?.tipoTransporte== 'Camion'"
+              *ngIf="lote?.tipoTransporte == 'Camion'"
             >
               <!-- Columna N° Lote -->
               <ng-container matColumnDef="nLote">
@@ -345,7 +354,12 @@
               <ng-container matColumnDef="pesoNetoSeco">
                 <th mat-header-cell *matHeaderCellDef>Peso Neto Seco</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ (element.netoHumedoDestino - (element.netoHumedoDestino * lote?.porcHumedad / 100)).toFixed(2) }}
+                  {{
+                    (
+                      element.netoHumedoDestino -
+                      (element.netoHumedoDestino * lote?.porcHumedad) / 100
+                    ).toFixed(2)
+                  }}
                 </td>
               </ng-container>
 
@@ -449,98 +463,103 @@
               ></tr>
             </table>
             <table
-            mat-table
-            [dataSource]="dataSource2"
-            class="mat-elevation-z8"
-            *ngIf = "lote?.tipoTransporte == 'Vagon'"
-          >
-            <!-- Columna N° Lote -->
-            <ng-container matColumnDef="nLote">
-              <th mat-header-cell *matHeaderCellDef>
-                N° {{ lote?.tipoTransporte }}
-              </th>
-              <td mat-cell *matCellDef="let element; let i = index">
-                {{ i + 1 }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Fecha Origen -->
-            <ng-container matColumnDef="fOrigen">
-              <th mat-header-cell *matHeaderCellDef>Fecha de Origen</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.fOrigen | date }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Hora Origen -->
-            <ng-container matColumnDef="hOrigen">
-              <th mat-header-cell *matHeaderCellDef>Hora de Origen</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.hOrigen }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna ID Transporte Origen -->
-            <ng-container matColumnDef="idTransporteOrigen">
-              <th mat-header-cell *matHeaderCellDef>Guía Despacho</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.idTransporteOrigen }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Número de Vagones -->
-            <ng-container matColumnDef="idCarro">
-              <th mat-header-cell *matHeaderCellDef>Número de Vagones</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.idCarro }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Neto Origen -->
-            <ng-container matColumnDef="brutoOrigen">
-              <th mat-header-cell *matHeaderCellDef>Peso Bruto Origen</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.brutoOrigen }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Fecha Destino -->
-            <ng-container matColumnDef="fDestino">
-              <th mat-header-cell *matHeaderCellDef>Fecha de Destino</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.fDestino | date }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Integrado Inicial -->
-            <ng-container matColumnDef="brutoDestino">
-              <th mat-header-cell *matHeaderCellDef>Integrado Inicial</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.brutoDestino }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Integrado Final -->
-            <ng-container matColumnDef="taraDestino">
-              <th mat-header-cell *matHeaderCellDef>Integrado Final</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.taraDestino }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Neto Húmedo Destino -->
-            <ng-container matColumnDef="netoHumedoDestino">
-              <th mat-header-cell *matHeaderCellDef>Peso Neto Destino</th>
-              <td mat-cell *matCellDef="let element">
-                {{ element.netoHumedoDestino }}
-              </td>
-            </ng-container>
+              mat-table
+              [dataSource]="dataSource2"
+              class="mat-elevation-z8"
+              *ngIf="lote?.tipoTransporte == 'Vagon'"
+            >
+              <!-- Columna N° Lote -->
+              <ng-container matColumnDef="nLote">
+                <th mat-header-cell *matHeaderCellDef>
+                  N° {{ lote?.tipoTransporte }}
+                </th>
+                <td mat-cell *matCellDef="let element; let i = index">
+                  {{ i + 1 }}
+                </td>
+              </ng-container>
 
-            <!-- Columna Peso Neto Seco -->
+              <!-- Columna Fecha Origen -->
+              <ng-container matColumnDef="fOrigen">
+                <th mat-header-cell *matHeaderCellDef>Fecha de Origen</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.fOrigen | date }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Hora Origen -->
+              <ng-container matColumnDef="hOrigen">
+                <th mat-header-cell *matHeaderCellDef>Hora de Origen</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.hOrigen }}
+                </td>
+              </ng-container>
+
+              <!-- Columna ID Transporte Origen -->
+              <ng-container matColumnDef="idTransporteOrigen">
+                <th mat-header-cell *matHeaderCellDef>Guía Despacho</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.idTransporteOrigen }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Número de Vagones -->
+              <ng-container matColumnDef="idCarro">
+                <th mat-header-cell *matHeaderCellDef>Número de Vagones</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.idCarro }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Neto Origen -->
+              <ng-container matColumnDef="brutoOrigen">
+                <th mat-header-cell *matHeaderCellDef>Peso Bruto Origen</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.brutoOrigen }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Fecha Destino -->
+              <ng-container matColumnDef="fDestino">
+                <th mat-header-cell *matHeaderCellDef>Fecha de Destino</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.fDestino | date }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Integrado Inicial -->
+              <ng-container matColumnDef="brutoDestino">
+                <th mat-header-cell *matHeaderCellDef>Integrado Inicial</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.brutoDestino }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Integrado Final -->
+              <ng-container matColumnDef="taraDestino">
+                <th mat-header-cell *matHeaderCellDef>Integrado Final</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.taraDestino }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Neto Húmedo Destino -->
+              <ng-container matColumnDef="netoHumedoDestino">
+                <th mat-header-cell *matHeaderCellDef>Peso Neto Destino</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.netoHumedoDestino }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Peso Neto Seco -->
               <ng-container matColumnDef="pesoNetoSeco">
                 <th mat-header-cell *matHeaderCellDef>Peso Neto Seco</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ (element.netoHumedoDestino - (element.netoHumedoDestino * lote?.porcHumedad / 100)).toFixed(2) }}
+                  {{
+                    (
+                      element.netoHumedoDestino -
+                      (element.netoHumedoDestino * lote?.porcHumedad) / 100
+                    ).toFixed(2)
+                  }}
                 </td>
               </ng-container>
 
@@ -550,71 +569,51 @@
                 <td mat-cell *matCellDef="let element">
                   {{ element.CuFino }}
                 </td>
-              </ng-container>              
-          
-            <!-- Columna Diferencia Húmeda -->
-            <ng-container matColumnDef="diferenciaHumeda">
-              <th mat-header-cell *matHeaderCellDef>Diferencia</th>
-              <td mat-cell *matCellDef="let element">
-                {{ (element.brutoOrigen - element.netoHumedoDestino).toFixed(2) }}
-              </td>
-            </ng-container>
-          
-            <!-- Columna Diferencia Seca -->
-            <!-- <ng-container matColumnDef="diferenciaSeca">
+              </ng-container>
+
+              <!-- Columna Diferencia Húmeda -->
+              <ng-container matColumnDef="diferenciaHumeda">
+                <th mat-header-cell *matHeaderCellDef>Diferencia</th>
+                <td mat-cell *matCellDef="let element">
+                  {{
+                    (element.brutoOrigen - element.netoHumedoDestino).toFixed(2)
+                  }}
+                </td>
+              </ng-container>
+
+              <!-- Columna Diferencia Seca -->
+              <!-- <ng-container matColumnDef="diferenciaSeca">
               <th mat-header-cell *matHeaderCellDef>Diferencia Seca</th>
               <td mat-cell *matCellDef="let element">
                 {{ element.diferenciaSeca }}
               </td>
             </ng-container> -->
-          
-            <!-- Columna Bodega -->
-            <ng-container matColumnDef="bodega">
-              <th mat-header-cell *matHeaderCellDef>N° bodega</th>
-              <td mat-cell *matCellDef="let element">{{ element.bodega }}</td>
-            </ng-container>
-          
-            <!-- Columna Estado -->
-            <ng-container matColumnDef="estado">
-              <th mat-header-cell *matHeaderCellDef>Estado</th>
-              <td
-                mat-cell
-                *matCellDef="let element"
-                [ngClass]="{
-                  'estado-aprobado': element.estado === 'aprobado',
-                  'estado-pendiente': element.estado === 'pendiente',
-                  'estado-error': element.estado === 'error'
-                }"
-              >
-                {{ element.estado }}
-              </td>
-            </ng-container>
-          
-            <tr
-              mat-header-row
-              *matHeaderRowDef="[
-                'nLote',
-                'fOrigen',
-                'hOrigen',
-                'idTransporteOrigen',
-                'idCarro',
-                'brutoOrigen',
-                'fDestino',
-                'brutoDestino',
-                'taraDestino',
-                'netoHumedoDestino',
-                'pesoNetoSeco',
-                'CuFino',
-                'diferenciaHumeda',
-                'bodega',
-                'estado'
-              ]"
-            ></tr>
-            <tr
-              mat-row
-              *matRowDef="
-                let row;
-                columns: [
+
+              <!-- Columna Bodega -->
+              <ng-container matColumnDef="bodega">
+                <th mat-header-cell *matHeaderCellDef>N° bodega</th>
+                <td mat-cell *matCellDef="let element">{{ element.bodega }}</td>
+              </ng-container>
+
+              <!-- Columna Estado -->
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td
+                  mat-cell
+                  *matCellDef="let element"
+                  [ngClass]="{
+                    'estado-aprobado': element.estado === 'aprobado',
+                    'estado-pendiente': element.estado === 'pendiente',
+                    'estado-error': element.estado === 'error'
+                  }"
+                >
+                  {{ element.estado }}
+                </td>
+              </ng-container>
+
+              <tr
+                mat-header-row
+                *matHeaderRowDef="[
                   'nLote',
                   'fOrigen',
                   'hOrigen',
@@ -630,23 +629,37 @@
                   'diferenciaHumeda',
                   'bodega',
                   'estado'
-                ]
-              "
-              (click)="abrirDialogoModificarRegistro(row)"
-            ></tr>
-          </table>
-          <!-- <mat-paginator [length]="dataSource1.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" (page)="onPageEvent($event)"></mat-paginator> -->
+                ]"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="
+                  let row;
+                  columns: [
+                    'nLote',
+                    'fOrigen',
+                    'hOrigen',
+                    'idTransporteOrigen',
+                    'idCarro',
+                    'brutoOrigen',
+                    'fDestino',
+                    'brutoDestino',
+                    'taraDestino',
+                    'netoHumedoDestino',
+                    'pesoNetoSeco',
+                    'CuFino',
+                    'diferenciaHumeda',
+                    'bodega',
+                    'estado'
+                  ]
+                "
+                (click)="abrirDialogoModificarRegistro(row)"
+              ></tr>
+            </table>
+            <!-- <mat-paginator [length]="dataSource1.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" (page)="onPageEvent($event)"></mat-paginator> -->
           </mat-card-content>
         </mat-card>
       </div>
     </mat-card-content>
-    <button
-      mat-flat-button
-      (click)="exportToExcel()"
-      color="primary"
-      class="m-t-8 m-b-8"
-    >
-      Exportar a Excel
-    </button>
   </mat-card>
 </mat-dialog-content>

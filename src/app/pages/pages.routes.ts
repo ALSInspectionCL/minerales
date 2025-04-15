@@ -9,6 +9,7 @@ import { DespachoComponent } from './despacho/despacho.component';
 import { InventarioComponent } from './inventario/inventario.component';
 import { RoleGuard } from '../guards/rol.guard';
 import { ReportesComponent } from './reportes/reportes.component';
+import { TrazabilidadComponent } from './trazabilidad/trazabilidad.component';
 
 
 export const PagesRoutes: Routes = [
@@ -67,6 +68,13 @@ data: {
     component: BalanceComponent,
     data: {
       title: 'Gestión de Balance',
+    }
+  },
+  {
+    path: 'trazabilidad',
+    component: TrazabilidadComponent,
+    data: {
+      title: 'Trazabilidad de la muestra',
     }
   },
   

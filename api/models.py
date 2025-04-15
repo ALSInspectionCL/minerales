@@ -204,6 +204,49 @@ class DetalleBodega(models.Model):
     ingreso = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
     despacho = models.DecimalField(max_digits=20, decimal_places=2, blank=True)
  
+class Trazabilidad(models.Model):
+    nLote = models.CharField(max_length=30)
+    cliente = models.CharField(max_length=50,blank=True, null=True)
+    idTransporte = models.CharField(max_length=10,blank=True, null=True)
+    horaControl = models.TimeField(blank=True, null=True)
+    fechaControl = models.DateField(blank=True, null=True)
+    horaLab = models.TimeField(blank=True, null=True)
+    fechaLab = models.DateField(blank=True, null=True)
+    horaIngresoHorno = models.TimeField(blank=True, null=True)
+    fechaIngresoHorno = models.DateField(blank=True, null=True)
+    horaSalidaHorno = models.TimeField(blank=True, null=True)
+    fechaSalidaHorno = models.DateField(blank=True, null=True)
+    horaTestigoteca = models.TimeField(blank=True, null=True)
+    fechaTestigoteca = models.DateField(blank=True, null=True)
+    estado = models.CharField(max_length=20, blank=True, null=True)
+    observacion = models.CharField(max_length=200,blank=True, null=True)
+    cantidadCamiones = models.IntegerField(blank=True, null=True)
+
+
+class TrazabilidadMecanica(models.Model):
+    nLote = models.CharField(max_length=30)
+    idTransporte = models.CharField(max_length=10,blank=True, null=True)
+    nave = models.CharField(max_length=10,blank=True, null=True)
+    bodega = models.CharField(max_length=10,blank=True, null=True)
+    material = models.CharField(max_length=10,blank=True, null=True)
+    muestreadoPor = models.CharField(max_length=10,blank=True, null=True)
+    exportador = models.CharField(max_length=10,blank=True, null=True)
+    puertoDestino = models.CharField(max_length=10,blank=True, null=True)
+    contrato = models.CharField(max_length=10,blank=True, null=True)
+    cliente = models.CharField(max_length=10,blank=True, null=True)
+    cochilco = models.CharField(max_length=10,blank=True, null=True)
+    fechaEmbarque = models.DateField(blank=True, null=True)
+    numeroSubLote = models.IntegerField(blank=True, null=True)
+    DUS = models.CharField(max_length=10,blank=True, null=True)
+    fechaDUS = models.DateField(blank=True, null=True)
+    pesoNetoHumedo = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    pesoNetoSeco = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    porcHumedad = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
+    responsable = models.CharField(max_length=10,blank=True, null=True)
+    observacion = models.CharField(max_length=200,blank=True, null=True)
+    estado = models.CharField(max_length=20, blank=True, null=True)
+
+
 @receiver(pre_save, sender=Recepcion)
 def calculate_diferencia_humeda(sender, instance, **kwargs):
     instance.diferenciaHumeda = instance.netoHumedoOrigen - instance.netoHumedoDestino

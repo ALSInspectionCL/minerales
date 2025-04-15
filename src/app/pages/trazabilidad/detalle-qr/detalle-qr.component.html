@@ -1,0 +1,94 @@
+<mat-card>
+  <mat-card-header class="m-b-16">
+    <mat-card-title>Nueva Trazabilidad</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="b-t-1">
+    <form (ngSubmit)="enviarServicio()">
+      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Servicio</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione un servicio"
+          [(ngModel)]="idServicio"
+          name="idServicio"
+          (ngModelChange)="filtrarSolicitudes($event)"
+        >
+          <mat-option
+            *ngFor="let servicio of servicios"
+            [value]="servicio.id"
+            >{{ servicio.nServ }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Solicitud</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione una solicitud"
+          [(ngModel)]="idSolicitud"
+          name="idSolicitud"
+          (ngModelChange)="filtrarLotes($event)"
+        >
+          <mat-option
+            *ngFor="let solicitud of solicitudesFiltradas"
+            [value]="solicitud.id"
+            >{{ solicitud.nSoli }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Lote</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione un lote"
+          [(ngModel)]="lote"
+          name="lote"
+          (ngModelChange)="filtrarCamiones($event)"
+        >
+          <mat-option
+            *ngFor="let lote of lotesFiltrados"
+            [value]="lote"
+            >{{ lote.observacion }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Camión</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione una camión"
+          [(ngModel)]="camion"
+          name="camion"
+        >
+          <mat-option
+            *ngFor="let camion of camionesFiltrados"
+            [value]="camion.id"
+            >{{ camion.idTransporteDestino }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+    </form>
+  </mat-card-content>
+  <mat-card-actions>
+    <button
+      type="submit"
+      mat-raised-button
+      color="primary"
+      (click)="crearQR()"
+    >
+      Crear Trazabilidad
+    </button>
+  </mat-card-actions>
+</mat-card>

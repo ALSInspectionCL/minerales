@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -151,3 +152,12 @@ CORS_ALLOWED_ORIGINS = [
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#Configuración MAIL 
+DEFAULT_FROM_EMAIL = 'info@als-inspection.cl'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #Modo Test
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' #Modo Producción
+EMAIL_HOST = 'mail.als-inspection.cl'  # Cambiar por el servidor SMTP que usarás
+EMAIL_PORT = 465  # Puerto del servidor SMTP (generalmente 587 o 465)
+EMAIL_USE_SSL = True  # O False si no se usa TLS
+EMAIL_HOST_USER = DEFAULT_FROM_EMAIL  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = '9NNQCpecd6.'  # Tu contraseña de correo electrónico

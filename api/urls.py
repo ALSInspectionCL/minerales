@@ -19,6 +19,9 @@ router.register(r'bodega',views.BodegaViewSet)
 router.register(r'detalle-bodega',views.DetalleBodegaViewSet)
 router.register(r'despacho-embarque',views.DespachoEmbarqueViewSet)
 router.register(r'user-logs',views.UserLogsViewSet)
+router.register(r'trazabilidad',views.TrazabilidadViewSet)
+router.register(r'trazabilidad-mecanica',views.TrazabilidadMecanicaViewSet)
+
 
 urlpatterns=[
     path('', include(router.urls)),

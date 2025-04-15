@@ -1,7 +1,8 @@
+import { CookieService } from 'src/app/services/CookieService';
 import { Token } from '@angular/compiler';
 import { SolicitudService } from './../../services/solicitud.service';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, Injectable, ViewChild } from '@angular/core';
+import { AsyncPipe, CommonModule, DatePipe, DOCUMENT } from '@angular/common';
+import { Component, Inject, Injectable, ViewChild } from '@angular/core';
 import { MatCard, MatCardModule } from '@angular/material/card';
 import { MatFormField, MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -14,7 +15,12 @@ import {
   MatDatepickerModule,
 } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { Observable } from 'rxjs';
@@ -24,7 +30,7 @@ import { OnInit } from '@angular/core';
 import { map, startWith } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { ServicioService } from './../../services/servicio.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import Notiflix from 'notiflix';
 import { RolService } from 'src/app/services/rol.service';
@@ -33,6 +39,9 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Bodega } from 'src/app/services/bodega.service';
 import { ReportesComponent } from 'src/app/pages/reportes/reportes.component';
 import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
+import { Value } from 'sass';
+import sharp from 'sharp';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -126,16 +135,21 @@ export class FormulariosComponent {
   dataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator: MatPaginator;
   myControl = new FormControl('');
-  options: string[] = ['Ventanas', 'San Antonio', 'Otro'];
+  options: string[] = ['Ventanas', 'San Antonio','Chagres' ,'Otro'];
   filteredOptions: Observable<string[]>;
   estadoServ: string = 'Iniciado';
   estadoSoli: string = 'Iniciado';
   nServ: number;
+  fechaInicial: Date;
+  fechaFinal: Date;
+  horaInicial: String;
+  horaFinal: String;
   nombreBodega: string;
   servicios: Servicio[];
   solicitudes: Solicitud[];
   bodegas: any[];
   admin: boolean;
+  fechaDesde: Date;
   bodegaSeleccionada: {
     idBodega: number;
     nombreBodega: string;
@@ -147,13 +161,17 @@ export class FormulariosComponent {
     total: 0,
     imagen: null,
   };
+  horas: string[] = [];
   correoElectronico = '';
 
   // const reportes = new ReportesComponent(http, loteService,Bodega);
 
   imagenPreview: any;
   imagenBodega: any;
-  verificarCorreo = new FormControl('', [Validators.required, Validators.email]);
+  verificarCorreo = new FormControl('', [
+    Validators.required,
+    Validators.email,
+  ]);
   usuarios: any[];
   servicio = {
     nServ: '',
@@ -182,21 +200,37 @@ export class FormulariosComponent {
     private bodegaService: Bodega,
     private solicitudService: SolicitudService,
     private servicioService: ServicioService,
-    private http: HttpClient
+    private http: HttpClient // private CookieService : CookieService,
   ) {}
+  csrfToken: string;
 
   ngOnInit() {
+    // this.csrfToken = this.CookieService.getCookie('csrftoken') ?? '';
+    // console.log(this.csrfToken);
+    this.generarHoras();
     this.obtenerServicios();
     this.obtenerSolicitudes();
     this.obtenerUsuarios();
     this.obtenerBodegas();
     this.obtenerLogs();
+    this.fechaDesde = new Date();
     this.admin = true;
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value || ''))
     );
   }
+
+  generarHoras() {
+    for (let i = 0; i < 24; i++) {
+      for (let j = 0; j < 60; j += 5) {
+        this.horas.push(
+          `${i.toString().padStart(2, '0')}:${j.toString().padStart(2, '0')}`
+        );
+      }
+    }
+  }
+
   obtenerBodegas() {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
     this.http.get<any[]>(apiUrl).subscribe(
@@ -707,252 +741,481 @@ export class FormulariosComponent {
     this.dataSource.paginator = this.paginator;
   }
 
-  camionesRecepcion : any = [];
-  lotesResumen : any = [];
-  cierreDia() {
-    //Generar y enviar el informe de cierre de día. Es el mismo que se genera en reportes.
+  camionesRecepcion: any = [];
+  lotesResumen: any = [];
+
+  generado: boolean = false;
+  camiones: any[] = [];
+  cierreD() {
     let apirecepcion =
       'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
     let apiLote =
       'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-
-    //fecha desde es la fecha de hoy - 2
-    let fechaDesde = new Date();
-    fechaDesde.setDate(fechaDesde.getDate() - 1);
-    let fechaHasta = new Date();
-    Notiflix.Notify.success('Documento de camiones creado');
-    this.http
-      .get(
-        `${apirecepcion}?fOrigen=${fechaDesde}&?fOrigen=${fechaHasta}/`
-      )
-      .subscribe((response) => {
-        const camionesRecepcion = (response as any[]).filter(
-          (camion: any) =>
-            camion.tipoTransporte === 'Camion' &&
-            new Date(camion.fOrigen) >= new Date(fechaDesde) &&
-            new Date(camion.fOrigen) <= new Date(fechaHasta)
+    let fechaDesde = this.formatDate(this.fechaDesde);
+    let fechaDesdeAnterior = new Date(this.fechaDesde);
+    fechaDesdeAnterior.setDate(fechaDesdeAnterior.getDate() - 1);
+    this.http.get(`${apirecepcion}/`).subscribe((response) => {
+      this.camiones = (response as any[]).filter(
+        (camion) => camion.tipoTransporte === 'Camion'
+      );
+      const fechaI = this.formatDate(this.fechaInicial);
+      const fechaF = this.formatDate(this.fechaFinal);
+      const fechaInicialCompleta = new Date(
+        Date.parse(`${fechaI}T${this.horaInicial}:00`)
+      );
+      const fechaFinalCompleta = new Date(
+        Date.parse(`${fechaF}T${this.horaFinal}:00`)
+      );
+      console.log(fechaInicialCompleta);
+      console.log(fechaFinalCompleta);
+      this.camionesRecepcion = this.camiones.filter((camion: any) => {
+        const fechaCamion = new Date(
+          Date.parse(`${camion.fDestino}T${camion.hDestino}`)
         );
-        this.camionesRecepcion = camionesRecepcion;
-        if (camionesRecepcion.length === 0) {
-          Notiflix.Notify.warning('No hay camiones para la fecha seleccionada');
-        } else {
-          let lastnLote = '';
-          let nLotes: any[] = [];
-          if (camionesRecepcion.length > 0) {
-            lastnLote = camionesRecepcion[0].nLote;
+        return (
+          fechaCamion >= fechaInicialCompleta &&
+          fechaCamion <= fechaFinalCompleta
+        );
+      });
+      let camionesRecepcion = this.camionesRecepcion;
+      if (camionesRecepcion.length === 0) {
+        Notiflix.Notify.warning('No hay camiones para la fecha seleccionada');
+      } else {
+        let lastnLote = '';
+        let nLotes: any[] = [];
+        if (camionesRecepcion.length > 0) {
+          lastnLote = camionesRecepcion[0].nLote;
+        }
+        this.obtenerObservaciones(camionesRecepcion);
+        this.obtenerNombreBodega(camionesRecepcion);
+        camionesRecepcion.forEach((camion: any) => {
+          if (camion.nLote === lastnLote && !nLotes.includes(camion.nLote)) {
+            nLotes.push(camion.nLote);
           }
-          this.obtenerObservaciones(camionesRecepcion);
-          this.obtenerNombreBodega(camionesRecepcion);
-          camionesRecepcion.forEach((camion: any) => {
-            if (camion.nLote === lastnLote && !nLotes.includes(camion.nLote)) {
-              nLotes.push(camion.nLote);
-            }
-            lastnLote = camion.nLote;
-          });
-          console.log(nLotes);
+          lastnLote = camion.nLote;
+        });
+        console.log(nLotes);
 
-          //buscar los lotes en la api lote-recepcion para comparar su posición y asignarsela al camión
-          this.http
-            .get(`${apiLote}?nLote=${nLotes.join(',')}/`)
-            .subscribe((response) => {
-              const lotes = (response as any[]).filter((lote: any) =>
-                nLotes.includes(lote.nLote)
+        //buscar los lotes en la api lote-recepcion para comparar su posición y asignarsela al camión
+        this.http
+          .get(`${apiLote}?nLote=${nLotes.join(',')}/`)
+          .subscribe((response) => {
+            const lotes = (response as any[]).filter((lote: any) =>
+              nLotes.includes(lote.nLote)
+            );
+            console.log(lotes);
+            camionesRecepcion.forEach((camion: any) => {
+              const lote = lotes.find(
+                (lote: any) => lote.nLote === camion.nLote
               );
-              console.log(lotes);
-              camionesRecepcion.forEach((camion: any) => {
-                const lote = lotes.find(
+              if (lote) {
+                camion.porcHumedad = lote.porcHumedad;
+                camion.netoSeco = (
+                  camion.netoHumedoDestino -
+                  (camion.netoHumedoDestino * lote.porcHumedad) / 100
+                ).toFixed(2);
+                camion.diferenciaHumeda = (
+                  camion.netoHumedoOrigen - camion.netoHumedoDestino
+                ).toFixed(2);
+                camion.diferenciaSeca = (
+                  camion.netoHumedoOrigen -
+                  (camion.netoHumedoOrigen * lote.porcHumedad) / 100 -
+                  camion.netoSeco
+                ).toFixed(2);
+              } else {
+                camion.netoSeco = camion.netoHumedoDestino;
+              }
+            });
+            this.lotesResumen = this.camionesRecepcion.reduce(
+              (lotes: any, camion: any) => {
+                const indice = lotes.findIndex(
                   (lote: any) => lote.nLote === camion.nLote
                 );
-                if (lote) {
-                  camion.porcHumedad = lote.porcHumedad;
-                  camion.netoSeco = (
-                    camion.netoHumedoDestino -
-                    (camion.netoHumedoDestino * lote.porcHumedad) / 100
-                  ).toFixed(2);
-                  camion.diferenciaHumeda = (
-                    camion.netoHumedoOrigen - camion.netoHumedoDestino
-                  ).toFixed(2);
-                  camion.diferenciaSeca = (
-                    camion.netoHumedoOrigen -
-                    (camion.netoHumedoOrigen * lote.porcHumedad) / 100 -
-                    camion.netoSeco
-                  ).toFixed(2);
+                if (indice === -1) {
+                  lotes.push({
+                    nLote: camion.nLote,
+                    observacion: camion.observacion,
+                    porcHumedad: camion.porcHumedad || 0,
+                    cantidadCamiones: 1,
+                    netoHumedoOrigen: parseFloat(
+                      camion.netoHumedoOrigen
+                    ).toFixed(2),
+                    netoHumedoDestino: parseFloat(
+                      camion.netoHumedoDestino
+                    ).toFixed(2),
+                    netoSeco: parseFloat(camion.netoSeco).toFixed(2),
+                    diferenciaHumeda: parseFloat(
+                      camion.diferenciaHumeda
+                    ).toFixed(2),
+                    diferenciaSeca: parseFloat(camion.diferenciaSeca).toFixed(
+                      2
+                    ),
+                  });
                 } else {
-                  camion.netoSeco = camion.netoHumedoDestino;
+                  lotes[indice].cantidadCamiones += 1;
+                  lotes[indice].netoHumedoOrigen = (
+                    parseFloat(lotes[indice].netoHumedoOrigen) +
+                    parseFloat(camion.netoHumedoOrigen)
+                  ).toFixed(2);
+                  lotes[indice].netoHumedoDestino = (
+                    parseFloat(lotes[indice].netoHumedoDestino) +
+                    parseFloat(camion.netoHumedoDestino)
+                  ).toFixed(2);
+                  lotes[indice].netoSeco = (
+                    parseFloat(lotes[indice].netoSeco) +
+                    parseFloat(camion.netoSeco)
+                  ).toFixed(2);
+                  lotes[indice].diferenciaHumeda = (
+                    parseFloat(lotes[indice].diferenciaHumeda) +
+                    parseFloat(camion.diferenciaHumeda)
+                  ).toFixed(2);
+                  lotes[indice].diferenciaSeca = (
+                    parseFloat(lotes[indice].diferenciaSeca) +
+                    parseFloat(camion.diferenciaSeca)
+                  ).toFixed(2);
                 }
-              });
-              this.lotesResumen = this.camionesRecepcion.reduce(
-                (lotes : any, camion : any) => {
-                  const indice = lotes.findIndex(
-                    (lote: any) => lote.nLote === camion.nLote
-                  );
-                  if (indice === -1) {
-                    lotes.push({
-                      nLote: camion.nLote,
-                      observacion: camion.observacion,
-                      porcHumedad: camion.porcHumedad || 0,
-                      cantidadCamiones: 1,
-                      netoHumedoOrigen: parseFloat(
-                        camion.netoHumedoOrigen
-                      ).toFixed(2),
-                      netoHumedoDestino: parseFloat(
-                        camion.netoHumedoDestino
-                      ).toFixed(2),
-                      netoSeco: parseFloat(camion.netoSeco).toFixed(2),
-                      diferenciaHumeda: parseFloat(
-                        camion.diferenciaHumeda
-                      ).toFixed(2),
-                      diferenciaSeca: parseFloat(camion.diferenciaSeca).toFixed(
-                        2
-                      ),
-                    });
-                  } else {
-                    lotes[indice].cantidadCamiones += 1;
-                    lotes[indice].netoHumedoOrigen = (
-                      parseFloat(lotes[indice].netoHumedoOrigen) +
-                      parseFloat(camion.netoHumedoOrigen)
-                    ).toFixed(2);
-                    lotes[indice].netoHumedoDestino = (
-                      parseFloat(lotes[indice].netoHumedoDestino) +
-                      parseFloat(camion.netoHumedoDestino)
-                    ).toFixed(2);
-                    lotes[indice].netoSeco = (
-                      parseFloat(lotes[indice].netoSeco) +
-                      parseFloat(camion.netoSeco)
-                    ).toFixed(2);
-                    lotes[indice].diferenciaHumeda = (
-                      parseFloat(lotes[indice].diferenciaHumeda) +
-                      parseFloat(camion.diferenciaHumeda)
-                    ).toFixed(2);
-                    lotes[indice].diferenciaSeca = (
-                      parseFloat(lotes[indice].diferenciaSeca) +
-                      parseFloat(camion.diferenciaSeca)
-                    ).toFixed(2);
-                  }
-                  console.log(lotes)
-                  return lotes;
-                },
-                []
+                return lotes;
+              },
+              []
+            );
+            console.log('Lotes resumen:');
+            console.log(this.lotesResumen);
+          });
+
+        //buscar los registros de los lotes de camiones de nLotes
+        const lotesCamiones: any[] = [];
+        let camionesLote: any[] = [];
+        for (let i = 0; i < nLotes.length; i++) {
+          this.http
+            .get(
+              `https://control.als-inspection.cl/api_min/api/recepcion-transporte/?nLote=${nLotes[i]}/`
+            )
+            .subscribe((response) => {
+              camionesLote = (response as any[]).filter(
+                (camion) =>
+                  camion.tipoTransporte === 'Camion' &&
+                  camion.nLote === nLotes[i]
               );
-              console.log('Lotes resumen:');
-              console.log(this.lotesResumen);
-            });
+              camionesLote.forEach((camion, index) => {
+                lotesCamiones.push({ id: camion.id, index: index });
+              });
 
-          //buscar los registros de los lotes de camiones de nLotes
-          const lotesCamiones: any[] = [];
-          let camionesLote: any[] = [];
-          for (let i = 0; i < nLotes.length; i++) {
-            this.http
-              .get(
-                `https://control.als-inspection.cl/api_min/api/recepcion-transporte/?nLote=${nLotes[i]}/`
-              )
-              .subscribe((response) => {
-                camionesLote = (response as any[]).filter(
-                  (camion) =>
-                    camion.tipoTransporte === 'Camion' &&
-                    camion.nLote === nLotes[i]
-                );
-                camionesLote.forEach((camion, index) => {
-                  lotesCamiones.push({ id: camion.id, index: index });
-                });
-
-                for (let i = 0; i < lotesCamiones.length; i++) {
-                  for (let j = 0; j < camionesRecepcion.length; j++) {
-                    if (camionesRecepcion[j].id === lotesCamiones[i].id) {
-                      camionesRecepcion[j].posicion = lotesCamiones[i].index;
-                    }
+              for (let i = 0; i < lotesCamiones.length; i++) {
+                for (let j = 0; j < camionesRecepcion.length; j++) {
+                  if (camionesRecepcion[j].id === lotesCamiones[i].id) {
+                    camionesRecepcion[j].posicion = lotesCamiones[i].index;
                   }
                 }
-              });
-            console.log(camionesRecepcion);
-          }
-          console.log()
-
-          Notiflix.Notify.success('Camiones encontrados');
-          this.descargarDocumento(camionesRecepcion,this.lotesResumen)
+              }
+            });
         }
+        Notiflix.Notify.success('Camiones encontrados');
+        this.generado = true;
+      }
+    });
+  }
+
+  documento: File;
+  
+
+  descargarExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Camiones de Recepción');
+  
+    // Agregar resumen
+    const resumenWorksheet = workbook.addWorksheet('Resumen');
+    resumenWorksheet.columns = new Array(8).fill({ width: 30 });
+  
+    for (let i = 0; i < 4; i++) {
+      resumenWorksheet.addRow([]);
+    }
+  
+    resumenWorksheet.getCell('D2').value = 'Información Resumida de Lotes';
+    resumenWorksheet.getCell('D2').font = { name: 'Arial', size: 16, bold: true };
+    resumenWorksheet.getCell('D2').alignment = { horizontal: 'center' };
+  
+    resumenWorksheet
+      .addRow([
+        'Lote',
+        'Total de Camiones',
+        'Neto Humedo Despacho',
+        'Neto Humedo Recepción',
+        'Porcentaje de Humedad',
+        'Neto Seco',
+        'Diferencia Humeda',
+        'Diferencia Seca',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+  
+    this.lotesResumen.forEach((lote: any) => {
+      resumenWorksheet.addRow([
+        lote.observacion,
+        lote.cantidadCamiones,
+        lote.netoHumedoOrigen,
+        lote.netoHumedoDestino,
+        lote.porcHumedad,
+        lote.netoSeco,
+        lote.diferenciaHumeda,
+        lote.diferenciaSeca,
+      ]);
+    });
+  
+    resumenWorksheet
+      .addRow([
+        'Cantidad de Lotes',
+        'Total de Camiones',
+        'Neto Humedo Despacho Total',
+        'Neto Humedo Recepción Total',
+        'Porcentaje de Humedad Promedio',
+        'Neto Seco Total',
+        'Diferencia Humeda Total',
+        'Diferencia Seca Total',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+  
+    resumenWorksheet
+      .addRow([
+        this.lotesResumen.length,
+        this.calcularTotalCamiones(),
+        this.calcularPesoNetoDespachoTotal(),
+        this.calcularPesoNetoRecepcionTotal(),
+        this.calcularPromedioHumedades(),
+        this.calcularPesoNetoSecoTotal(),
+        this.calcularPesoNetoRecepcionTotal() - this.calcularPesoNetoDespachoTotal(),
+        this.calcularDiferenciaSecaTotal(),
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: '000000' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'd9d9d9' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+  
+    // Agregar encabezados al detalle
+    worksheet.columns = new Array(22).fill({ width: 15 });
+  
+    for (let i = 0; i < 4; i++) {
+      worksheet.addRow([]);
+    }
+  
+    // Título en D2
+    worksheet.getCell('D2').value = 'Detalle de Camiones de Recepción';
+    worksheet.getCell('D2').font = { name: 'Arial', size: 16, bold: true };
+    worksheet.getCell('D2').alignment = { horizontal: 'center' };
+  
+    worksheet
+      .addRow([
+        'Fecha Despacho',
+        'Hora Despacho',
+        'Fecha Recepción',
+        'Hora Recepción',
+        'Referencia',
+        'Guía Despacho',
+        'Patente',
+        'Batea',
+        'Bruto Despacho',
+        'Bruto Recepción',
+        'Tara Despacho',
+        'Tara Recepción',
+        'Neto Húmedo Despacho',
+        'Neto Húmedo Recepción',
+        'Porcentaje Humedad',
+        'Neto Seco',
+        'Diferencia Húmeda',
+        'Diferencia Seca',
+        'Bodega',
+        'Sellos Despacho',
+        'Sellos de Destino',
+        'Estado',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+  
+    this.camionesRecepcion.forEach((camion: any) => {
+      worksheet.addRow([
+        camion.fOrigen,
+        camion.hOrigen,
+        camion.fDestino,
+        camion.hDestino,
+        camion.observacion,
+        camion.idTransporteOrigen,
+        camion.idTransporteDestino,
+        camion.idCarroDestino,
+        camion.brutoOrigen,
+        camion.brutoDestino,
+        camion.taraOrigen,
+        camion.taraDestino,
+        camion.netoHumedoOrigen,
+        camion.netoHumedoDestino,
+        camion.porcHumedad,
+        camion.netoSeco,
+        camion.diferenciaHumeda,
+        camion.diferenciaSeca,
+        camion.nombreBodega,
+        camion.sellosOrigen,
+        camion.sellosDestino,
+        camion.estado,
+      ]);
+    });
+  
+    //Cargar imagen desde assets y luego continuar
+    fetch('assets/images/logos/als_logo_1.png')
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          const base64 = base64data.split(',')[1];
+  
+          const binary = atob(base64);
+          const len = binary.length;
+          const imageBuffer = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            imageBuffer[i] = binary.charCodeAt(i);
+          }
+  
+          const imageId = workbook.addImage({
+            buffer: imageBuffer,
+            extension: 'png',
+          });
+  
+          worksheet.addImage(imageId, {
+            tl: { col: 1, row: 1 },
+            ext: { width: 65, height: 65 },
+          });
+  
+          // Guardar archivo después de agregar imagen
+          workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const url = URL.createObjectURL(blob);
+  
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Reporte Camiones.xlsx';
+            a.click();
+  
+            this.documento = new File([blob], 'CamionesRecepcion.xlsx', {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+  
+            this.enviarCorreo();
+          });
+        };
+        reader.readAsDataURL(blob);
       });
   }
 
-  descargarDocumento(camionesRecepcion:any, loteResumen:any){
-          const sumas = [
-            {
-              'Total de Camiones': this.calcularTotalCamiones(),
-              'Peso Neto Despacho Total': this.calcularPesoNetoDespachoTotal(),
-              'Peso Neto Recepción Total': this.calcularPesoNetoRecepcionTotal(),
-              'Peso Neto Seco Total': this.calcularPesoNetoSecoTotal(),
-              'Diferencia Seca Total': this.calcularDiferenciaSecaTotal(),
-              'Promedio de Humedades': this.calcularPromedioHumedades(),
-            },
-          ];
-          const resumen = loteResumen.map(
-            (lote: any) =>({
-              'Lote': lote.observacion,
-              'Total de Camiones': lote.cantidadCamiones,
-              'Neto Humedo Despacho': lote.netoHumedoOrigen,
-              'Neto Humedo Recepción': lote.netoHumedoDestino,
-              'Porcentaje de Humedad':lote.porcHumedad,
-              'Neto Seco':lote.netoSeco,
-              'Diferencia Humeda':lote.diferenciaHumeda,
-              'Diferencia Seca':lote.diferenciaSeca
-            })
-          )
-          const camionesRecepcionFormateados = camionesRecepcion.map(
-            (camion:any) => ({
-              'Fecha Despacho': camion.fOrigen,
-              'Hora Despacho': camion.hOrigen,
-              'Fecha Recepción': camion.fDestino,
-              'Hora Recepción': camion.hDestino,
-              'Referencia': camion.observacion,
-              // 'N° de Lote': camion.posicion + 1,
-              'Guía Despacho': camion.idTransporteOrigen,
-              Patente: camion.idTransporteDestino,
-              Batea: camion.idCarroDestino,
-              'Bruto Despacho': camion.brutoOrigen,
-              'Bruto Recepción': camion.brutoDestino,
-              'Tara Despacho': camion.taraOrigen,
-              'Tara Recepción': camion.taraDestino,
-              'Neto Húmedo Despacho': camion.netoHumedoOrigen,
-              'Neto Húmedo Recepción': camion.netoHumedoDestino,
-              'Porcentaje Humedad': camion.porcHumedad,
-              'Neto Seco': camion.netoSeco,
-              'Diferencia Húmeda': camion.diferenciaHumeda,
-              'Diferencia Seca': camion.diferenciaSeca,
-              Bodega: camion.nombreBodega,
-              'Sellos Despacho': camion.sellosOrigen,
-              'Sellos de Destino': camion.sellosDestino,
-              Estado: camion.estado,
-            })
-          );
-          const resumenWorksheet = XLSX.utils.json_to_sheet(resumen);
-          const worksheet = XLSX.utils.json_to_sheet(camionesRecepcionFormateados);
-          
-          if (worksheet['!rows']) {
-            for (let i = 0; i < 4; i++) {
-              worksheet['!rows'].push({}); // Agregar un objeto vacío en lugar de un arreglo vacío
-            }
-          }
-          const workbook: any = {
-            Sheets: { 'Camiones de Recepción': worksheet },
-            SheetNames: ['Camiones de Recepción'],
-          };
-          // Agregar la tabla resumen al workbook
-          (workbook.Sheets as any)['Resumen'] = resumenWorksheet;
-          (workbook.SheetNames as any).unshift('Resumen');
-          
-          XLSX.utils.sheet_add_json((workbook.Sheets as any)['Resumen'], sumas, {
-            header: [],
-            skipHeader: false,
-            origin: 'A' + (resumen.length + 6),
-          });
-    
-          Notiflix.Notify.success('Documento de camiones descargado');
-          XLSX.writeFile(workbook, 'Camiones de Recepción.xlsx');
+  asunto = 'Reporte Diario';
+  mensaje =
+    'Estimado/a: Junto con saludar se adjunta el presente reporte diario de camiones de recepción.';
+
+  enviarCorreo(): void {
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/enviar-correo/'; // URL de tu servidor Django
+    const datos = new FormData();
+    datos.append('correoElectronico', this.correoElectronico);
+    datos.append('asunto', this.asunto);
+    datos.append('mensaje', this.mensaje);
+    datos.append('archivo', this.documento);
+
+    // const headers = new HttpHeaders({
+    //   'X-CSRFToken': this.csrfToken,
+    // });
+    // const options = {
+    //   headers: headers,
+    //   withCredentials: true,
+    // };
+
+    this.http.post(apiUrl, datos).subscribe(
+      (respuesta) => {
+        console.log(respuesta);
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   }
 
-
-
-  
   private calcularNetoSeco(
     netoHumedoDestino: number,
     porcentajeHumedad: number
@@ -965,46 +1228,46 @@ export class FormulariosComponent {
     return parseFloat(netoSeco.toFixed(2));
   }
 
-obtenerObservaciones(camionesRecepcion: any[]) {
-  let ultimonLoteRevisado = '';
-  let resultados = [];
-  camionesRecepcion.forEach((camion: any) => {
-    if (camion.nLote !== ultimonLoteRevisado) {
-      this.loteService.getLoteBynLote(camion.nLote).subscribe((response) => {
-        const lote = (response as any[])[0];
-        camion.observacion = lote.observacion;
-        ultimonLoteRevisado = camion.nLote;
+  obtenerObservaciones(camionesRecepcion: any[]) {
+    let ultimonLoteRevisado = '';
+    let resultados = [];
+    camionesRecepcion.forEach((camion: any) => {
+      if (camion.nLote !== ultimonLoteRevisado) {
+        this.loteService.getLoteBynLote(camion.nLote).subscribe((response) => {
+          const lote = (response as any[])[0];
+          camion.observacion = lote.observacion;
+          ultimonLoteRevisado = camion.nLote;
+          resultados.push(camion);
+          if (resultados.length === camionesRecepcion.length) {
+            this.camionesRecepcion = resultados;
+          }
+        });
+      } else {
+        resultados.push(camion);
+      }
+    });
+  }
+
+  obtenerNombreBodega(camionesRecepcion: any[]) {
+    //buscar todas las bodegas
+    this.bodegaService.getBodegas().subscribe((response) => {
+      const bodegas = response as any[];
+      console.log(bodegas);
+      let resultados = [];
+      camionesRecepcion.forEach((camion: any) => {
+        const bodega = bodegas.find(
+          (bodega: any) => bodega.idBodega === camion.bodega
+        );
+        if (bodega) {
+          camion.nombreBodega = bodega.nombreBodega;
+        }
         resultados.push(camion);
         if (resultados.length === camionesRecepcion.length) {
           this.camionesRecepcion = resultados;
         }
       });
-    } else {
-      resultados.push(camion);
-    }
-  });
-}
-
-obtenerNombreBodega(camionesRecepcion: any[]) {
-  //buscar todas las bodegas
-  this.bodegaService.getBodegas().subscribe((response) => {
-    const bodegas = response as any[];
-    console.log(bodegas);
-    let resultados = [];
-    camionesRecepcion.forEach((camion: any) => {
-      const bodega = bodegas.find(
-        (bodega: any) => bodega.idBodega === camion.bodega
-      );
-      if (bodega) {
-        camion.nombreBodega = bodega.nombreBodega;
-      }
-      resultados.push(camion);
-      if (resultados.length === camionesRecepcion.length) {
-        this.camionesRecepcion = resultados;
-      }
     });
-  });
-}
+  }
 
   private registrosPorNLote: any[] = [];
   private nLoteAnterior: any;
@@ -1029,43 +1292,52 @@ obtenerNombreBodega(camionesRecepcion: any[]) {
   }
 
   calcularTotalCamiones() {
-    return this.lotesResumen.reduce((suma : any, lote : any) => {
+    return this.lotesResumen.reduce((suma: any, lote: any) => {
       return suma + lote.cantidadCamiones;
     }, 0);
   }
   calcularPesoNetoDespachoTotal() {
-    return this.lotesResumen.reduce((suma:any, lote:any) => {
-      return suma + parseFloat(lote.netoHumedoOrigen);
-    }, 0).toFixed(2);
+    return this.lotesResumen
+      .reduce((suma: any, lote: any) => {
+        return suma + parseFloat(lote.netoHumedoOrigen);
+      }, 0)
+      .toFixed(2);
   }
-  
+
   // Función para calcular el peso neto recepción total
   calcularPesoNetoRecepcionTotal() {
-    return this.lotesResumen.reduce((suma:any, lote:any) => {
-      return suma + parseFloat(lote.netoHumedoDestino);
-    }, 0).toFixed(2);
+    return this.lotesResumen
+      .reduce((suma: any, lote: any) => {
+        return suma + parseFloat(lote.netoHumedoDestino);
+      }, 0)
+      .toFixed(2);
   }
 
   calcularPesoNetoSecoTotal() {
-    return this.lotesResumen.reduce((suma:any, lote:any) => {
-      return suma + parseFloat(lote.netoSeco);
-    }, 0).toFixed(2);
+    return this.lotesResumen
+      .reduce((suma: any, lote: any) => {
+        return suma + parseFloat(lote.netoSeco);
+      }, 0)
+      .toFixed(2);
   }
-  
+
   // Función para calcular la diferencia seca total
   calcularDiferenciaSecaTotal() {
-    return this.lotesResumen.reduce((suma:any, lote:any) => {
-      return suma + parseFloat(lote.diferenciaSeca);
-    }, 0).toFixed(2);
+    return this.lotesResumen
+      .reduce((suma: any, lote: any) => {
+        return suma + parseFloat(lote.diferenciaSeca);
+      }, 0)
+      .toFixed(2);
   }
 
   calcularPromedioHumedades() {
-    const lotesConHumedad = this.lotesResumen.filter((lote:any) => lote.porcHumedad !== 0);
-    const sumaHumedades = lotesConHumedad.reduce((suma:any, lote:any) => {
+    const lotesConHumedad = this.lotesResumen.filter(
+      (lote: any) => lote.porcHumedad !== 0
+    );
+    const sumaHumedades = lotesConHumedad.reduce((suma: any, lote: any) => {
       return suma + (parseFloat(lote.porcHumedad) || 0);
     }, 0);
     const totalCamiones = lotesConHumedad.length;
     return (sumaHumedades / totalCamiones).toFixed(2);
   }
-  
 }

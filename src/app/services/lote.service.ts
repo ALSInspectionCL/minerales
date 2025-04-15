@@ -72,6 +72,14 @@ export class LoteService {
     return this.http.post(this.apiUrl, lote);
   }
 
+  getAllLotes(): Observable<any> {
+    return this.http.get('https://control.als-inspection.cl/api_min/api/lote-recepcion/');
+  }
+
+  getLotesTrazabilidad(): Observable<any> {
+    return this.http.get('https://control.als-inspection.cl/api_min/api/trazabilidad/');
+  }
+
   existeLote(nLote: string): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}exists/${nLote}`);
   }

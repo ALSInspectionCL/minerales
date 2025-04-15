@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from drf import settings
+from email.message import EmailMessage
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import filters
 from rest_framework import viewsets
-from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, UserLogSerializer, UserSerializer
-from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, User, UserLogs
+from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
+from .models import Bodega, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,6 +13,8 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from .utils import buscar_lotes_por_rango_fechas
 from datetime import datetime
+from rest_framework.decorators import api_view # type: ignore
+from django_filters.rest_framework import DjangoFilterBackend # type: ignore
 
 class ServicioViewSet(viewsets.ModelViewSet):
     queryset = Servicio.objects.all()
@@ -31,12 +35,9 @@ class RecepcionViewSet(viewsets.ModelViewSet):
 class RecepcionTransporteViewSet(viewsets.ModelViewSet):
     queryset = RecepcionTransporte.objects.all()
     serializer_class = RecepcionTransporteSerializer
-    filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('nLote','=estado','=fOrigen','=fDestino')
-    def delete(self, request, *args, **kwargs):
-        # Aquí podrías eliminar todos los registros
-        RecepcionTransporte.objects.all().delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    filterset_fields = ['fOrigen', 'fDestino']
+    search_fields = ['nLote', 'estado']
 
 
 class DespachoViewSet(viewsets.ModelViewSet):
@@ -96,6 +97,19 @@ class UserLogsViewSet(viewsets.ModelViewSet):
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=email','=fecha')
 
+class TrazabilidadViewSet(viewsets.ModelViewSet):
+    queryset = Trazabilidad.objects.all()
+    serializer_class = TrazabilidadSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote','=estado','=idTransporte')
+
+class TrazabilidadMecanicaViewSet(viewsets.ModelViewSet):
+    queryset = TrazabilidadMecanica.objects.all()
+    serializer_class = TrazabilidadMecanicaSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote','=estado','=idTransporte')
+
+
 def obtener_lotes_por_fechas(request):
     fecha1_str = request.GET.get('fecha1')
     fecha2_str = request.GET.get('fecha2')
@@ -115,5 +129,26 @@ def agregar_cors_headers(response):
     response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Accept'
     return response
+
+def enviar_correo(request):
+    if request.method == 'POST':
+        correo_electronico = request.POST.get('correoElectronico')
+        asunto = request.POST.get('asunto')
+        mensaje = request.POST.get('mensaje')
+        archivo = request.FILES.get('archivo')
+
+        email = EmailMessage(
+            asunto,
+            mensaje,
+            settings.EMAIL_HOST_USER,
+            [correo_electronico],
+        )
+        email.attach(archivo.name, archivo.read(), archivo.content_type)
+
+        email.send(fail_silently=False)
+
+        return JsonResponse({'mensaje': 'Correo enviado con éxito'})
+    else:
+        return JsonResponse({'mensaje': 'Error al enviar el correo'})
 
 # Create your views here.
