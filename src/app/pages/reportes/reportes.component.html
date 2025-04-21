@@ -27,6 +27,40 @@
       <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
       <mat-datepicker #picker2></mat-datepicker>
     </mat-form-field>
+    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+      <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+        >Servicio</mat-label
+      >
+      <mat-select
+        matInput
+        placeholder="Seleccione un servicio"
+        [(ngModel)]="idServicio"
+        (ngModelChange)="filtrarSolicitudes($event)"
+      >
+        <mat-option
+          *ngFor="let servicio of servicios"
+          [value]="servicio.id"
+          >{{ servicio.nServ }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+      <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+        >Solicitud</mat-label
+      >
+      <mat-select
+        matInput
+        placeholder="Seleccione una solicitud"
+        [(ngModel)]="idSolicitud"
+      >
+        <mat-option
+          *ngFor="let solicitud of solicitudesFiltradas"
+          [value]="solicitud.id"
+          >{{ solicitud.nSoli }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+    <mat-divider class="m-b-8"></mat-divider>
     <mat-form-field appearance="outline" class="m-8">
       <mat-label>Documento</mat-label>
       <input
@@ -39,6 +73,7 @@
         <mat-option
           *ngFor="let opcion of opcionesFiltradas | async"
           [value]="opcion.value"
+          [(ngModel)]="tipoDocumento"
         >
           {{ opcion.label }}
         </mat-option>
@@ -49,234 +84,134 @@
       mat-raised-button
       class="m-r-8"
       color="primary"
-      (click)="crearDocumento()"
+      (click)="generarTablas()"
     >
       Generar Documento
     </button>
-    <button mat-raised-button color="primary" (click)="descargarDocumento()">
+    <button mat-raised-button color="primary" (click) = 'descargarExcel()'>
       <mat-icon>
         <i-tabler name="file-download"></i-tabler>
       </mat-icon>
     </button>
   </mat-card-content>
+  <mat-divider></mat-divider>
   <!-- Tabla informe camiones< -->
   <mat-card>
     <mat-card-content style="overflow-x: auto;">
-      <table *ngIf="tablaRCamion || tablaCamion" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <th>N°</th>
-            <th>Referencia</th>
-            <th>Camiones Registrados</th>
-            <th>Neto Humedo Despacho</th>
-            <th>Neto Humedo Recepción</th>
-            <th>Porcentaje de Humedad</th>
-            <th>Neto Seco</th>
-            <th>Diferencia Humeda</th>
-            <th>Diferencia Seca</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let lote of lotesResumen; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ lote.observacion }}</td>
-            <td>{{ lote.cantidadCamiones }}</td>
-            <td>{{ lote.netoHumedoOrigen }}</td>
-            <td>{{ lote.netoHumedoDestino }}</td>
-            <td>{{ lote.porcHumedad }}</td>
-            <td>{{ lote.netoSeco }}</td>
-            <td>{{ lote.diferenciaHumeda }}</td>
-            <td>{{ lote.diferenciaSeca }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <br>
-      <table ng-if="tablaRCamion || tablaCamion" class="mat-elevation-z8">
-        <tr ng-if="tablaRCamion || tablaCamion" class="mat-elevation-z8">
-          <thead ng-if="tablaRCamion || tablaCamion" >
-          <th><b>Cantidad de Camiones:</b></th>
-          <th><b>Peso Neto Despacho Total:</b></th> 
-          <th><b>Peso Neto Recepción Total:</b></th> 
-          <th><b>Porcentaje Humedad Promedio:</b></th>
-          <th><b>Peso Neto Seco Total:</b></th> 
-          <th><b>Diferencia Humeda Total:</b></th> 
-          <th><b>Diferencia Seca Total:</b></th> 
-        </thead>
-        <tbody>
-          <td>{{ calcularTotalCamiones() }}</td>
-          <td>{{ calcularPesoNetoDespachoTotal() }}</td>
-          <td>{{ calcularPesoNetoRecepcionTotal() }}</td>
-          <td>{{ calcularPromedioHumedades() }}</td>
-          <td>{{ calcularPesoNetoSecoTotal() }}</td>
-          <td>{{ calcularDiferenciaHumedaTotal() }}</td>
-        </tbody>
-        </tr>
-      </table>
+      <table mat-table [dataSource]="tablaCamion" class="mat-elevation-z8">
 
-      <table *ngIf="tablaCamion" style="overflow-x: auto;" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <!-- <th>N° de Lote</th> -->
-            <th>Fecha Despacho</th>
-            <th>Hora Despacho</th>
-            <th>Fecha Recepción</th>
-            <th>Hora Recepción</th>
-            <th>Referencia</th>
-            <th>Guía Despacho</th>
-            <th>Patente</th>
-            <th>Batea</th>
-            <th>Bruto Despacho</th>
-            <th>Bruto Recepción</th>
-            <th>Tara Despacho</th>
-            <th>Tara Recepción</th>
-            <th>Neto Húmedo Despacho</th>
-            <th>Neto Húmedo Recepción</th>
-            <th>Porcentaje Humedad</th>
-            <th>Neto Seco</th>
-            <th>Diferencia Húmeda</th>
-            <th>Diferencia Seca</th>
-            <th>Bodega</th>
-            <th>Sellos Despacho</th>
-            <th>Sellos Recepción</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let camion of camionesRecepcion">
-            <!-- <td>{{ camion.posicion + 1 }}</td> -->
-            <td>{{ camion.fOrigen }}</td>
-            <td>{{ camion.hOrigen }}</td>
-            <td>{{ camion.fDestino }}</td>
-            <td>{{ camion.hDestino }}</td>
-            <td>{{ camion.observacion }}</td>
-            <td>{{ camion.idTransporteOrigen }}</td>
-            <td>{{ camion.idTransporteDestino }}</td>
-            <td>{{ camion.idCarroDestino }}</td>
-            <td>{{ camion.brutoOrigen }}</td>
-            <td>{{ camion.brutoDestino }}</td>
-            <td>{{ camion.taraOrigen }}</td>
-            <td>{{ camion.taraDestino }}</td>
-            <td>{{ camion.netoHumedoOrigen }}</td>
-            <td>{{ camion.netoHumedoDestino }}</td>
-            <td>{{ camion.porcHumedad }}</td>
-            <td>{{ camion.netoSeco}}</td>
-            <td>{{ camion.diferenciaHumeda }}</td>
-            <td>{{ camion.diferenciaSeca }}</td>
-            <td>{{ camion.nombreBodega }}</td>
-            <td>{{ camion.sellosOrigen }}</td>
-            <td>{{ camion.sellosDestino }}</td>
-            <td>{{ camion.estado }}</td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Columnas de la tabla -->
+        <ng-container matColumnDef="tipoTransporte">
+          <th mat-header-cell *matHeaderCellDef> Tipo de Transporte </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.tipoTransporte }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="nLote">
+          <th mat-header-cell *matHeaderCellDef> Número de Lote </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.nLote }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="fOrigen">
+          <th mat-header-cell *matHeaderCellDef> Fecha de Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.fOrigen }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="hOrigen">
+          <th mat-header-cell *matHeaderCellDef> Hora de Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.hOrigen }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="sellosOrigen">
+          <th mat-header-cell *matHeaderCellDef> Sellos de Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.sellosOrigen }} </td>
+        </ng-container>
 
-      <table *ngIf="tablaVagon" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <th>N° de Lote</th>
-            <th>Fecha de Origen</th>
-            <th>Hora de Origen</th>
-            <th>Fecha de Destino</th>
-            <th>Hora de Destino</th>
-            <th>Referencia</th>
-            <th>Carro</th>
-            <th>Guía Despacho</th>
-            <th>Patente</th>
-            <th>Batea</th>
-            <th>Bruto de Origen</th>
-            <th>Bruto de Destino</th>
-            <th>Tara de Origen</th>
-            <th>Tara de Destino</th>
-            <th>Neto Húmedo de Origen</th>
-            <th>Neto Húmedo de Destino</th>
-            <th>Diferencia Húmeda</th>
-            <th>Diferencia Seca</th>
-            <th>Bodega</th>
-            <th>Sellos de Origen</th>
-            <th>Sellos de Destino</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let vagon of vagonesRecepcion">
-            <td>{{ vagon.posicion + 1 }}</td>
-            <td>{{ vagon.fOrigen }}</td>
-            <td>{{ vagon.hOrigen }}</td>
-            <td>{{ vagon.fDestino }}</td>
-            <td>{{ vagon.hDestino }}</td>
-            <td>{{ vagon.observacion }}</td>
-            <td>{{ vagon.idCarro }}</td>
-            <td>{{ vagon.idTransporteOrigen }}</td>
-            <td>{{ vagon.idTransporteDestino }}</td>
-            <td>{{ vagon.idCarroDestino }}</td>
-            <td>{{ vagon.brutoOrigen }}</td>
-            <td>{{ vagon.brutoDestino }}</td>
-            <td>{{ vagon.taraOrigen }}</td>
-            <td>{{ vagon.taraDestino }}</td>
-            <td>{{ vagon.netoHumedoOrigen }}</td>
-            <td>{{ vagon.netoHumedoDestino }}</td>
-            <td>{{ vagon.diferenciaHumeda }}</td>
-            <td>{{ vagon.diferenciaSeca }}</td>
-            <td>{{ vagon.nombreBodega }}</td>
-            <td>{{ vagon.sellosOrigen }}</td>
-            <td>{{ vagon.sellosDestino }}</td>
-            <td>{{ vagon.estado }}</td>
-          </tr>
-        </tbody>
-      </table>
+        <ng-container matColumnDef="camion">
+          <th mat-header-cell *matHeaderCellDef> Camión </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.camion }} </td>
+        </ng-container>
 
-      <table *ngIf="tablaRVagon" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <th>N°</th>
-            <th>Referencia</th>
-            <th>Fecha de creación</th>
-            <th>Vagones Registrados</th>
-            <th>Peso Bruto</th>
-            <th>Peso Tara</th>
-            <th>Peso Neto</th>
-            <th>Diferencias</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let lote of lotes; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ lote.observacion }}</td>
-            <td>{{ lote.fLote }}</td>
-            <td>{{ lote.cantVagones }}</td>
-            <td>{{ lote.pesoBrutoHumedo }}</td>
-            <td>{{ lote.pesoTara }}</td>
-            <td>{{ lote.pesoNetoHumedo }}</td>
-            <td>{{ lote.diferenciaPeso }}</td>
-          </tr>
-        </tbody>
-
-        <!-- <tfoot>
-          <tr style="border-top: 1px solid black">
-            <td colspan="5"></td>
-            <td><b>Peso Bruto Total:</b> {{ calcularPesoBrutoTotal() }}</td>
-            <td><b>Peso Tara Total:</b> {{ calcularPesoTaraTotal() }}</td>
-            <td><b>Peso Neto Total:</b> {{ calcularPesoNetoTotal() }}</td>
-            <td><b>Diferencia Total:</b> {{ calcularDiferenciaTotal() }}</td>
-          </tr>
-        </tfoot> -->
-      </table>
-
-      <table *ngIf="tablaInv" class="mat-elevation-z8">
-        <thead>
-          <tr>
-            <th>N° de Bodega</th>
-            <th>Nombre de Bodega</th>
-            <th>Material total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let bodega of bodegas">
-            <td>{{ bodega.idBodega }}</td>
-            <td>{{ bodega.nombreBodega }}</td>
-            <td>{{ bodega.total }}</td>
-          </tr>
-        </tbody>
+        <ng-container matColumnDef="batea">
+          <th mat-header-cell *matHeaderCellDef> Batea </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.batea }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="brutoOrigen">
+          <th mat-header-cell *matHeaderCellDef> Bruto de Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.brutoOrigen }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="taraOrigen">
+          <th mat-header-cell *matHeaderCellDef> Tara de Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.taraOrigen }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="netoHumedad">
+          <th mat-header-cell *matHeaderCellDef> Neto Humedo Origen </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.netoHumedad }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="fDestino">
+          <th mat-header-cell *matHeaderCellDef> Fecha de Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.fDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="hDestino">
+          <th mat-header-cell *matHeaderCellDef> Hora de Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.hDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="sellosDestino">
+          <th mat-header-cell *matHeaderCellDef> Sellos de Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.sellosDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="brutoDestino">
+          <th mat-header-cell *matHeaderCellDef> Bruto de Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.brutoDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="taraDestino">
+          <th mat-header-cell *matHeaderCellDef> Tara de Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.taraDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="netoHumedoDestino">
+          <th mat-header-cell *matHeaderCellDef> Neto de Humedad Destino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.netoHumedoDestino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="diferenciaHumeda">
+          <th mat-header-cell *matHeaderCellDef> Diferencia de Humedad </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.diferenciaHumeda }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="diferenciaSeca">
+          <th mat-header-cell *matHeaderCellDef> Diferencia Seca </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.diferenciaSeca }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="CuFino">
+          <th mat-header-cell *matHeaderCellDef> CuFino </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.CuFino }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef> Estado </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.estado }} </td>
+        </ng-container>
+      
+        <ng-container matColumnDef="bodega">
+          <th mat-header-cell *matHeaderCellDef> Bodega </th>
+          <td mat-cell *matCellDef="let elemento"> {{ elemento.bodega }} </td>
+        </ng-container>
+      
+        <!-- Cabecera de la tabla -->
+        <tr mat-header-row *matHeaderRowDef="['tipoTransporte', 'nLote', 'fOrigen', 'hOrigen', 'sellosOrigen', 'camion', 'batea' ,'brutoOrigen', 'taraOrigen', 'netoHumedad', 'fDestino', 'hDestino', 'sellosDestino', 'brutoDestino', 'taraDestino', 'netoHumedoDestino', 'diferenciaHumeda', 'diferenciaSeca', 'CuFino', 'estado', 'bodega']"></tr>
+      
+        <!-- Filas de la tabla -->
+        <tr mat-row *matRowDef="let row; columns: ['tipoTransporte', 'nLote', 'fOrigen', 'hOrigen', 'sellosOrigen','camion' ,'batea' , 'brutoOrigen', 'taraOrigen', 'netoHumedad',  'fDestino', 'hDestino', 'sellosDestino', 'brutoDestino', 'taraDestino', 'netoHumedoDestino', 'diferenciaHumeda', 'diferenciaSeca', 'CuFino', 'estado', 'bodega']"></tr>
+      
       </table>
     </mat-card-content>
   </mat-card>

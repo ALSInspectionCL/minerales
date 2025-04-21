@@ -122,11 +122,6 @@ export class EscanerComponent {
 
 siguienteEtapa(estado: string, resultado: any): void {
   // Buscar en la api de trazabilidad el nLote y actualizar el estado según el estado actual.
-
-
-
-
-  
   const api = `https://control.als-inspection.cl/api_min/api/trazabilidad/?nLote=${resultado.nLote}`;
   this.http.get<any[]>(api).subscribe(
     (data) => {

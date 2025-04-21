@@ -14,6 +14,8 @@ import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import * as QRCode from 'qrcode';
 import Notiflix from 'notiflix';
+import ExcelJS from 'exceljs';
+
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
   implements MatDateRangeSelectionStrategy<D>
@@ -71,8 +73,8 @@ export class DetalleQrComponent {
   solicitudesFiltradas: any[];
   lotesFiltrados: any[];
   lotes: any;
-  camion : any;
-  patente : any;
+  camion: any;
+  patente: any;
   camiones: any[] = [];
   camionesFiltrados: any[] = [];
   constructor(private http: HttpClient) {}
@@ -122,7 +124,8 @@ export class DetalleQrComponent {
   }
 
   obtenerCamiones() {
-    const apiUrl = 'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.camiones = data; // Asigna los camiones obtenidos a la variable
@@ -141,19 +144,19 @@ export class DetalleQrComponent {
 
   filtrarLotes(solicitudId: any) {
     this.lotesFiltrados = this.lotes.filter(
-      (lote: any) => lote.servicio === this.idServicio && lote.solicitud === solicitudId
+      (lote: any) =>
+        lote.servicio === this.idServicio && lote.solicitud === solicitudId
     );
   }
 
   filtrarCamiones(lote: any) {
     this.camionesFiltrados = this.camiones.filter(
-      (camion: any) => camion.nLote === lote.nLote 
+      (camion: any) => camion.nLote === lote.nLote
       //&& camion.idTransporteOrigen === idTransporteOrigen
     );
   }
 
-  enviarServicio() {
-  }
+  enviarServicio() {}
 
   crearQR() {
     //Buscar y guardar el camion con id camion
@@ -168,62 +171,65 @@ export class DetalleQrComponent {
       return;
     }
 
-
     //Verificar si existe el ingreso de Trazabilidad. Si existe, solo genera QR. Si no existe, la agrega a la api https://control.als-inspection.cl/api_min/api/trazabilidad/
-    const apiUrl = 'https://control.als-inspection.cl/api_min/api/trazabilidad/';
-    const datos : any = {
-      "nLote": this.lote.nLote,
-      "cliente": "Anglo American",
-      "idTransporte": camion.id,
-      "horaControl": camion.hDestino,
-      "fechaControl":camion.fDestino,
-      "horaLab": null,
-      "fechaLab": null,
-      "horaIngresoHorno": null,
-      "fechaIngresoHorno": null,
-      "horaSalidaHorno": null,
-      "fechaSalidaHorno": null,
-      "horaTestigoteca": null,
-      "fechaTestigoteca": null,
-      "estado": "Iniciado"
-    }
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/trazabilidad/';
+    const datos: any = {
+      nLote: this.lote.nLote,
+      cliente: 'Anglo American',
+      idTransporte: camion.id,
+      horaControl: camion.hDestino,
+      fechaControl: camion.fDestino,
+      horaLab: null,
+      fechaLab: null,
+      horaIngresoHorno: null,
+      fechaIngresoHorno: null,
+      horaSalidaHorno: null,
+      fechaSalidaHorno: null,
+      horaTestigoteca: null,
+      fechaTestigoteca: null,
+      estado: 'Iniciado',
+    };
+    const qrData: string = this.lote.nLote + '/' + camion.id + '.';
     //actualizar los valores de data con los valores del camion
     datos.nLote = this.lote.nLote;
     datos.idTransporte = camion.id;
     datos.horaControl = camion.hDestino;
     datos.fechaControl = camion.fDestino;
     datos.observacion = this.lote.observacion;
-    datos.cantidadTransporte = this.lotes.find((lote: any) => lote.nLote === this.lote.nLote)?.cantCamiones || 0;
+    datos.cantidadTransporte =
+      this.lotes.find((lote: any) => lote.nLote === this.lote.nLote)
+        ?.cantCamiones || 0;
 
-    const qrData = JSON.stringify(datos);
     console.log('consultando ' + apiUrl);
-    
+
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         const existe = data.find((item: any) => item.nLote === this.lote.nLote);
         if (!existe) {
-          console.log(datos)
+          console.log(datos);
           // Si no existe, almacena la trazabilidad
           this.almacenarTrazabilidad(datos);
         } else {
           Notiflix.Notify.info('La trazabilidad de este Lote ya existe');
+          this.crearQRConExcel()
         }
       },
       (error) => {
         console.error('Error al obtener trazabilidad', error);
       }
     );
-    
+
     const opciones: QRCode.QRCodeToDataURLOptions = {
       errorCorrectionLevel: 'H',
       type: 'image/png',
       margin: 1,
       color: {
         dark: '#000000',
-        light: '#ffffff'
-      }
+        light: '#ffffff',
+      },
     };
-  
+
     QRCode.toDataURL(qrData, opciones).then((url: string) => {
       const a = document.createElement('a');
       a.href = url;
@@ -232,11 +238,13 @@ export class DetalleQrComponent {
     });
   }
 
-  almacenarTrazabilidad(datos : any) {
-    const apiUrl = 'https://control.als-inspection.cl/api_min/api/trazabilidad/';
+  almacenarTrazabilidad(datos: any) {
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/trazabilidad/';
     this.http.post(apiUrl, datos).subscribe(
       (response) => {
         Notiflix.Notify.success('Trazabilidad almacenada correctamente');
+        this.crearQRConExcel();
       },
       (error) => {
         console.error('Error al almacenar trazabilidad', error);
@@ -246,7 +254,8 @@ export class DetalleQrComponent {
   }
 
   borrarTodasTrazabilidades() {
-    const apiUrl = 'https://control.als-inspection.cl/api_min/api/trazabilidad/';
+    const apiUrl =
+      'https://control.als-inspection.cl/api_min/api/trazabilidad/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         data.forEach((trazabilidad) => {
@@ -265,5 +274,39 @@ export class DetalleQrComponent {
       }
     );
   }
-  
+
+  crearQRConExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('QR Codes');
+
+    // Definir las columnas
+    worksheet.columns = [
+      { header: 'Lote', key: 'lote', width: 20 },
+      { header: 'Camión', key: 'camion', width: 20 },
+      { header: 'QR Code', key: 'qrCode', width: 30 },
+    ];
+
+    // Agregar los datos a la hoja de cálculo
+    const qrData = this.lote.nLote + '/' + this.camion;
+    worksheet.addRow({
+      lote: this.lote.nLote,
+      camion: this.camion,
+      qrCode: qrData,
+    });
+
+    // Generar el QR Code y agregarlo a la celda
+    QRCode.toDataURL(qrData).then((url) => {
+      worksheet.getCell('C2').value = {
+        hyperlink: url,
+        text: 'QR Code',
+      };
+      return workbook.xlsx.writeBuffer();
+    });
+    // Descargar el archivo Excel
+    workbook.xlsx.writeFile('qr_codes.xlsx').then(() => {
+      Notiflix.Notify.success('QR Codes generados y descargados como Excel');
+    });
+
+  }
+
 }

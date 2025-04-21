@@ -148,6 +148,7 @@ export class FormulariosComponent {
   servicios: Servicio[];
   solicitudes: Solicitud[];
   bodegas: any[];
+  solicitudesFiltradas: any[];
   admin: boolean;
   fechaDesde: Date;
   bodegaSeleccionada: {
@@ -163,6 +164,9 @@ export class FormulariosComponent {
   };
   horas: string[] = [];
   correoElectronico = '';
+  idServicio: any;
+  idSolicitud: any;
+  
 
   // const reportes = new ReportesComponent(http, loteService,Bodega);
 
@@ -748,9 +752,19 @@ export class FormulariosComponent {
   camiones: any[] = [];
   cierreD() {
     let apirecepcion =
-      'https://control.als-inspection.cl/api_min/api/recepcion-transporte/';
+      'https://control.als-inspection.cl/api_min/api/recepcion-transporte/?';
     let apiLote =
-      'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?';
+
+    //Si tiene idServicio que se filtren los registros segun el servicio. Si tiene idSolicitud que se filtren los registros segun el servicio y la solicitud.
+    
+    if(this.idServicio && this.idSolicitud ) {
+      apiLote += 'servicio=' + this.idServicio + '&solicitud=' + this.idSolicitud;
+      }else if(this.idServicio) {
+      apiLote += 'servicio=' + this.idServicio;
+    }
+    
+
     let fechaDesde = this.formatDate(this.fechaDesde);
     let fechaDesdeAnterior = new Date(this.fechaDesde);
     fechaDesdeAnterior.setDate(fechaDesdeAnterior.getDate() - 1);
@@ -1339,5 +1353,11 @@ export class FormulariosComponent {
     }, 0);
     const totalCamiones = lotesConHumedad.length;
     return (sumaHumedades / totalCamiones).toFixed(2);
+  }
+
+  filtrarSolicitudes(servicioId: any) {
+    this.solicitudesFiltradas = this.solicitudes.filter(
+      (solicitud) => solicitud.nServ === servicioId
+    );
   }
 }

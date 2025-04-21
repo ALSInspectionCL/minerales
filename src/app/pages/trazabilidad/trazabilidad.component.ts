@@ -21,6 +21,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { LoteService } from 'src/app/services/lote.service';
 import { DetalleQrComponent } from './detalle-qr/detalle-qr.component';
 import { EscanerComponent } from './escaner/escaner.component';
+import { LectorComponent } from './lector/lector.component';
 
 export interface loteRecepcion {
   id: number;
@@ -111,6 +112,18 @@ export class TrazabilidadComponent {
 
   detalleQr() {
     const dialogRef = this.dialog.open(DetalleQrComponent, {
+      width: '40%', // Ajusta el ancho del diálogo
+      height: '50%', // Ajusta la altura del diálogo
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('El diálogo se cerró con el resultado: ', result);
+      this.cargarLote(); // Recargar los lotes después de cerrar el diálogo
+    });
+  }
+
+  scanQR() {
+    const dialogRef = this.dialog.open(LectorComponent, {
       width: '40%', // Ajusta el ancho del diálogo
       height: '50%', // Ajusta la altura del diálogo
     });

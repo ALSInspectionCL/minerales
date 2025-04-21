@@ -1,0 +1,15 @@
+<mat-card>
+  <mat-card-header class="m-b-16">
+    <mat-card-title>Scanear QR</mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="b-t-1">
+    <mat-form-field appearance="outline" class="w-100" color="primary">
+      <input
+        matInput
+        (input)="onInput($event)"
+      />
+    </mat-form-field>
+    <button mat-button (click)="closeDialog()">Cerrar</button>
+    <button mat-button (click)="eliminarTrazabilidad()">Elim</button>
+  </mat-card-content>
+</mat-card>

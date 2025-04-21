@@ -218,7 +218,7 @@ class Trazabilidad(models.Model):
     fechaSalidaHorno = models.DateField(blank=True, null=True)
     horaTestigoteca = models.TimeField(blank=True, null=True)
     fechaTestigoteca = models.DateField(blank=True, null=True)
-    estado = models.CharField(max_length=20, blank=True, null=True)
+    estado = models.CharField(max_length=100, blank=True, null=True)
     observacion = models.CharField(max_length=200,blank=True, null=True)
     cantidadCamiones = models.IntegerField(blank=True, null=True)
 
@@ -244,7 +244,7 @@ class TrazabilidadMecanica(models.Model):
     porcHumedad = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True)
     responsable = models.CharField(max_length=10,blank=True, null=True)
     observacion = models.CharField(max_length=200,blank=True, null=True)
-    estado = models.CharField(max_length=20, blank=True, null=True)
+    estado = models.CharField(max_length=200, blank=True, null=True)
 
 
 @receiver(pre_save, sender=Recepcion)
