@@ -160,11 +160,11 @@ export class DetalleQrComponent {
 
   crearQR() {
     //Buscar y guardar el camion con id camion
-    const camion = this.camiones.find((camion) => camion.id === this.camion);
-    if (!camion) {
-      Notiflix.Notify.failure('Camión no encontrado');
-      return;
-    }
+    // const camion = this.camiones.find((camion) => camion.id === this.camion);
+    // if (!camion) {
+    //   Notiflix.Notify.failure('Camión no encontrado');
+    //   return;
+    // }
     //Verificar si escogio un lote, un servicio y una solicitud
     if (!this.lote.nLote || !this.idServicio || !this.idSolicitud) {
       Notiflix.Notify.failure('Faltan datos para generar el QR');
@@ -177,9 +177,9 @@ export class DetalleQrComponent {
     const datos: any = {
       nLote: this.lote.nLote,
       cliente: 'Anglo American',
-      idTransporte: camion.id,
-      horaControl: camion.hDestino,
-      fechaControl: camion.fDestino,
+      idTransporte: null,
+      horaControl: this.getHoraActual(),
+      fechaControl: this.formatDate(new Date()),
       horaLab: null,
       fechaLab: null,
       horaIngresoHorno: null,
@@ -190,12 +190,14 @@ export class DetalleQrComponent {
       fechaTestigoteca: null,
       estado: 'Iniciado',
     };
-    const qrData: string = this.lote.nLote + '/' + camion.id + '.';
+
     //actualizar los valores de data con los valores del camion
     datos.nLote = this.lote.nLote;
-    datos.idTransporte = camion.id;
-    datos.horaControl = camion.hDestino;
-    datos.fechaControl = camion.fDestino;
+    // datos.idTransporte = camion.id;
+    // datos.horaControl = camion.hDestino;
+    // datos.fechaControl = camion.fDestino;
+    (datos.horaControl = this.getHoraActual()),
+      (datos.fechaControl = this.formatDate(new Date()));
     datos.observacion = this.lote.observacion;
     datos.cantidadTransporte =
       this.lotes.find((lote: any) => lote.nLote === this.lote.nLote)
@@ -212,30 +214,13 @@ export class DetalleQrComponent {
           this.almacenarTrazabilidad(datos);
         } else {
           Notiflix.Notify.info('La trazabilidad de este Lote ya existe');
-          this.crearQRConExcel()
+          this.crearQRConExcel();
         }
       },
       (error) => {
         console.error('Error al obtener trazabilidad', error);
       }
     );
-
-    const opciones: QRCode.QRCodeToDataURLOptions = {
-      errorCorrectionLevel: 'H',
-      type: 'image/png',
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-    };
-
-    QRCode.toDataURL(qrData, opciones).then((url: string) => {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'qr.png';
-      a.click();
-    });
   }
 
   almacenarTrazabilidad(datos: any) {
@@ -275,38 +260,180 @@ export class DetalleQrComponent {
     );
   }
 
-  crearQRConExcel() {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('QR Codes');
+  async crearQRConExcel() {
+    const apiUrl =
+      'https://control.als-inspection.cl/api_op/oceanapi/trazabilidad/';
 
-    // Definir las columnas
-    worksheet.columns = [
-      { header: 'Lote', key: 'lote', width: 20 },
-      { header: 'Camión', key: 'camion', width: 20 },
-      { header: 'QR Code', key: 'qrCode', width: 30 },
-    ];
+    if (!this.lote.nLote || !this.idServicio || !this.idSolicitud) {
+      Notiflix.Notify.failure('Faltan datos para generar el QR');
+      return;
+    }
 
-    // Agregar los datos a la hoja de cálculo
-    const qrData = this.lote.nLote + '/' + this.camion;
-    worksheet.addRow({
-      lote: this.lote.nLote,
-      camion: this.camion,
-      qrCode: qrData,
-    });
+    this.http.get<any[]>(apiUrl).subscribe(
+      async (trazabilidades) => {
+        const workbook = new ExcelJS.Workbook();
+        const hoja = workbook.addWorksheet('Página 1');
+        hoja.properties.defaultRowHeight = 20;
 
-    // Generar el QR Code y agregarlo a la celda
-    QRCode.toDataURL(qrData).then((url) => {
-      worksheet.getCell('C2').value = {
-        hyperlink: url,
-        text: 'QR Code',
-      };
-      return workbook.xlsx.writeBuffer();
-    });
-    // Descargar el archivo Excel
-    workbook.xlsx.writeFile('qr_codes.xlsx').then(() => {
-      Notiflix.Notify.success('QR Codes generados y descargados como Excel');
-    });
+        // Fondo blanco global
+        for (let row = 1; row <= 40; row++) {
+          for (let col = 1; col <= 8; col++) {
+            hoja.getCell(row, col).fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFFFFF' },
+            };
+          }
+        }
 
+        // Cargar la imagen del logo
+        const imagePath = '/assets/images/logos/als_logo_1.png';
+        const response = await fetch(imagePath);
+        const imageBuffer = await response.arrayBuffer();
+        const imageId = workbook.addImage({
+          buffer: imageBuffer,
+          extension: 'png',
+        });
+        const imageId2 = workbook.addImage({
+          buffer: imageBuffer,
+          extension: 'png',
+        });
+
+        const nLoteCamion = this.lote.nLote.toString().trim();
+
+        const existe = trazabilidades.find((item: any) => {
+          const loteItem = item.nLote?.toString().trim();
+          return loteItem === nLoteCamion;
+        });
+
+        if (!existe) {
+          const datos: any = {
+            nLote: this.lote.nLote,
+            cliente: 'Anglo American',
+            horaControl: this.getHoraActual(),
+            fechaControl: this.formatDate(new Date()),
+            horaLab: null,
+            fechaLab: null,
+            horaIngresoHorno: null,
+            fechaIngresoHorno: null,
+            horaSalidaHorno: null,
+            fechaSalidaHorno: null,
+            horaTestigoteca: null,
+            fechaTestigoteca: null,
+            estado: 'Iniciado',
+          };
+
+          // this.almacenarTrazabilidad(datos);
+        }
+
+        const qrData = 'G' + this.lote.nLote.toString() + '.';
+        const qrData2 = 'M' + this.lote.nLote.toString() + '.';
+
+        const qrDataUrl: string = await QRCode.toDataURL(qrData, {
+          errorCorrectionLevel: 'H',
+          type: 'image/png',
+          margin: 1,
+          color: { dark: '#000000', light: '#ffffff' },
+        });
+
+        const qrDataUrl2: string = await QRCode.toDataURL(qrData2, {
+          errorCorrectionLevel: 'H',
+          type: 'image/png',
+          margin: 1,
+          color: { dark: '#000000', light: '#ffffff' },
+        });
+
+        // Buscar nombre de servicio y solicitud
+        const servicio = this.servicios.find(
+          (servicio) => servicio.id === this.idServicio
+        );
+        const solicitud = this.solicitudes.find(
+          (solicitud) => solicitud.id === this.idSolicitud
+        );
+
+        hoja.getCell(`C2`).value = `Lote: ${this.lote.observacion}`;
+        hoja.getCell(`C3`).value = `Cliente: Anglo American`;
+        hoja.getCell(`C4`).value = `Servicio: ${servicio?.nServ}`;
+        hoja.getCell(`C5`).value = `Solicitud: ${solicitud?.nSoli}`;
+        hoja.getCell(`C6`).value = `Etiqueta: General`;
+
+        hoja.getCell(`C16`).value = `Lote: ${this.lote.observacion}`;
+        hoja.getCell(`C17`).value = `Cliente: Anglo American`;
+        hoja.getCell(`C18`).value = `Servicio: ${servicio?.nServ}`;
+        hoja.getCell(`C19`).value = `Solicitud: ${solicitud?.nSoli}`;
+        hoja.getCell(`C20`).value = `Etiqueta: Muestra Natural`;
+
+        const base64Image = qrDataUrl.split(',')[1];
+        const binaryString = atob(base64Image);
+        const imageBufferQR = new Uint8Array(binaryString.length);
+        for (let j = 0; j < binaryString.length; j++) {
+          imageBufferQR[j] = binaryString.charCodeAt(j);
+        }
+
+        const imageIdQR = workbook.addImage({
+          buffer: imageBufferQR,
+          extension: 'png',
+        });
+
+        const base64Image2 = qrDataUrl2.split(',')[1];
+        const binaryString2 = atob(base64Image2);
+        const imageBufferQR2 = new Uint8Array(binaryString2.length);
+        for (let j = 0; j < binaryString2.length; j++) {
+          imageBufferQR2[j] = binaryString2.charCodeAt(j);
+        }
+
+        const imageIdQR2 = workbook.addImage({
+          buffer: imageBufferQR2,
+          extension: 'png',
+        });
+
+        hoja.addImage(imageIdQR, {
+          tl: { col: 6, row: 1 },
+          ext: { width: 100, height: 100 },
+        });
+
+        hoja.addImage(imageIdQR2, {
+          tl: { col: 6, row: 15 },
+          ext: { width: 100, height: 100 },
+        });
+
+        hoja.addImage(imageId, {
+          tl: { col: 0, row: 1 },
+          ext: { width: 100, height: 100 },
+        });
+        hoja.addImage(imageId2, {
+          tl: { col: 0, row: 15 },
+          ext: { width: 100, height: 100 },
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'trazabilidad_lote_qr.xlsx';
+        link.click();
+      },
+      (error) => {
+        console.error('Error al obtener trazabilidad', error);
+      }
+    );
   }
 
+  private getHoraActual(): string {
+    return new Date().toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  formatDate(date: Date): string {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
 }

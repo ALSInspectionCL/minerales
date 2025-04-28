@@ -212,6 +212,8 @@ class Trazabilidad(models.Model):
     fechaControl = models.DateField(blank=True, null=True)
     horaLab = models.TimeField(blank=True, null=True)
     fechaLab = models.DateField(blank=True, null=True)
+    horaRLab = models.TimeField(blank=True, null=True)
+    fechaRLab = models.DateField(blank=True, null=True)
     horaIngresoHorno = models.TimeField(blank=True, null=True)
     fechaIngresoHorno = models.DateField(blank=True, null=True)
     horaSalidaHorno = models.TimeField(blank=True, null=True)

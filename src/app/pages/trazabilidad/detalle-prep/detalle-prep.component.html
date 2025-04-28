@@ -1,0 +1,105 @@
+<ng-container>
+    <div class="dialog-content-center">
+        <!-- Cabecera del diálogo -->
+        <div class="dialog-header">
+            <h4 class="dialog-title">Formulario para los sobres</h4>
+            <button mat-icon-button (click)="cerrarDialogo()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+
+        <form [formGroup]="miFormulario">
+            <div class="form-columns">
+
+                <div class="form-columns">
+                    <!-- Columna Izquierda -->
+                    <div class="column">
+                        <mat-label class="section-label">Nave</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Nave</mat-label>
+                            <input matInput type="text" formControlName="nave">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Bodega</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Bodega</mat-label>
+                            <input matInput type="text" formControlName="bodega">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Puerto destino</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Puerto destino</mat-label>
+                            <input matInput type="text" formControlName="puertoDes">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Contrato</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Contrato</mat-label>
+                            <input matInput type="text" formControlName="contrato">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Contrato Cochilco</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Contrato Cochilco</mat-label>
+                            <input matInput type="text" formControlName="contratoCochilco">
+                        </mat-form-field>
+
+
+                        <mat-label class="section-label">Fecha de embarque</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Fecha de embarque</mat-label>
+                            <input matInput type="text" formControlName="fEmbarque">
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Columna Derecha -->
+                    <div class="column">
+
+
+                        <mat-label class="section-label">DUS</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>DUS</mat-label>
+                            <input matInput type="text" formControlName="dus">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Fecha DUS</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Fecha DUS</mat-label>
+                            <input matInput type="text" formControlName="fechaDus">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Peso neto Húmedo</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Peso neto Húmedo</mat-label>
+                            <input matInput type="text" formControlName="pesoNetoHumedo">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">% Humedad</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>% Humedad</mat-label>
+                            <input matInput type="text" formControlName="humedad">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Peso neto Seco</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Peso neto Seco</mat-label>
+                            <input matInput type="text" formControlName="pesoNetoSeco">
+                        </mat-form-field>
+
+                        <mat-label class="section-label">Responsable</mat-label>
+                        <mat-form-field appearance="outline" class="m-16">
+                            <mat-label>Responsable</mat-label>
+                            <input matInput type="text" formControlName="responsable">
+                        </mat-form-field>
+
+                        <div class="d-flex justify-content-between m-t-16">
+                            <button mat-flat-button color="primary" (click)="generarCodigosQREnExcelUnificado()">Finalizar</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</ng-container>

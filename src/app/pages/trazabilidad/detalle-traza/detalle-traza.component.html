@@ -33,6 +33,16 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="ingresoRLab">
+          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+            Recepción Laboratorio
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ element.fechaRLab }}<br>
+            {{ element.horaRLab }}
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="ingresoLab">
           <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
             Ingreso Laboratorio
@@ -87,7 +97,7 @@
           <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
             Distribución de la Muestra
           </th>
-          <td mat-cell *matCellDef="let element" class="action-link">
+          <td mat-cell *matCellDef="let element" (click)="tieneMecanica(element.nLote)" class="action-link">
             <a class="m-r-10 cursor-pointer"
               ><i-tabler name="eye" class="icon-18"></i-tabler
             ></a>

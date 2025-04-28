@@ -68,6 +68,7 @@ export class ReportesComponent {
   solicitudes: any[] = [];
   servicios: any[] = [];
   tablaCamion: any[] = [];
+  tablaVagon: any[] = [];
   idServicio: any;
   idSolicitud: any;
   tipoDocumento: string;
@@ -86,7 +87,6 @@ export class ReportesComponent {
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private loteService: LoteService,
-    private bodegaService: Bodega
   ) {
     this.opcionesFiltradas = this.documento.valueChanges.pipe(
       startWith(''),
@@ -97,6 +97,7 @@ export class ReportesComponent {
   ngOnInit() {
     this.obtenerServicios();
     this.obtenerSolicitudes();
+    this.obtenerBodegas();
     this.fechaDesde = new Date();
     this.fechaDesde.setDate(1);
     this.fechaDesde.setHours(0, 0, 0, 0);
@@ -182,7 +183,8 @@ export class ReportesComponent {
                       nLote: lote.nLote,
                       fOrigen: camion.fOrigen,
                       hOrigen: camion.hOrigen,
-                      idTransporte: camion.idTransporte,
+                      idTransporteOrigen: camion.idTransporteOrigen,
+                      idTransporteDestino: camion.idTransporteDestino,
                       sellosOrigen: camion.sellosOrigen,
                       brutoOrigen: camion.brutoOrigen,
                       taraOrigen: camion.taraOrigen,
@@ -197,7 +199,6 @@ export class ReportesComponent {
                       netoHumedoDestino: camion.netoHumedoDestino,
                       diferenciaHumeda: camion.diferenciaHumeda,
                       diferenciaSeca: camion.diferenciaSeca,
-                      bodegaDescarga: camion.bodegaDescarga,
                       CuFino: camion.CuFino,
                       estado: camion.estado,
                       bodega: camion.bodega,
@@ -207,7 +208,44 @@ export class ReportesComponent {
                   });
                 });
 
-                console.log(this.tablaCamion)
+                this.tablaVagon = []
+                //Ahora los trenes. Estos deben incluir: tipoTransporte, nLote, fOrigen, hOrigen, idTransporte, sellosOrigen, brutoOrigen, taraOrigen, netoHumedad, idTransporteDestino	fDestino	hDestino	idCarroDestino	sellosDestino	brutoDestino	taraDestino	netoHumedoDestino	diferenciaHumeda	diferenciaSeca	bodegaDescarga	CuFino	estado	bodega
+                lotes.forEach((lote:any) => {
+                  const trenes = trenesRecepcion.filter(
+                    (tren:any) => tren.nLote === lote.nLote
+                  );
+                  trenes.forEach((tren:any) => {
+                    const registro = {
+                      tipoTransporte: tren.tipoTransporte,
+                      observacion: lote.observacion,
+                      nLote: lote.nLote,
+                      fOrigen: tren.fOrigen,
+                      hOrigen: tren.hOrigen,
+                      idCarro: tren.idCarro,
+                      idTransporteOrigen: tren.idTransporteOrigen,
+                      idTransporteDestino: tren.idTransporteDestino,
+                      brutoOrigen: tren.brutoOrigen,
+                      taraOrigen: tren.taraOrigen,
+                      netoHumedad: (tren.brutoOrigen - tren.taraOrigen).toFixed(2),
+                      fDestino: tren.fDestino,
+                      hDestino: tren.hDestino,
+                      batea: tren.idCarroDestino,
+                      brutoDestino: tren.brutoDestino,
+                      taraDestino: tren.taraDestino,
+                      netoHumedoDestino: tren.netoHumedoDestino,
+                      diferenciaHumeda: tren.diferenciaHumeda,
+                      diferenciaSeca: tren.diferenciaSeca,
+                      CuFino: tren.CuFino,
+                      estado: tren.estado,
+                      bodega: tren.bodega,
+                      humedad: lote.porcHumedad,
+                    };
+                    this.tablaVagon.push(registro);
+                    // Agregar el registro a un arreglo o realizar alguna otra acción
+                  });
+                }
+              );
+
                 //Filtrar camiones por fechas. Incluir todos los camiones cuya fDestino esten entre las fechas ingresadas.
 
                 this.tablaCamion = this.tablaCamion.filter((camion:any) => {
@@ -217,11 +255,40 @@ export class ReportesComponent {
                   );
                 });
 
+                //Filtrar trenes por fechas. Incluir todos los trenes cuya fDestino esten entre las fechas ingresadas.
+                this.tablaVagon = this.tablaVagon.filter((tren:any) => {
+                  const fechaTren = new Date(tren.fDestino);
+                  return (
+                    fechaTren >= this.fechaDesde && fechaTren <= this.fechaHasta
+                  );
+                });
+
+                //Almacenar el nombre de la bodega en lugar del idBodega
+                this.tablaCamion.forEach((camion:any) => {
+                  const bodega = this.bodegas.find((bodega:any) => bodega.idBodega == camion.bodega);
+                  if (bodega) {
+                    camion.bodega = bodega.nombreBodega;
+                  }
+                });
+
+                this.tablaVagon.forEach((tren:any) => {
+                  const bodega = this.bodegas.find((bodega:any) => bodega.idBodega == tren.bodega);
+                  if (bodega) {
+                    tren.bodega = bodega.nombreBodega;
+                  }
+                });
+                console.log(this.tablaVagon)
                 console.log(this.tablaCamion)
                 if (this.tablaCamion.length > 0) {
-                  Notiflix.Notify.success('Registros encontrados.');
+                  Notiflix.Notify.success('Camiones encontrados.');
                 }else{
-                  Notiflix.Notify.failure('No se encontraron registros.');
+                  Notiflix.Notify.warning('No se encontraron camiones.');
+                }
+                if (this.tablaVagon.length > 0) {
+                  Notiflix.Notify.success('Vagones encontrados.');
+                }
+                else{
+                  Notiflix.Notify.warning('No se encontraron vagones.');
                 }
                 this.cdr.detectChanges();
               });
@@ -240,29 +307,28 @@ export class ReportesComponent {
   descargarExcel(){
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Tabla Camion');
-  
+    const worksheet2 = workbook.addWorksheet('Tabla Vagon');
     // Establecer los encabezados de la tabla
     const headers = [
       'Tipo de Transporte',
-      'Número de Lote',
+      'Referencia',
       'Fecha de Origen',
       'Hora de Origen',
-      'ID de Transporte',
+      'Guía de Despacho',
       'Sellos de Origen',
+      'Ticket PVSA',
+      'Camión',
+      'Batea',
       'Bruto de Origen',
       'Tara de Origen',
       'Neto de Humedad',
-      'ID de Transporte Destino',
       'Fecha de Destino',
       'Hora de Destino',
-      'ID de Carro Destino',
-      'Sellos de Destino',
       'Bruto de Destino',
       'Tara de Destino',
       'Neto de Humedad Destino',
       'Diferencia de Humedad',
       'Diferencia Seca',
-      'Bodega de Descarga',
       'CuFino',
       'Estado',
       'Bodega'
@@ -270,12 +336,38 @@ export class ReportesComponent {
     for (let i = 0; i < 4; i++) {
       worksheet.addRow([]);
     }
+    const headersVagon = [
+      // Agrega los encabezados de la tabla Vagon aquí
+      'Tipo de Transporte',
+      'Referencia',
+      'Fecha de Origen',
+      'Hora de Origen',
+      'Guía de Despacho',
+      'Número de Vagones',
+      'Bruto de Origen',
+      'Fecha de Destino',
+      'Integrado Inicial',
+      'Integrado Final',
+      'Diferencia Humeda',
+      'Diferencia Seca',
+      'CuFino',
+      'Estado',
+      'Bodega'
+    ];
+    for (let i = 0; i < 4; i++) {
+      worksheet2.addRow([]);
+    }
   
     // Título en D2
     worksheet.getCell('H2').value = 'Detalle de Camiones de Recepción';
     worksheet.getCell('H2').font = { name: 'Arial', size: 16, bold: true };
     worksheet.getCell('H2').alignment = { horizontal: 'center' };
   
+    // Título en D2 de vagon
+    worksheet2.getCell('H2').value = 'Detalle de Vagones de Recepción';
+    worksheet2.getCell('H2').font = { name: 'Arial', size: 16, bold: true };
+    worksheet2.getCell('H2').alignment = { horizontal: 'center' };
+
     // Agregar los encabezados a la tabla
     worksheet.addRow(headers).eachCell((cell) => {
       if (cell.value !== '') {
@@ -298,36 +390,131 @@ export class ReportesComponent {
           right: { style: 'thin' },
         };
       }
-    });;
+    });
+    // Agregar los encabezados a la tabla Vagon
+    worksheet2.addRow(headersVagon).eachCell((cell) => {
+      if (cell.value !== '') {
+        cell.font = {
+          name: 'Calibri',
+          size: 11,
+          bold: true,
+          color: { argb: 'FFFFFF' },
+        };
+        cell.alignment = { horizontal: 'center' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: '337dff' },
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      }
+    });
+
+    worksheet.columns = [
+      { width: 15 }, // tipoTransporte
+      { width: 15 }, // observacion
+      { width: 15 }, // fOrigen
+      { width: 15 }, // hOrigen
+      { width: 15 }, // idTransporteOrigen
+      { width: 20 }, // sellosOrigen
+      { width: 10 }, // sellosDestino
+      { width: 10 }, // camion
+      { width: 10 }, // batea
+      { width: 15 }, // brutoOrigen
+      { width: 15 }, // taraOrigen
+      { width: 15 }, // netoHumedad
+      { width: 15 }, // fDestino
+      { width: 10 }, // hDestino
+      { width: 15 }, // brutoDestino
+      { width: 15 }, // taraDestino
+      { width: 15 }, // netoHumedoDestino
+      { width: 15 }, // diferenciaHumeda
+      { width: 15 }, // diferenciaSeca
+      { width: 10 }, // CuFino
+      { width: 10 }, // estado
+      { width: 15 }, // bodega
+    ];
+
+    worksheet2.columns = [
+      { width: 15 }, // tipoTransporte
+      { width: 15 }, // observacion
+      { width: 15 }, // fOrigen
+      { width: 15 }, // hOrigen
+      { width: 15 }, // idTransporteOrigen
+      { width: 20 }, // sellosOrigen
+      { width: 20 }, // sellosDestino
+      { width: 20 }, // camion
+      { width: 20 }, // batea
+      { width: 15 }, // brutoOrigen
+      { width: 15 }, // taraOrigen
+      { width: 15 }, // netoHumedad
+      { width: 15 }, // fDestino
+      { width: 10 }, // hDestino
+      { width: 15 }, // brutoDestino
+      { width: 15 }, // taraDestino
+      { width: 15 }, // netoHumedoDestino
+      { width: 15 }, // diferenciaHumeda
+      { width: 15 }, // diferenciaSeca
+      { width: 10 }, // CuFino
+      { width: 10 }, // estado
+      { width: 15 }, // bodega
+    ];
   
     // Agregar los datos de la tabla
     this.tablaCamion.forEach((fila) => {
       worksheet.addRow([
         fila.tipoTransporte,
-        fila.nLote,
+        fila.observacion,
         fila.fOrigen,
         fila.hOrigen,
-        fila.idTransporte,
+        fila.idTransporteOrigen,
         fila.sellosOrigen,
+        fila.sellosDestino,
+        fila.camion,
+        fila.batea,
         fila.brutoOrigen,
         fila.taraOrigen,
         fila.netoHumedad,
-        fila.idTransporteDestino,
         fila.fDestino,
         fila.hDestino,
-        fila.idCarroDestino,
-        fila.sellosDestino,
         fila.brutoDestino,
         fila.taraDestino,
         fila.netoHumedoDestino,
         fila.diferenciaHumeda,
         fila.diferenciaSeca,
-        fila.bodegaDescarga,
         fila.CuFino,
         fila.estado,
         fila.bodega
       ])
     })
+
+    // Agregar los datos de la tabla Vagon
+    this.tablaVagon.forEach((fila) => {
+      const diferenciaSeca = (fila.netoHumedoDestino - (fila.netoHumedoDestino * fila.humedad / 100)).toFixed(2);
+      worksheet2.addRow([
+        fila.tipoTransporte,
+        fila.observacion,
+        fila.fOrigen,
+        fila.hOrigen,
+        fila.idTransporteOrigen,
+        fila.idCarro,
+        fila.brutoOrigen,
+        fila.fDestino,
+        fila.brutoDestino,
+        fila.taraDestino,
+        fila.netoHumedoDestino,
+        diferenciaSeca,
+        fila.CuFino,
+        fila.estado,
+        fila.bodega
+      ])
+    });
+    
 
     fetch('assets/images/logos/als_logo_1.png')
     .then((res) => res.blob())
@@ -396,6 +583,19 @@ export class ReportesComponent {
       },
       (error) => {
         console.error('Error al obtener servicios', error);
+      }
+    );
+  }
+
+  obtenerBodegas(){
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/';
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        this.bodegas = data; // Asigna los servicios obtenidos a la variable
+        console.log(data);
+      },
+      (error) => {
+        console.error('Error al obtener bodegas', error);
       }
     );
   }

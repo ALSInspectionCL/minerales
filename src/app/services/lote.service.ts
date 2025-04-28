@@ -91,6 +91,10 @@ export class LoteService {
   return this.http.get<loteDespacho[]>(`${this.despUrl}${nLote}`);
 }
 
+  eliminarTrazabilidad(id: number): Observable<any> {
+    return this.http.delete(`https://control.als-inspection.cl/api_min/api/trazabilidad/${id}/`);
+  }
+
 getLotesByServicioAndSolicitud(servicio: number, solicitud: number): Observable<any> {
   const params = new HttpParams()
     .set('servicio', servicio.toString())

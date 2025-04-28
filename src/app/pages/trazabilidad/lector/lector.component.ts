@@ -26,6 +26,7 @@ import { HttpClient } from '@angular/common/http';
 export class LectorComponent {
   @ViewChild('qrCode') qrCodeInput: ElementRef;
   constructor(private http: HttpClient) {}
+  muestra: boolean = false; // Variable para mostrar el mensaje de error
   trazabilidades: any; // Almacena las trazabilidades obtenidas de la API
 
   ngOnInit() {
@@ -37,30 +38,49 @@ export class LectorComponent {
     let codigo: string = inputValue;
     // Verificar si el código está completo (por ejemplo, si tiene un largo específico y un guión)
     if (codigo.includes('.')) {
-      //Quitar el desde el guion y enviar el código
-      const codigo = inputValue.split('-')[0]; // Almacena solo la parte antes del guión
-      //Guardar los valores entre - y . en variables
-      const camion = inputValue.split('-')[1].split('.')[0];
+      // Si el código contiene un punto, significa que está completo
+      let codigo = inputValue.split('-')[0]; // Almacena solo la parte antes del guión
+      if (codigo.includes('M')) {
+        // Si el primer elemento es una M, entonces el boolean 'muestra' es true
+        this.muestra = true;
+      }
+      // Quitar el primer y último carácter del código
+      codigo = codigo.substring(1, codigo.length - 1);
+      
       console.log(codigo);
-      this.actualizarEstado(codigo, camion);
+      this.actualizarEstado(codigo);
     }
   }
 
-  actualizarEstado(codigo: string, camion: string) {
+  actualizarEstado(codigo: string) {
     //Verificar si el codigo existe en trazabilidades
-    const existe = this.trazabilidades.find(
-      (element: any) =>
-        element.nLote === codigo && element.idTransporte === camion
-    );
     const trazabilidad = this.trazabilidades.find(
       (element: any) => element.nLote === codigo
     );
     //Utilizar trazabilidad o existe segun necesite
-    if (trazabilidad) {
+    if (trazabilidad && this.muestra) {
       Notiflix.Confirm.show(
         'Actualizar Estado',
         'El lote ' +
-          trazabilidad.nLote +
+          trazabilidad.observacion +
+          ' ha sido escaneado con éxito. Almacenando en Testigoteca.',
+        'Confirmar',
+        'Cancelar',
+        () => {
+          console.log('Continuar con la información escaneada');
+          console.log(trazabilidad);
+          this.siguienteEtapa(trazabilidad.estado, trazabilidad); // Llamar a la función para avanzar a la siguiente etapa
+        },
+        () => {
+          console.log('No continuar con la información escaneada');
+        }
+      );
+    }
+    else if (trazabilidad && !this.muestra) {
+      Notiflix.Confirm.show(
+        'Actualizar Estado',
+        'El lote ' +
+          trazabilidad.observacion +
           ' ha sido escaneado con éxito. Estado : ' +
           trazabilidad.estado +
           '.',
@@ -68,7 +88,7 @@ export class LectorComponent {
         'Cancelar',
         () => {
           console.log('Continuar con la información escaneada');
-          console.log(trazabilidad)
+          console.log(trazabilidad);
           this.siguienteEtapa(trazabilidad.estado, trazabilidad); // Llamar a la función para avanzar a la siguiente etapa
         },
         () => {
@@ -103,6 +123,8 @@ export class LectorComponent {
             estado: trazabilidad.estado,
             fechaLab: trazabilidad.fechaLab,
             horaLab: trazabilidad.horaLab,
+            fechaRLab: trazabilidad.fechaRLab,
+            horaRLab: trazabilidad.horaRLab,
             fechaIngresoHorno: trazabilidad.fechaIngresoHorno,
             horaIngresoHorno: trazabilidad.horaIngresoHorno,
             fechaSalidaHorno: trazabilidad.fechaSalidaHorno,
@@ -114,70 +136,85 @@ export class LectorComponent {
             fechaDistribucionMuestra: trazabilidad.fechaDistribucionMuestra,
             horaDistribucionMuestra: trazabilidad.horaDistribucionMuestra,
           };
-          // Verificar el estado actual y asignar el nuevo estado correspondiente, junto a su hora y fecha
-          switch (estado) {
-            case 'Iniciado':
-              nuevoEstado = 'Ingreso Laboratorio';
-              const horaLab = new Date().toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              body.estado = nuevoEstado;
-              body.fechaLab = this.formatDate(new Date());
-              body.horaLab = `${horaLab}`;
-              break;
-            case 'Ingreso Laboratorio':
-              nuevoEstado = 'Ingreso Horno';
-              const horaIngresoHorno = new Date().toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              body.estado = nuevoEstado;
-              body.fechaIngresoHorno = this.formatDate(new Date());
-              body.horaIngresoHorno = `${horaIngresoHorno}`;
-              break;
-            case 'Ingreso Horno':
-              nuevoEstado = 'Salida Horno';
-              const horaSalidaHorno = new Date().toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              body.estado = nuevoEstado;
-              body.fechaSalidaHorno = this.formatDate(new Date());
-              body.horaSalidaHorno = `${horaSalidaHorno}`;
-              break;
-            case 'Salida Horno':
-              nuevoEstado = 'Prep. de muestra';
-              const horaPreparacionMuestra = new Date().toLocaleTimeString(
-                'es-ES',
-                { hour: '2-digit', minute: '2-digit' }
-              );
-              body.estado = nuevoEstado;
-              body.fechaPreparacionMuestra = this.formatDate(new Date());
-              body.horaPreparacionMuestra = `${horaPreparacionMuestra}`;
-              break;
-            case 'Prep. de muestra':
-              nuevoEstado = 'Alm. Testigoteca';
-              const horaTestigoteca = new Date().toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              body.estado = nuevoEstado;
-              body.fechaTestigoteca = this.formatDate(new Date());
-              body.horaTestigoteca = `${horaTestigoteca}`;
-              break;
-            case 'Alm. Testigoteca':
-              nuevoEstado = 'Distribución muestra';
-              body.estado = nuevoEstado;
-              break;
-            case 'Distribución muestra':
-              nuevoEstado = 'Finalizado';
-              body.estado = nuevoEstado;
-              break;
-            default:
-              Notiflix.Notify.failure('No se ha actualizado correctamente...');
-              break;
+
+          if (this.muestra) {
+            if(data.horaTestigoteca !== null){
+              Notiflix.Notify.failure('La trazabilidad ya ha sido actualizada');
+              return;
+            }
+            // Si el boolean 'muestra' es true, mantener todos los valores de la trazabilidad, agregar 
+            const horaTestigoteca = new Date().toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            body.fechaTestigoteca = this.formatDate(new Date());
+            body.horaTestigoteca = `${horaTestigoteca}`;
+          }else{
+            switch (estado) {
+              case 'Iniciado':
+                nuevoEstado = 'Recep. Laboratorio';
+                const horaRLab = new Date().toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                body.estado = nuevoEstado;
+                body.fechaRLab = this.formatDate(new Date());
+                body.horaRLab = `${horaRLab}`;
+                break;
+              case 'Recep. Laboratorio':
+                nuevoEstado = 'Ingreso Laboratorio';
+                const horaLab = new Date().toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                body.estado = nuevoEstado;
+                body.fechaLab = this.formatDate(new Date());
+                body.horaLab = `${horaLab}`;
+                break;
+              case 'Ingreso Laboratorio':
+                nuevoEstado = 'Ingreso Horno';
+                const horaIngresoHorno = new Date().toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                body.estado = nuevoEstado;
+                body.fechaIngresoHorno = this.formatDate(new Date());
+                body.horaIngresoHorno = `${horaIngresoHorno}`;
+                break;
+              case 'Ingreso Horno':
+                nuevoEstado = 'Salida Horno';
+                const horaSalidaHorno = new Date().toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                body.estado = nuevoEstado;
+                body.fechaSalidaHorno = this.formatDate(new Date());
+                body.horaSalidaHorno = `${horaSalidaHorno}`;
+                break;
+              case 'Salida Horno':
+                nuevoEstado = 'Prep. de muestra';
+                const horaPreparacionMuestra = new Date().toLocaleTimeString(
+                  'es-ES',
+                  { hour: '2-digit', minute: '2-digit' }
+                );
+                body.estado = nuevoEstado;
+                body.fechaPreparacionMuestra = this.formatDate(new Date());
+                body.horaPreparacionMuestra = `${horaPreparacionMuestra}`;
+                break;
+              case 'Prep. de muestra':
+                nuevoEstado = 'Distribución muestra';
+                body.estado = nuevoEstado;
+                break;
+              case 'Distribución muestra':
+                nuevoEstado = 'Finalizado';
+                body.estado = nuevoEstado;
+                break;
+              default:
+                Notiflix.Notify.failure('No se ha actualizado correctamente...');
+                break;
+            }
           }
+
           // Actualizar el estado en la api de trazabilidad
           const apiUrl = `https://control.als-inspection.cl/api_min/api/trazabilidad/${data.id}/`;
           this.http.put(apiUrl, body).subscribe(
@@ -199,10 +236,6 @@ export class LectorComponent {
     );
   }
 
-  closeDialog() {
-    // Cerrar el diálogo
-  }
-
   cargarTrazabilidades() {
     this.http
       .get('https://control.als-inspection.cl/api_min/api/trazabilidad/')
@@ -222,18 +255,4 @@ export class LectorComponent {
     return `${year}-${month}-${day}`;
   }
 
-  eliminarTrazabilidad() {
-    const id = 10; // ID de la trazabilidad a eliminar (puedes cambiarlo según sea necesario)
-    const apiUrl = `https://control.als-inspection.cl/api_min/api/trazabilidad/${id}/`;
-    this.http.delete(apiUrl).subscribe(
-      (response) => {
-        Notiflix.Notify.success('Trazabilidad eliminada correctamente');
-        this.cargarTrazabilidades(); // Recargar las trazabilidades después de eliminar
-      },
-      (error) => {
-        console.error('Error al eliminar trazabilidad', error);
-        Notiflix.Notify.failure('Error al eliminar trazabilidad');
-      }
-    );
-  }
 }

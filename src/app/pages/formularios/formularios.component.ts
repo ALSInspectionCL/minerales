@@ -1097,7 +1097,7 @@ export class FormulariosComponent {
         'Diferencia Seca',
         'Bodega',
         'Sellos Despacho',
-        'Sellos de Destino',
+        'Ticket PVSA',
         'Estado',
       ])
       .eachCell((cell) => {
