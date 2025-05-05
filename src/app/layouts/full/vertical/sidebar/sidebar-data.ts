@@ -29,11 +29,11 @@ export const navItems: NavItem[] = [
     iconName:  'truck-delivery',
     route: '/home/despacho'
   },
-  {
-    displayName: 'Balance',
-    iconName:  'file-analytics',
-    route: '/home/balance'  
-  },
+  // {
+  //   displayName: 'Balance',
+  //   iconName:  'file-analytics',
+  //   route: '/home/balance'  
+  // },
   {
     displayName: 'Trazabilidad',
     iconName:  'timeline',

@@ -21,6 +21,7 @@ router.register(r'despacho-embarque',views.DespachoEmbarqueViewSet)
 router.register(r'user-logs',views.UserLogsViewSet)
 router.register(r'trazabilidad',views.TrazabilidadViewSet)
 router.register(r'trazabilidad-mecanica',views.TrazabilidadMecanicaViewSet)
+router.register(r'emails',views.EmailsViewSet)
 
 
 urlpatterns=[

@@ -28,6 +28,8 @@ import { EscanerComponent } from './escaner/escaner.component';
 import { LectorComponent } from './lector/lector.component';
 import Notiflix from 'notiflix';
 import { HttpClient } from '@angular/common/http';
+import { OtmComponent } from './otm/otm.component';
+import { RolService } from 'src/app/services/rol.service';
 
 export interface loteRecepcion {
   id: number;
@@ -88,7 +90,21 @@ export class TrazabilidadComponent {
     'date of joining',
     'action',
   ];
+  displayedColumns2: string[] = [
+    'observacion',
+    'camiones',
+    'Control Peso',
+    'Recepción Laboratorio',
+    'Ingreso Laboratorio',
+    'Ingreso al Horno',
+    'Salida de Horno',
+    'Preparación de Muestra',
+    'Almacenamiento Muestra Natural',
+    'estado',
+  ];
+  
   lote: any | null = null;
+  cliente:boolean = false; // Variable para mostrar el mensaje de error
   dataSource = new MatTableDataSource<any>();
   muestra: boolean = false; // Variable para mostrar el mensaje de error
   trazabilidades: any; // Almacena las trazabilidades obtenidas de la API
@@ -96,6 +112,7 @@ export class TrazabilidadComponent {
     Object.create(null);
 
   constructor(
+    public rolService : RolService,
     public dialog: MatDialog,
     public http: HttpClient,
     public datePipe: DatePipe,
@@ -106,6 +123,15 @@ export class TrazabilidadComponent {
     this.dataSource.paginator = this.paginator;
     this.cargarLote();
     this.cargarTrazabilidades();
+    this.rolService.hasRole(localStorage.getItem('email') || '', 'Cliente').subscribe((hasRole) => {
+      if (hasRole) {
+        this.cliente = true;
+        console.log('El usuario tiene el rol de cliente');
+      } else {
+        this.cliente = false;
+        console.log('El usuario no tiene el rol de cliente');
+      }
+    });
   }
 
   applyFilter(filterValue: string): void {
@@ -193,6 +219,7 @@ export class TrazabilidadComponent {
           (response) => {
             console.log('Trazabilidad eliminada:', response);
             Notiflix.Notify.success('Trazabilidad eliminada correctamente');
+            this.eliminarTrazabilidadesMecanicas(this.lote.nLote);
             this.cargarLote(); // Recargar los lotes después de eliminar la trazabilidad
           },
           (error) => {
@@ -212,6 +239,32 @@ export class TrazabilidadComponent {
       }
     );
   }
+
+  eliminarTrazabilidadesMecanicas(nLote: string) {
+    // Buscar todas las trazabilidades-mecanica por nLote y las elimina
+    const url = 'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
+    this.http.get<any[]>(url).subscribe((response) => {
+      console.log(response);
+      const existingData = response.filter(item => item.nLote === nLote);
+      console.log(existingData);
+      if (existingData.length > 0) {
+        // Si ya existe, eliminar el registro
+        existingData.forEach((item) => {
+          this.http.delete(`${url}${item.id}/`).subscribe(() => {
+            Notiflix.Notify.success('Trazabilidad mecánica numero '+ item.nSubLote +' eliminado correctamente');
+          });
+        });
+      }else{
+        Notiflix.Notify.failure('No se encontró el registro para eliminar');
+      }
+    },
+    (error) => {
+      console.error('Error al obtener los datos:', error);
+      Notiflix.Notify.failure('Error al obtener los datos');
+    }
+    )
+  };
+
   onInput(event: any) {
     const inputValue = event.target.value;
     let codigo: string = inputValue;
@@ -220,15 +273,36 @@ export class TrazabilidadComponent {
       this.muestra = false; // Si el código no contiene un punto, significa que no está completo
       // Si el código contiene un punto, significa que está completo
       let codigo = inputValue.split('-')[0]; // Almacena solo la parte antes del guión
+      console.log('Código:', codigo);
       if (codigo.includes('M')) {
         // Si el primer elemento es una M, entonces el boolean 'muestra' es true
         this.muestra = true;
+        codigo = codigo.substring(1, codigo.length - 1);
+        this.actualizarEstado(codigo);
+        this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
+      }else if (codigo.includes('G')) {
+        // Si el primer elemento es una G, entonces el boolean 'muestra' es false
+        this.muestra = false;
+        codigo = codigo.substring(1, codigo.length - 1);
+        this.actualizarEstado(codigo);
+        this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
+      }else if (codigo.includes('E')) {
+
+        // Si el primer elemento es una E, entonces el boolean 'muestra' es false
+        this.muestra = false;
+        let nLote = codigo.substring(1, codigo.length);
+        // nSubLote son todos los caracteres desde el guión hasta el final
+        // Si el código contiene un punto, significa que está completo
+        console.log('nLote:', nLote);
+        let arreglo = inputValue.split('-');
+        let nSubLote = arreglo[1];
+        //Quitar el punto y los caracteres que siguen
+        nSubLote = nSubLote.split('.')[0];
+        console.log(nSubLote);
+        
+        this.abrirOtm(nLote, nSubLote);
       }
-      // Quitar el primer y último carácter del código
-      codigo = codigo.substring(1, codigo.length - 1);
-      
-      console.log(codigo);
-      this.actualizarEstado(codigo);
+      this.cargarTrazabilidades();
     }
   }
 
@@ -237,6 +311,8 @@ export class TrazabilidadComponent {
     const trazabilidad = this.trazabilidades.find(
       (element: any) => element.nLote === codigo
     );
+    console.log('Trazabilidad:');
+    console.log(trazabilidad);
     //Utilizar trazabilidad o existe segun necesite
     if (trazabilidad && this.muestra) {
       Notiflix.Confirm.show(
@@ -320,6 +396,7 @@ export class TrazabilidadComponent {
           if (this.muestra) {
             if(data.horaTestigoteca !== null){
               Notiflix.Notify.failure('La trazabilidad ya ha sido actualizada');
+              this.ngAfterViewInit(); // Recargar los lotes después de actualizar la trazabilidad
               return;
             }
             // Si el boolean 'muestra' es true, mantener todos los valores de la trazabilidad, agregar 
@@ -400,6 +477,7 @@ export class TrazabilidadComponent {
           this.http.put(apiUrl, body).subscribe(
             (response) => {
               Notiflix.Notify.success('Trazabilidad actualizada correctamente');
+              this.ngAfterViewInit(); // Recargar los lotes después de actualizar la trazabilidad
             },
             (error) => {
               console.error('Error al actualizar trazabilidad', error);
@@ -409,7 +487,7 @@ export class TrazabilidadComponent {
         } else {
           Notiflix.Notify.info('La trazabilidad de este Lote no existe');
         }
-        this.cargarLote(); // Recargar los lotes después de actualizar la trazabilidad
+        this.ngAfterViewInit() // Recargar los lotes después de actualizar la trazabilidad
       },
       (error) => {
         console.error('Error al obtener trazabilidad', error);
@@ -418,6 +496,7 @@ export class TrazabilidadComponent {
   }
 
   cargarTrazabilidades() {
+    this.trazabilidades = null; // Inicializar trazabilidades a null antes de la llamada  
     this.http
       .get('https://control.als-inspection.cl/api_min/api/trazabilidad/')
       .subscribe((response) => {
@@ -426,6 +505,7 @@ export class TrazabilidadComponent {
         console.log('Trazabilidades:');
         console.log(this.trazabilidades);
       });
+      
   }
 
   formatDate(date: Date): string {
@@ -434,6 +514,20 @@ export class TrazabilidadComponent {
     const day = date.getDate().toString().padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  abrirOtm(nLote: string, nSubLote: string) {
+    // Abrir el diálogo de OTM y pasar los datos necesarios. Al cerrar el dialogo, llamar a this.cargarLote();
+    const dialogRef = this.dialog.open(OtmComponent, {
+      data: {
+        nLote: nLote,
+        nSubLote: nSubLote,
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('El diálogo se cerró con el resultado: ', result);
+      this.cargarLote(); // Recargar los lotes después de cerrar el diálogo
+    });
   }
 }
 

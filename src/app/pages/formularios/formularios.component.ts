@@ -2,7 +2,13 @@ import { CookieService } from 'src/app/services/CookieService';
 import { Token } from '@angular/compiler';
 import { SolicitudService } from './../../services/solicitud.service';
 import { AsyncPipe, CommonModule, DatePipe, DOCUMENT } from '@angular/common';
-import { Component, Inject, Injectable, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  Injectable,
+  ViewChild,
+} from '@angular/core';
 import { MatCard, MatCardModule } from '@angular/material/card';
 import { MatFormField, MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -42,6 +48,12 @@ import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
 import { Value } from 'sass';
 import sharp from 'sharp';
+import {
+  MatChipEditedEvent,
+  MatChipInputEvent,
+  MatChipsModule,
+} from '@angular/material/chips';
+import { ENTER, COMMA } from '@angular/cdk/keycodes';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -66,6 +78,10 @@ export class FiveDayRangeSelectionStrategy<D>
 
     return new DateRange<D>(null, null);
   }
+}
+
+interface Fruit {
+  name: string;
 }
 
 interface Servicio {
@@ -104,6 +120,7 @@ filteredOptions: Observable<any[]>;
   standalone: true,
   imports: [
     MatDatepickerModule,
+    MatChipsModule,
     MatButtonModule,
     MatSelectModule,
     MatCardModule,
@@ -121,6 +138,7 @@ filteredOptions: Observable<any[]>;
     MatAutocompleteModule,
     AsyncPipe,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './formularios.component.html',
   styleUrl: './formularios.component.scss',
   providers: [
@@ -135,7 +153,7 @@ export class FormulariosComponent {
   dataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator: MatPaginator;
   myControl = new FormControl('');
-  options: string[] = ['Ventanas', 'San Antonio','Chagres' ,'Otro'];
+  options: string[] = ['Ventanas', 'San Antonio', 'Chagres', 'Otro'];
   filteredOptions: Observable<string[]>;
   estadoServ: string = 'Iniciado';
   estadoSoli: string = 'Iniciado';
@@ -151,6 +169,8 @@ export class FormulariosComponent {
   solicitudesFiltradas: any[];
   admin: boolean;
   fechaDesde: Date;
+  addOnBlur = true;
+  mails = [];
   bodegaSeleccionada: {
     idBodega: number;
     nombreBodega: string;
@@ -163,10 +183,8 @@ export class FormulariosComponent {
     imagen: null,
   };
   horas: string[] = [];
-  correoElectronico = '';
   idServicio: any;
   idSolicitud: any;
-  
 
   // const reportes = new ReportesComponent(http, loteService,Bodega);
 
@@ -217,11 +235,98 @@ export class FormulariosComponent {
     this.obtenerUsuarios();
     this.obtenerBodegas();
     this.obtenerLogs();
+    this.cargarMails();
     this.fechaDesde = new Date();
     this.admin = true;
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value || ''))
+    );
+  }
+
+  readonly separatorKeysCodes = [ENTER, COMMA] as const;
+
+  fruits: Fruit[] = [];
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+    // Add our fruit
+    if (value) {
+      this.fruits.push({ name: value });
+    }
+    // Clear the input value
+    event.chipInput!.clear();
+  }
+  remove(fruit: Fruit): void {
+    const index = this.fruits.indexOf(fruit);
+    if (index >= 0) {
+      this.fruits.splice(index, 1);
+    }
+  }
+  edit(fruit: Fruit, event: MatChipEditedEvent) {
+    const value = event.value.trim();
+    // Remove fruit if it no longer has a name
+    if (!value) {
+      this.remove(fruit);
+      return;
+    }
+    // Edit existing fruit
+    const index = this.fruits.indexOf(fruit);
+    if (index >= 0) {
+      this.fruits[index].name = value;
+    }
+  }
+  selectedUsers: string[] = [];
+  addUsersToFruits() {
+    this.selectedUsers.forEach((user) => {
+      this.fruits.push({ name: user });
+    });
+    this.selectedUsers = [];
+  }
+
+  guardarMails() {
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/emails/';
+    const emailOrigen = localStorage.getItem('email');
+    const mails = this.fruits.map((fruit) => fruit.name);
+
+    // Verificar si el correo electrónico ya existe en la lista de correos electrónicos
+    // Si el correo existe, no lo agregamos nuevamente
+    const mailsExistentes = mails.filter((mail) => this.emails.includes(mail));
+    mails.forEach((mail) => {
+      const datos = {
+        emailOrigen,
+        emailDestino: mail,
+      };
+      // Verificar si el correo electrónico ya existe en la lista de correos electrónicos
+      if (!mailsExistentes.includes(mail)) {
+        // Agregar correo electrónico a la lista de correos electrónicos
+        this.http.post(apiUrl, datos).subscribe(
+          (respuesta) => {
+            console.log(respuesta);
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      }
+    });
+  }
+
+  emails: any[] = [];
+  cargarMails() {
+    const apiUrl = 'https://control.als-inspection.cl/api_min/api/emails/';
+    this.http.get(apiUrl).subscribe(
+      (respuesta: any) => {
+        // Almacenar solo los mails que el mailOrigen sea el mismo que el del usuario logueado
+        this.emails = respuesta.filter((email: any) => {
+          return email.emailOrigen === localStorage.getItem('email');
+        });
+        // Obtener solo los correos electrónicos de los objetos
+        this.emails = this.emails.map((email: any) => email.emailDestino);
+        console.log(this.emails);
+      },
+      (error) => {
+        console.error(error);
+      }
     );
   }
 
@@ -757,13 +862,13 @@ export class FormulariosComponent {
       'https://control.als-inspection.cl/api_min/api/lote-recepcion/?';
 
     //Si tiene idServicio que se filtren los registros segun el servicio. Si tiene idSolicitud que se filtren los registros segun el servicio y la solicitud.
-    
-    if(this.idServicio && this.idSolicitud ) {
-      apiLote += 'servicio=' + this.idServicio + '&solicitud=' + this.idSolicitud;
-      }else if(this.idServicio) {
+
+    if (this.idServicio && this.idSolicitud) {
+      apiLote +=
+        'servicio=' + this.idServicio + '&solicitud=' + this.idSolicitud;
+    } else if (this.idServicio) {
       apiLote += 'servicio=' + this.idServicio;
     }
-    
 
     let fechaDesde = this.formatDate(this.fechaDesde);
     let fechaDesdeAnterior = new Date(this.fechaDesde);
@@ -925,29 +1030,33 @@ export class FormulariosComponent {
         }
         Notiflix.Notify.success('Camiones encontrados');
         this.generado = true;
+        this.generarDocumentoExcel();
       }
     });
   }
 
   documento: File;
-  
 
-  descargarExcel() {
+  generarDocumentoExcel() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Camiones de Recepción');
-  
+
     // Agregar resumen
     const resumenWorksheet = workbook.addWorksheet('Resumen');
     resumenWorksheet.columns = new Array(8).fill({ width: 30 });
-  
+
     for (let i = 0; i < 4; i++) {
       resumenWorksheet.addRow([]);
     }
-  
+
     resumenWorksheet.getCell('D2').value = 'Información Resumida de Lotes';
-    resumenWorksheet.getCell('D2').font = { name: 'Arial', size: 16, bold: true };
+    resumenWorksheet.getCell('D2').font = {
+      name: 'Arial',
+      size: 16,
+      bold: true,
+    };
     resumenWorksheet.getCell('D2').alignment = { horizontal: 'center' };
-  
+
     resumenWorksheet
       .addRow([
         'Lote',
@@ -981,7 +1090,7 @@ export class FormulariosComponent {
           };
         }
       });
-  
+
     this.lotesResumen.forEach((lote: any) => {
       resumenWorksheet.addRow([
         lote.observacion,
@@ -994,7 +1103,7 @@ export class FormulariosComponent {
         lote.diferenciaSeca,
       ]);
     });
-  
+
     resumenWorksheet
       .addRow([
         'Cantidad de Lotes',
@@ -1028,7 +1137,7 @@ export class FormulariosComponent {
           };
         }
       });
-  
+
     resumenWorksheet
       .addRow([
         this.lotesResumen.length,
@@ -1037,7 +1146,8 @@ export class FormulariosComponent {
         this.calcularPesoNetoRecepcionTotal(),
         this.calcularPromedioHumedades(),
         this.calcularPesoNetoSecoTotal(),
-        this.calcularPesoNetoRecepcionTotal() - this.calcularPesoNetoDespachoTotal(),
+        this.calcularPesoNetoRecepcionTotal() -
+          this.calcularPesoNetoDespachoTotal(),
         this.calcularDiferenciaSecaTotal(),
       ])
       .eachCell((cell) => {
@@ -1062,19 +1172,19 @@ export class FormulariosComponent {
           };
         }
       });
-  
+
     // Agregar encabezados al detalle
     worksheet.columns = new Array(22).fill({ width: 15 });
-  
+
     for (let i = 0; i < 4; i++) {
       worksheet.addRow([]);
     }
-  
+
     // Título en D2
     worksheet.getCell('D2').value = 'Detalle de Camiones de Recepción';
     worksheet.getCell('D2').font = { name: 'Arial', size: 16, bold: true };
     worksheet.getCell('D2').alignment = { horizontal: 'center' };
-  
+
     worksheet
       .addRow([
         'Fecha Despacho',
@@ -1122,7 +1232,7 @@ export class FormulariosComponent {
           };
         }
       });
-  
+
     this.camionesRecepcion.forEach((camion: any) => {
       worksheet.addRow([
         camion.fOrigen,
@@ -1149,7 +1259,7 @@ export class FormulariosComponent {
         camion.estado,
       ]);
     });
-  
+
     //Cargar imagen desde assets y luego continuar
     fetch('assets/images/logos/als_logo_1.png')
       .then((res) => res.blob())
@@ -1158,45 +1268,325 @@ export class FormulariosComponent {
         reader.onloadend = () => {
           const base64data = reader.result as string;
           const base64 = base64data.split(',')[1];
-  
+
           const binary = atob(base64);
           const len = binary.length;
           const imageBuffer = new Uint8Array(len);
           for (let i = 0; i < len; i++) {
             imageBuffer[i] = binary.charCodeAt(i);
           }
-  
+
           const imageId = workbook.addImage({
             buffer: imageBuffer,
             extension: 'png',
           });
-  
+
           worksheet.addImage(imageId, {
             tl: { col: 1, row: 1 },
             ext: { width: 65, height: 65 },
           });
-  
+
+          // Guardar archivo después de agregar imagen
+          workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            // const url = URL.createObjectURL(blob);
+            // const a = document.createElement('a');
+            // a.href = url;
+            // a.download = 'Reporte Camiones.xlsx';
+            // a.click();
+
+            this.documento = new File([blob], 'CamionesRecepcion.xlsx', {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            // this.enviarCorreo();
+          });
+        };
+        reader.readAsDataURL(blob);
+      });
+  }
+
+  descargarExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Camiones de Recepción');
+
+    // Agregar resumen
+    const resumenWorksheet = workbook.addWorksheet('Resumen');
+    resumenWorksheet.columns = new Array(8).fill({ width: 30 });
+
+    for (let i = 0; i < 4; i++) {
+      resumenWorksheet.addRow([]);
+    }
+
+    resumenWorksheet.getCell('D2').value = 'Información Resumida de Lotes';
+    resumenWorksheet.getCell('D2').font = {
+      name: 'Arial',
+      size: 16,
+      bold: true,
+    };
+    resumenWorksheet.getCell('D2').alignment = { horizontal: 'center' };
+
+    resumenWorksheet
+      .addRow([
+        'Lote',
+        'Total de Camiones',
+        'Neto Humedo Despacho',
+        'Neto Humedo Recepción',
+        'Porcentaje de Humedad',
+        'Neto Seco',
+        'Diferencia Humeda',
+        'Diferencia Seca',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+
+    this.lotesResumen.forEach((lote: any) => {
+      resumenWorksheet.addRow([
+        lote.observacion,
+        lote.cantidadCamiones,
+        lote.netoHumedoOrigen,
+        lote.netoHumedoDestino,
+        lote.porcHumedad,
+        lote.netoSeco,
+        lote.diferenciaHumeda,
+        lote.diferenciaSeca,
+      ]);
+    });
+
+    resumenWorksheet
+      .addRow([
+        'Cantidad de Lotes',
+        'Total de Camiones',
+        'Neto Humedo Despacho Total',
+        'Neto Humedo Recepción Total',
+        'Porcentaje de Humedad Promedio',
+        'Neto Seco Total',
+        'Diferencia Humeda Total',
+        'Diferencia Seca Total',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+
+    resumenWorksheet
+      .addRow([
+        this.lotesResumen.length,
+        this.calcularTotalCamiones(),
+        this.calcularPesoNetoDespachoTotal(),
+        this.calcularPesoNetoRecepcionTotal(),
+        this.calcularPromedioHumedades(),
+        this.calcularPesoNetoSecoTotal(),
+        this.calcularPesoNetoRecepcionTotal() -
+          this.calcularPesoNetoDespachoTotal(),
+        this.calcularDiferenciaSecaTotal(),
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: '000000' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'd9d9d9' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+
+    // Agregar encabezados al detalle
+    worksheet.columns = new Array(22).fill({ width: 15 });
+
+    for (let i = 0; i < 4; i++) {
+      worksheet.addRow([]);
+    }
+
+    // Título en D2
+    worksheet.getCell('D2').value = 'Detalle de Camiones de Recepción';
+    worksheet.getCell('D2').font = { name: 'Arial', size: 16, bold: true };
+    worksheet.getCell('D2').alignment = { horizontal: 'center' };
+
+    worksheet
+      .addRow([
+        'Fecha Despacho',
+        'Hora Despacho',
+        'Fecha Recepción',
+        'Hora Recepción',
+        'Referencia',
+        'Guía Despacho',
+        'Patente',
+        'Batea',
+        'Bruto Despacho',
+        'Bruto Recepción',
+        'Tara Despacho',
+        'Tara Recepción',
+        'Neto Húmedo Despacho',
+        'Neto Húmedo Recepción',
+        'Porcentaje Humedad',
+        'Neto Seco',
+        'Diferencia Húmeda',
+        'Diferencia Seca',
+        'Bodega',
+        'Sellos Despacho',
+        'Ticket PVSA',
+        'Estado',
+      ])
+      .eachCell((cell) => {
+        if (cell.value !== '') {
+          cell.font = {
+            name: 'Calibri',
+            size: 11,
+            bold: true,
+            color: { argb: 'FFFFFF' },
+          };
+          cell.alignment = { horizontal: 'center' };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: '337dff' },
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        }
+      });
+
+    this.camionesRecepcion.forEach((camion: any) => {
+      worksheet.addRow([
+        camion.fOrigen,
+        camion.hOrigen,
+        camion.fDestino,
+        camion.hDestino,
+        camion.observacion,
+        camion.idTransporteOrigen,
+        camion.idTransporteDestino,
+        camion.idCarroDestino,
+        camion.brutoOrigen,
+        camion.brutoDestino,
+        camion.taraOrigen,
+        camion.taraDestino,
+        camion.netoHumedoOrigen,
+        camion.netoHumedoDestino,
+        camion.porcHumedad,
+        camion.netoSeco,
+        camion.diferenciaHumeda,
+        camion.diferenciaSeca,
+        camion.nombreBodega,
+        camion.sellosOrigen,
+        camion.sellosDestino,
+        camion.estado,
+      ]);
+    });
+
+    //Cargar imagen desde assets y luego continuar
+    fetch('assets/images/logos/als_logo_1.png')
+      .then((res) => res.blob())
+      .then((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          const base64 = base64data.split(',')[1];
+
+          const binary = atob(base64);
+          const len = binary.length;
+          const imageBuffer = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            imageBuffer[i] = binary.charCodeAt(i);
+          }
+
+          const imageId = workbook.addImage({
+            buffer: imageBuffer,
+            extension: 'png',
+          });
+
+          worksheet.addImage(imageId, {
+            tl: { col: 1, row: 1 },
+            ext: { width: 65, height: 65 },
+          });
+
           // Guardar archivo después de agregar imagen
           workbook.xlsx.writeBuffer().then((buffer) => {
             const blob = new Blob([buffer], {
               type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             });
             const url = URL.createObjectURL(blob);
-  
             const a = document.createElement('a');
             a.href = url;
             a.download = 'Reporte Camiones.xlsx';
             a.click();
-  
+
             this.documento = new File([blob], 'CamionesRecepcion.xlsx', {
               type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             });
-  
-            this.enviarCorreo();
+
+            // this.enviarCorreo();
           });
         };
         reader.readAsDataURL(blob);
       });
+  }
+
+  correos = [''];
+
+  agregarCorreo() {
+    this.correos.push('');
+  }
+
+  eliminarCorreo(index: number) {
+    this.correos.splice(index, 1);
   }
 
   asunto = 'Reporte Diario';
@@ -1204,30 +1594,36 @@ export class FormulariosComponent {
     'Estimado/a: Junto con saludar se adjunta el presente reporte diario de camiones de recepción.';
 
   enviarCorreo(): void {
-    const apiUrl =
-      'https://control.als-inspection.cl/api_min/api/enviar-correo/'; // URL de tu servidor Django
-    const datos = new FormData();
-    datos.append('correoElectronico', this.correoElectronico);
-    datos.append('asunto', this.asunto);
-    datos.append('mensaje', this.mensaje);
-    datos.append('archivo', this.documento);
+    // Se debe enviar correo a cada uno de los correos ingresados en mails
+    const mails = this.fruits.map((fruit) => fruit.name);
 
-    // const headers = new HttpHeaders({
-    //   'X-CSRFToken': this.csrfToken,
-    // });
-    // const options = {
-    //   headers: headers,
-    //   withCredentials: true,
-    // };
+    mails.forEach((correo) => {
+      const apiUrl =
+        'https://control.als-inspection.cl/api_min/api/enviar-correo/'; // URL de tu servidor Django
+      const datos = new FormData();
+      datos.append('correoElectronico', correo);
+      datos.append('asunto', this.asunto);
+      datos.append('mensaje', this.mensaje);
+      datos.append('archivo', this.documento);
 
-    this.http.post(apiUrl, datos).subscribe(
-      (respuesta) => {
-        console.log(respuesta);
-      },
-      (error) => {
-        console.error(error);
-      }
-    );
+      // const headers = new HttpHeaders({
+      //   'X-CSRFToken': this.csrfToken,
+      // });
+      // const options = {
+      //   headers: headers,
+      //   withCredentials: true,
+      // };
+
+      this.http.post(apiUrl, datos).subscribe(
+        (respuesta) => {
+          console.log(respuesta);
+          Notiflix.Notify.success('Correo enviado con éxito a ' + correo);
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
+    });
   }
 
   private calcularNetoSeco(

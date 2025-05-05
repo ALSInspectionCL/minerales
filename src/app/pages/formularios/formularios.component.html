@@ -330,7 +330,10 @@
   <mat-card class="b-1">
     <mat-card-header class="m-b-8">
       <mat-card-title>Cierre de Día</mat-card-title>
-      <mat-card-subtitle>Aquí puede generar y enviar el informe de cierre de día</mat-card-subtitle>
+      <mat-card-subtitle
+        >Aquí puede generar y enviar el informe de cierre de
+        día</mat-card-subtitle
+      >
     </mat-card-header>
     <mat-card-content class="m-8">
       <div>
@@ -373,15 +376,31 @@
       <div>
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Fecha inicial del informe</mat-label>
-          <input matInput [matDatepicker]="pickerFechaInicial" [(ngModel)]="fechaInicial" name="fechaInicial">
-          <mat-datepicker-toggle matIconSuffix [for]="pickerFechaInicial"></mat-datepicker-toggle>
+          <input
+            matInput
+            [matDatepicker]="pickerFechaInicial"
+            [(ngModel)]="fechaInicial"
+            name="fechaInicial"
+          />
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="pickerFechaInicial"
+          ></mat-datepicker-toggle>
           <mat-datepicker #pickerFechaInicial></mat-datepicker>
         </mat-form-field>
-  
+
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Fecha final del informe</mat-label>
-          <input matInput [matDatepicker]="pickerFechaFinal" [(ngModel)]="fechaFinal" name="fechaFinal">
-          <mat-datepicker-toggle matIconSuffix [for]="pickerFechaFinal"></mat-datepicker-toggle>
+          <input
+            matInput
+            [matDatepicker]="pickerFechaFinal"
+            [(ngModel)]="fechaFinal"
+            name="fechaFinal"
+          />
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="pickerFechaFinal"
+          ></mat-datepicker-toggle>
           <mat-datepicker #pickerFechaFinal></mat-datepicker>
         </mat-form-field>
       </div>
@@ -390,26 +409,64 @@
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Hora inicial del informe</mat-label>
           <mat-select [(ngModel)]="horaInicial">
-            <mat-option *ngFor="let hora of horas" [value]="hora">{{ hora }}</mat-option>
+            <mat-option *ngFor="let hora of horas" [value]="hora">{{
+              hora
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
-  
+
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Hora final del informe</mat-label>
           <mat-select [(ngModel)]="horaFinal">
-            <mat-option *ngFor="let hora of horas" [value]="hora">{{ hora }}</mat-option>
+            <mat-option *ngFor="let hora of horas" [value]="hora">{{
+              hora
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-50" color="primary">
+          <mat-label>Usuarios</mat-label>
+          <mat-select multiple [(ngModel)]="selectedUsers">
+            <mat-option *ngFor="let email of emails" [value]="email">
+              {{ email }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button
+          mat-raised-button
+          class="m-l-16"
+          color="primary"
+          (click)="addUsersToFruits()"
+        >
+          Agregar usuarios a destinatarios
+        </button>
       </div>
-      <mat-form-field appearance="outline" class="m-16" color="primary">
-        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">
-          Correo electrónico</mat-label
+      <mat-form-field appearance="outline" class="m-16 w-100" color="primary">
+        <mat-label>Destinatarios</mat-label>
+        <mat-chip-grid #chipGrid aria-label="Ingrese los Destinatarios">
+          @for(fruit of fruits; track fruit.name) {
+          <mat-chip-row
+            (removed)="remove(fruit)"
+            [editable]="true"
+            (edited)="edit(fruit, $event)"
+            [aria-description]="'presione enter para editar ' + fruit.name"
+            class="f-s-14"
           >
-        <input matInput type="email" [(ngModel)]="correoElectronico">
-        <mat-error *ngIf="verificarCorreo.invalid">Por favor, ingresa un correo electrónico válido</mat-error>
+            {{ fruit.name }}
+            <button matChipRemove [attr.aria-label]="'remove ' + fruit.name">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+          }
+          <input
+            placeholder="Nuevo Email..."
+            [matChipInputFor]="chipGrid"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+            [matChipInputAddOnBlur]="addOnBlur"
+            (matChipInputTokenEnd)="add($event)"
+          />
+        </mat-chip-grid>
       </mat-form-field>
-
-
     </mat-card-content>
     <mat-card-actions>
       <button
@@ -423,17 +480,37 @@
         Generar Informe
       </button>
       <button
-      *ngIf="generado"
-      type="submit"
-      class="m-l-8"
-      mat-raised-button
-      color="primary"
-      (click)="descargarExcel()"
-    >
-      Enviar y descargar
-    </button>
+        *ngIf="generado"
+        type="submit"
+        class="m-l-8"
+        mat-raised-button
+        color="primary"
+        (click)="descargarExcel()"
+      >
+        Descargar documento
+      </button>
+      <button
+        *ngIf="generado"
+        type="submit"
+        class="m-l-8"
+        mat-raised-button
+        color="primary"
+        (click)="enviarCorreo()"
+      >
+        Enviar documento
+      </button>
+      <button
+        *ngIf="generado"
+        type="submit"
+        class="m-l-8"
+        mat-raised-button
+        color="primary"
+        (click)="guardarMails()"
+      >
+        TEST
+      </button>
     </mat-card-actions>
-  </mat-card>    
+  </mat-card>
 </div>
 
 <div *ngIf="admin" class="row m-b-16">
@@ -493,22 +570,26 @@
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
         <!-- Definición de columnas aquí -->
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef> Usuario </th>
-          <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+          <th mat-header-cell *matHeaderCellDef>Usuario</th>
+          <td mat-cell *matCellDef="let element">{{ element.email }}</td>
         </ng-container>
         <ng-container matColumnDef="fecha">
-          <th mat-header-cell *matHeaderCellDef> Fecha </th>
-          <td mat-cell *matCellDef="let element"> {{element.fecha}} </td>
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let element">{{ element.fecha }}</td>
         </ng-container>
-        <ng-container matColumnDef ="hora">
-          <th mat-header-cell *matHeaderCellDef> Fecha </th>
-          <td mat-cell *matCellDef="let element"> {{element.hora}} </td>
+        <ng-container matColumnDef="hora">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let element">{{ element.hora }}</td>
         </ng-container>
-      
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
-      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]" [length]="dataSource.data.length"></mat-paginator>
+      <mat-paginator
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [length]="dataSource.data.length"
+      ></mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>
@@ -557,8 +638,8 @@
           </mat-form-field>
 
           <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-          >Total de Material</mat-label
-        >
+            >Total de Material</mat-label
+          >
           <mat-form-field appearance="outline" class="w-100" color="primary">
             <input
               type="number"

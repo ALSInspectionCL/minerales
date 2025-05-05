@@ -248,6 +248,10 @@ class TrazabilidadMecanica(models.Model):
     observacion = models.CharField(max_length=200,blank=True, null=True)
     estado = models.CharField(max_length=200, blank=True, null=True)
 
+class Emails(models.Model):
+    emailOrigen = models.EmailField(null=False, blank = False)
+    emailDestino = models.EmailField(null=False, blank = False)
+
 
 @receiver(pre_save, sender=Recepcion)
 def calculate_diferencia_humeda(sender, instance, **kwargs):
