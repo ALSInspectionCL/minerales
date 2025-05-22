@@ -16,4 +16,12 @@ export class LoginService {
       })
     }).pipe( tap( () => { localStorage.setItem('isAuth' , 'true') }))
   }
+
+  isAuthenticated(): boolean {
+    const isAuthenticated = localStorage.getItem('token')
+    if (!!isAuthenticated) {
+      return false;
+    }
+    return true;
+  }
 }

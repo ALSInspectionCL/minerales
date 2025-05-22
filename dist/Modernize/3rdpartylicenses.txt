@@ -534,6 +534,9 @@ MIT
 ngx-scrollbar
 MIT
 
+ngx-serial
+MIT
+
 notiflix
 MIT
 MIT License

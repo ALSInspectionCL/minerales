@@ -809,29 +809,84 @@ export class StarterComponent {
   }
 
   // Mandar un mensaje a la consola con la información del usuario
-  crearLog() {
+  async crearLog() {
     const email = localStorage.getItem('email');
+    if (!email) return;
+  
     const fechaHoy = new Date();
     const fechaFormateada = fechaHoy.toISOString().split('T')[0];
     const horaHoy = `${fechaHoy.getHours().toString().padStart(2, '0')}:${fechaHoy.getMinutes().toString().padStart(2, '0')}`;
-    
-
+  
     const datos = {
-      email: email,
       fecha: fechaFormateada,
       hora: horaHoy,
     };
-    console.log(datos);
-    fetch('https://control.als-inspection.cl/api_min/api/user-logs/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(datos),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error(error));
+  
+    try {
+      // 1. Obtener todos los registros sin filtro
+      const response = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/`);
+      const results = await response.json();
+  
+      // 2. Buscar el registro con el email actual
+      const registroExistente = results.find((item: any) => item.email === email);
+  
+      if (registroExistente) {
+        // 3. Si existe, actualizar
+        const updateResponse = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/${registroExistente.id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(datos),
+        });
+  
+        const updateData = await updateResponse.json();
+        if (!updateResponse.ok) {
+          console.error('Error al actualizar log:', updateResponse.status, updateData);
+          return;
+        }
+  
+        console.log('Actualizado:', updateData);
+      } else {
+        // 4. Si no existe, crear uno nuevo
+        const createResponse = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, ...datos }),
+        });
+  
+        const createData = await createResponse.json();
+        if (!createResponse.ok) {
+          console.error('Error al crear log:', createResponse.status, createData);
+          return;
+        }
+  
+        console.log('Creado:', createData);
+      }
+    } catch (error) {
+      console.error('Error general en crear/actualizar log:', error);
+    }
+  }
+
+  async eliminarTodosLosUsuarios() {
+    try {
+      // Obtener todos los registros
+      const res = await fetch('https://control.als-inspection.cl/api_min/api/user-logs/');
+      const logs = await res.json();
+  
+      // Eliminar cada uno
+      for (const log of logs) {
+        await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/${log.id}/`, {
+          method: 'DELETE',
+        });
+      }
+  
+      console.log('Todos los logs eliminados.');
+    } catch (error) {
+      console.error('Error al eliminar usuarios:', error);
+    }
   }
 
   acumuladosMensual(){

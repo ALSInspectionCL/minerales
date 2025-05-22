@@ -1,15 +1,18 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   CanActivate,
   ActivatedRouteSnapshot,
   RouterStateSnapshot,
   UrlTree,
   Router,
+  CanActivateFn
 } from '@angular/router';
 import { Observable } from 'rxjs';
 import { RolService } from '../services/rol.service'; // Importa tu servicio de roles
 import { map } from 'rxjs/operators';
 import Notiflix from 'notiflix';
+import { LoginService } from '../services/login.service';
+import { NotificacionesService } from '../services/notificaciones.service';
 
 @Injectable({
   providedIn: 'root',
@@ -51,3 +54,14 @@ export class RoleGuard implements CanActivate {
   }
 }
 
+export const guardLogin: CanActivateFn = () => {
+  const calidadMenu = inject(LoginService);
+  const notiflix = inject(NotificacionesService);
+  const router = inject(Router);
+  const isAuthenticated = calidadMenu.isAuthenticated()
+    if (isAuthenticated) {
+      router.navigate(['/authentication/login']); // redirigir al home si no tiene el rol
+      return false;
+    }
+    return true;
+};

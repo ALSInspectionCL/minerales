@@ -237,7 +237,16 @@ export class FormulariosComponent {
     this.obtenerLogs();
     this.cargarMails();
     this.fechaDesde = new Date();
-    this.admin = true;
+    this.admin = false;
+    this.RolService.hasRole(String(localStorage.getItem('email') || ''), 'Admin').subscribe(hasRole => {
+      if (hasRole) {
+        console.log('El usuario tiene el rol de Admin');
+        this.admin = true;
+      } else {
+        console.log('El usuario no tiene el rol de Admin');
+        this.admin = false;
+      }
+    });
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value || ''))

@@ -24,6 +24,11 @@ export const navItems: NavItem[] = [
     iconName: 'building-warehouse',
     route: '/home/inventario',
   },
+    {
+    displayName: 'Humedad',
+    iconName: 'droplet-half-2',
+    route: '/home/dethumedad',
+  },
   {
     displayName: 'Despachos',
     iconName:  'truck-delivery',
