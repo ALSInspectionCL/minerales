@@ -496,9 +496,13 @@ export class StarterComponent {
           }
         });
         if (this.recepLotes == 0 && this.despLotes == 0) {
-          Notiflix.Notify.warning('No se han encontrado datos');
+          Notiflix.Notify.warning('No se han encontrado datos', {
+            timeout: 1500,
+          });
         } else {
-          Notiflix.Notify.success('Se han encontrado datos');
+          Notiflix.Notify.success('Se han encontrado datos', {
+            timeout: 1500,
+          });
         }
       });
     } else {
@@ -577,9 +581,13 @@ export class StarterComponent {
           }
 
           if (this.recepLotes == 0 && this.despLotes == 0) {
-            Notiflix.Notify.warning('No se han encontrado datos');
+            Notiflix.Notify.warning('No se han encontrado datos', {
+              timeout: 1500,
+            });
           } else {
-            Notiflix.Notify.success('Se han encontrado datos');
+            Notiflix.Notify.success('Se han encontrado datos', {
+              timeout: 1500,
+            });
           }
           this.cargarDonut(this.recepCamiones, this.recepVagones);
         });
@@ -622,12 +630,18 @@ export class StarterComponent {
           }
         });
         if (this.recepLotes == 0 && this.despLotes == 0) {
-          Notiflix.Notify.warning('No se han encontrado datos');
+          Notiflix.Notify.warning('No se han encontrado datos', {
+            timeout: 1500,
+          });
         } else {
-          Notiflix.Notify.success('Se han encontrado datos');
+          Notiflix.Notify.success('Se han encontrado datos', {
+            timeout: 1500,
+          });
         }
       } else {
-        Notiflix.Notify.warning('No se han encontrado datos');
+        Notiflix.Notify.warning('No se han encontrado datos', {
+          timeout: 1500,
+        });
         this.recepLotes = 0;
         this.recepCamiones = 0;
         this.recepVagones = 0;
@@ -812,57 +826,78 @@ export class StarterComponent {
   async crearLog() {
     const email = localStorage.getItem('email');
     if (!email) return;
-  
+
     const fechaHoy = new Date();
     const fechaFormateada = fechaHoy.toISOString().split('T')[0];
-    const horaHoy = `${fechaHoy.getHours().toString().padStart(2, '0')}:${fechaHoy.getMinutes().toString().padStart(2, '0')}`;
-  
+    const horaHoy = `${fechaHoy
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${fechaHoy.getMinutes().toString().padStart(2, '0')}`;
+
     const datos = {
       fecha: fechaFormateada,
       hora: horaHoy,
     };
-  
+
     try {
       // 1. Obtener todos los registros sin filtro
-      const response = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/`);
+      const response = await fetch(
+        `https://control.als-inspection.cl/api_min/api/user-logs/`
+      );
       const results = await response.json();
-  
+
       // 2. Buscar el registro con el email actual
-      const registroExistente = results.find((item: any) => item.email === email);
-  
+      const registroExistente = results.find(
+        (item: any) => item.email === email
+      );
+
       if (registroExistente) {
         // 3. Si existe, actualizar
-        const updateResponse = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/${registroExistente.id}/`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(datos),
-        });
-  
+        const updateResponse = await fetch(
+          `https://control.als-inspection.cl/api_min/api/user-logs/${registroExistente.id}/`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos),
+          }
+        );
+
         const updateData = await updateResponse.json();
         if (!updateResponse.ok) {
-          console.error('Error al actualizar log:', updateResponse.status, updateData);
+          console.error(
+            'Error al actualizar log:',
+            updateResponse.status,
+            updateData
+          );
           return;
         }
-  
+
         console.log('Actualizado:', updateData);
       } else {
         // 4. Si no existe, crear uno nuevo
-        const createResponse = await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, ...datos }),
-        });
-  
+        const createResponse = await fetch(
+          `https://control.als-inspection.cl/api_min/api/user-logs/`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, ...datos }),
+          }
+        );
+
         const createData = await createResponse.json();
         if (!createResponse.ok) {
-          console.error('Error al crear log:', createResponse.status, createData);
+          console.error(
+            'Error al crear log:',
+            createResponse.status,
+            createData
+          );
           return;
         }
-  
+
         console.log('Creado:', createData);
       }
     } catch (error) {
@@ -873,33 +908,37 @@ export class StarterComponent {
   async eliminarTodosLosUsuarios() {
     try {
       // Obtener todos los registros
-      const res = await fetch('https://control.als-inspection.cl/api_min/api/user-logs/');
+      const res = await fetch(
+        'https://control.als-inspection.cl/api_min/api/user-logs/'
+      );
       const logs = await res.json();
-  
+
       // Eliminar cada uno
       for (const log of logs) {
-        await fetch(`https://control.als-inspection.cl/api_min/api/user-logs/${log.id}/`, {
-          method: 'DELETE',
-        });
+        await fetch(
+          `https://control.als-inspection.cl/api_min/api/user-logs/${log.id}/`,
+          {
+            method: 'DELETE',
+          }
+        );
       }
-  
+
       console.log('Todos los logs eliminados.');
     } catch (error) {
       console.error('Error al eliminar usuarios:', error);
     }
   }
 
-  acumuladosMensual(){
+  acumuladosMensual() {
     const fechaActual = new Date();
     const mesActual = fechaActual.getMonth() + 1;
     const añoActual = fechaActual.getFullYear();
-    
+
     fetch(`https://control.als-inspection.cl/api_min/api/recepcion-transporte/`)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         console.log(data);
       })
-      .catch(error => console.error(error));
+      .catch((error) => console.error(error));
   }
-
 }

@@ -1,0 +1,55 @@
+<div class="mat-card-header m-l-20">
+    <h2>Determinación de Humedad Lote</h2>
+</div>
+<mat-card>
+    <mat-card-header>
+        <div class="mat-card-header-title">
+            <h2>Ingrese los datos</h2>
+        </div>
+    </mat-card-header>
+    <mat-card-content>
+    <div class="container">
+        <h1>Formulario de Pesos de Latas</h1>
+        <form id="pesoForm" autocomplete="off" novalidate>
+            <div>
+                <label for="numLata1">Número de Lata 1</label>
+                <input type="text" id="numLata1" name="numLata1" placeholder="Ingrese número de lata 1" />
+            </div>
+            <div>
+                <label for="numLata2">Número de Lata 2</label>
+                <input type="text" id="numLata2" name="numLata2" placeholder="Ingrese número de lata 2" />
+            </div>
+            <div>
+                <label for="pesoLata1">Peso Lata 1 (kg)</label>
+                <input type="number" id="pesoLata1" name="pesoLata1" placeholder="Ej: 2.5" step="0.01" min="0" />
+            </div>
+            <div>
+                <label for="pesoLata2">Peso Lata 2 (kg)</label>
+                <input type="number" id="pesoLata2" name="pesoLata2" placeholder="Ej: 3.0" step="0.01" min="0" />
+            </div>
+            <div>
+                <label for="pesoTotal1">Peso Total 1 (kg)</label>
+                <input type="number" id="pesoTotal1" name="pesoTotal1" placeholder="Ej: 10.0" step="0.01" min="0" />
+            </div>
+            <div>
+                <label for="pesoTotal2">Peso Total 2 (kg)</label>
+                <input type="number" id="pesoTotal2" name="pesoTotal2" placeholder="Ej: 12.0" step="0.01" min="0" />
+            </div>
+            <div>
+                <label for="pesoMaterial1">Peso Material 1 (kg)</label>
+                <input type="number" id="pesoMaterial1" name="pesoMaterial1" readonly placeholder="Calculado automáticamente" />
+            </div>
+            <div>
+                <label for="pesoMaterial2">Peso Material 2 (kg)</label>
+                <input type="number" id="pesoMaterial2" name="pesoMaterial2" readonly placeholder="Calculado automáticamente" />
+            </div>
+        </form>
+        <p class="footer-note">* El peso material es la diferencia entre peso total y peso lata correspondiente</p>
+    </div>
+    </mat-card-content>
+
+</mat-card>
+<mat-divider></mat-divider>
+<mat-card>
+    
+</mat-card>
