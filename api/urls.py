@@ -22,7 +22,7 @@ router.register(r'user-logs',views.UserLogsViewSet)
 router.register(r'trazabilidad',views.TrazabilidadViewSet)
 router.register(r'trazabilidad-mecanica',views.TrazabilidadMecanicaViewSet)
 router.register(r'emails',views.EmailsViewSet)
-
+router.register(r'humedades',views.HumedadesViewSet)
 
 urlpatterns=[
     path('', include(router.urls)),

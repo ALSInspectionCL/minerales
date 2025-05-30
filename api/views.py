@@ -4,8 +4,8 @@ from email.message import EmailMessage
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import filters
 from rest_framework import viewsets
-from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
-from .models import Bodega, DespachoEmbarque, DetalleBodega, Emails, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
+from .serializer import BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
+from .models import Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -114,6 +114,12 @@ class EmailsViewSet(viewsets.ModelViewSet):
     serializer_class = EmailSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=email',)
+
+class HumedadesViewSet(viewsets.ModelViewSet):
+    queryset = Humedades.objects.all()
+    serializer_class = HumedadesSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote',)
 
 
 def obtener_lotes_por_fechas(request):

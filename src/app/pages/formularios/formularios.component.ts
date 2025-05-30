@@ -238,7 +238,10 @@ export class FormulariosComponent {
     this.cargarMails();
     this.fechaDesde = new Date();
     this.admin = false;
-    this.RolService.hasRole(String(localStorage.getItem('email') || ''), 'Admin').subscribe(hasRole => {
+    this.RolService.hasRole(
+      String(localStorage.getItem('email') || ''),
+      'Admin'
+    ).subscribe((hasRole) => {
       if (hasRole) {
         console.log('El usuario tiene el rol de Admin');
         this.admin = true;
@@ -886,6 +889,7 @@ export class FormulariosComponent {
       this.camiones = (response as any[]).filter(
         (camion) => camion.tipoTransporte === 'Camion'
       );
+      console.log(this.camiones);
       const fechaI = this.formatDate(this.fechaInicial);
       const fechaF = this.formatDate(this.fechaFinal);
       const fechaInicialCompleta = new Date(
@@ -928,9 +932,25 @@ export class FormulariosComponent {
         this.http
           .get(`${apiLote}?nLote=${nLotes.join(',')}/`)
           .subscribe((response) => {
-            const lotes = (response as any[]).filter((lote: any) =>
+            let lotes = (response as any[]).filter((lote: any) =>
               nLotes.includes(lote.nLote)
             );
+            if (this.idServicio && !this.idSolicitud) {
+              lotes = lotes.filter(
+                (lote: any) =>
+                  lote.servicio === this.idServicio
+              );
+            }else if (this.idSolicitud && this.idServicio) {
+              lotes = lotes.filter(
+                (lote: any) =>
+                  lote.servicio === this.idServicio &&
+                  lote.solicitud === this.idSolicitud
+                  );
+            }
+            if (lotes.length === 0) {
+              Notiflix.Notify.warning('No hay lotes para los camiones seleccionados');
+              return;
+            }
             console.log(lotes);
             camionesRecepcion.forEach((camion: any) => {
               const lote = lotes.find(
@@ -1037,11 +1057,26 @@ export class FormulariosComponent {
               }
             });
         }
+
         Notiflix.Notify.success('Camiones encontrados');
         this.generado = true;
         this.generarDocumentoExcel();
       }
     });
+  }
+
+  cierreD2() {
+    let apirecepcion =
+      'https://control.als-inspection.cl/api_min/api/recepcion-transporte/?';
+    let apiLote =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?';
+
+    //Buscar los registros de los lotes de camiones de nLotes
+    this.http.get(
+      `https://control.als-inspection.cl/api_min/api/recepcion-transporte/`
+    );
+    {
+    }
   }
 
   documento: File;

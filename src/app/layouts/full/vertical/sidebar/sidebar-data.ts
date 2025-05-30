@@ -25,9 +25,10 @@ export const navItems: NavItem[] = [
     route: '/home/inventario',
   },
     {
+    disabled: true,
     displayName: 'Humedad',
     iconName: 'droplet-half-2',
-    route: '/home/dethumedad',
+    route: '/home/authentication/maintenance',
   },
   {
     displayName: 'Despachos',
