@@ -499,9 +499,6 @@ SOFTWARE.
 
 
 
-jsbarcode
-MIT
-
 moment
 MIT
 Copyright (c) JS Foundation and other contributors

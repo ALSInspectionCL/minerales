@@ -47,7 +47,6 @@ import { ReportesComponent } from 'src/app/pages/reportes/reportes.component';
 import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
 import { Value } from 'sass';
-import sharp from 'sharp';
 import {
   MatChipEditedEvent,
   MatChipInputEvent,

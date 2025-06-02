@@ -170,15 +170,6 @@
         >
           Actualizar Lote
         </button>
-        <button
-          mat-flat-button
-          *ngIf="admin || operator || encargado"
-          (click)="generarCodigo(lote.nLote)"
-          color="primary"
-          class="m-t-8 m-b-8 m-l-16"
-        >
-          Generar Codigo
-        </button>
       </div>
       <mat-divider></mat-divider>
       <mat-card-title *ngIf="operator || admin"

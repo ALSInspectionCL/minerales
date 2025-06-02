@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatCardModule } from '@angular/material/card';
 import {AsyncPipe, CommonModule} from '@angular/common';
-import { SerialPort } from 'serialport';
+// import { SerialPort } from 'serialport';
 import { NgxSerial } from 'ngx-serial';
 import { interval } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
