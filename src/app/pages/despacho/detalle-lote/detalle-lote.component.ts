@@ -97,6 +97,7 @@ export class DetalleLoteComponent {
   rdespachoTransporteForm: FormGroup;
   admin: boolean;
   operator: boolean;
+  encargado: boolean;
   apiLotes: 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
   totalCamiones = 0;
   totalVagones = 0;
@@ -111,7 +112,12 @@ export class DetalleLoteComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: { idServicio: number; idSolicitud: number; nLote: string, numero : number },
+    public data: {
+      idServicio: number;
+      idSolicitud: number;
+      nLote: string;
+      numero: number;
+    },
     private loteService: LoteService,
     private http: HttpClient,
     private dialog: MatDialog,
@@ -132,20 +138,31 @@ export class DetalleLoteComponent {
     this.cargarDespachoTransporte(this.data.nLote);
     console.log('Data de dataSource:');
     console.log(this.dataSource1);
-    this.admin = RolService.isTokenValid();
     this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          console.log('El usuario tiene el rol de operator');
-          this.operator = true;
-        } else {
-          console.log('El usuario no tiene el rol de operator');
+      .getRoles(localStorage.getItem('email') || '')
+      .subscribe((roles) => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+        } else {
+          this.admin = false;
+          this.operator = false;
+          this.encargado = false;
         }
       });
   }
-
 
   obtenerBodegas() {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/bodega/'; // Cambia la URL según API
@@ -170,19 +187,20 @@ export class DetalleLoteComponent {
 
   cargarLote(): any {
     console.log('Cargar lote:', this.nLote);
-    let lotebuscado: loteDespacho;
-    this.loteService.getLoteBynLoteD(this.nLote).subscribe(
+    let lotebuscado: any;
+    this.loteService.getLoteByNLoteDes(this.nLote).subscribe(
       (response: loteDespacho[]) => {
         console.log('Respuesta del servicio:', response);
         if (response.length > 0) {
-          this.lote = response[0];
-          lotebuscado = response[0];
+          // LoteBuscado es el lote que tenga el mismo nLote
+          lotebuscado = response.filter((lote) => lote.nLote === this.nLote);
+          this.lote = lotebuscado[0]; // Asignar el primer lote encontrado
         } else {
           this.lote = null;
           console.log('Lote no cargado');
         }
         console.log('Lote cargado:', this.lote);
-        return lotebuscado;
+        return this.lote; // Retorna el lote cargado
       },
       (error) => {
         console.error('Error al cargar el lote:', error);
@@ -294,8 +312,7 @@ export class DetalleLoteComponent {
         this.dataSource1 = this.dataSource1.map((item) =>
           item.nLote === result.nLote ? result : item
         );
-      }
-      else {
+      } else {
         console.log('No se modificó el registro');
         this.ngOnInit();
       }
@@ -308,6 +325,7 @@ export class DetalleLoteComponent {
   }
 
   crearRegistro() {
+    console.log(this.lote);
     if (this.lote && this.bodegaSeleccionada) {
       const hoy = new Date();
       const horas = String(hoy.getHours()).padStart(2, '0'); // Asegura que las horas tengan 2 dígitos
@@ -382,84 +400,69 @@ export class DetalleLoteComponent {
     }
   }
 
-  cargarLote1(nLote: string): Observable<loteDespacho> {
-    return this.loteService
-      .getLoteBynLoteD(String(nLote))
-      .pipe(map((response) => response[0]));
-  }
-
   actualizarLote(nLote: string) {
-    this.cargarLote1(nLote).subscribe(
-      (lote) => {
-        console.log(lote);
-        if (!lote) {
-          console.error('No se pudo cargar el lote');
-          return;
-        }
+    // Paso 1: Cargar el lote
+    let lote = this.lote;
+    if (!lote) {
+      console.error('No se puede actualizar el lote, no se ha cargado.');
+      return;
+    }
+    // Paso 2: Actualizar el lote
+    // Filtrar los registros de rdespachoTransporte que coincidan con el nLote
+    const registrosFiltrados = this.dataSource1.filter(
+      (registro) => registro.nLote === lote.nLote
+    );
 
-        // Filtrar los registros de rdespachoTransporte que coincidan con el nLote
-        const registrosFiltrados = this.dataSource1.filter(
-          (registro) => registro.nLote === lote.nLote
-        );
+    // Calcular los valores requeridos
+    const cantCamiones = registrosFiltrados.filter(
+      (registro) => registro.tipoTransporte === 'camion'
+    ).length;
 
-        // Calcular los valores requeridos
-        const cantCamiones = registrosFiltrados.filter(
-          (registro) => registro.tipoTransporte === 'camion'
-        ).length;
+    const cantVagones = registrosFiltrados.filter(
+      (registro) => registro.tipoTransporte === 'vagon'
+    ).length;
 
-        const cantVagones = registrosFiltrados.filter(
-          (registro) => registro.tipoTransporte === 'vagon'
-        ).length;
+    const pesoNetoHumedo = registrosFiltrados.reduce(
+      (total, registro) => total + registro.pesoNetoHumedoOrigen,
+      0
+    );
 
-        const pesoNetoHumedo = registrosFiltrados.reduce(
-          (total, registro) => total + registro.pesoNetoHumedoOrigen,
-          0
-        );
+    const pesoTara = registrosFiltrados.reduce(
+      (total, registro) => total + registro.pesoTara,
+      0
+    );
 
-        const pesoTara = registrosFiltrados.reduce(
-          (total, registro) => total + registro.pesoTara,
-          0
-        );
+    const pesoBrutoHumedo = pesoNetoHumedo + pesoTara;
 
-        const pesoBrutoHumedo = pesoNetoHumedo + pesoTara;
+    const porcHumedad =
+      registrosFiltrados.length > 0
+        ? registrosFiltrados[0].porcHumedad // Asumiendo que todos tienen el mismo porcentaje de humedad
+        : 0;
 
-        const porcHumedad =
-          registrosFiltrados.length > 0
-            ? registrosFiltrados[0].porcHumedad // Asumiendo que todos tienen el mismo porcentaje de humedad
-            : 0;
+    const pesoNetoSeco = pesoNetoHumedo - pesoNetoHumedo * (porcHumedad / 100);
 
-        const pesoNetoSeco =
-          pesoNetoHumedo - pesoNetoHumedo * (porcHumedad / 100);
+    const diferenciaPeso = registrosFiltrados.reduce(
+      (total, registro) => total + registro.diferencia,
+      0
+    );
 
-        const diferenciaPeso = registrosFiltrados.reduce(
-          (total, registro) => total + registro.diferencia,
-          0
-        );
+    // Actualizar los campos del lote
+    lote.cantCamiones = cantCamiones;
+    lote.cantVagones = cantVagones;
+    lote.pesoNetoHumedo = pesoNetoHumedo;
+    lote.pesoTara = pesoTara;
+    lote.pesoBrutoHumedo = pesoBrutoHumedo;
+    lote.pesoNetoSeco = pesoNetoSeco;
+    lote.diferenciaPeso = diferenciaPeso;
+    console.log(lote);
 
-        // Actualizar los campos del lote
-        lote.cantCamiones = cantCamiones;
-        lote.cantVagones = cantVagones;
-        lote.pesoNetoHumedo = pesoNetoHumedo;
-        lote.pesoTara = pesoTara;
-        lote.pesoBrutoHumedo = pesoBrutoHumedo;
-        lote.pesoNetoSeco = pesoNetoSeco;
-        lote.diferenciaPeso = diferenciaPeso;
-        console.log(lote);
-
-        // Realizar la llamada HTTP para actualizar el lote
-        return this.http
-          .put(`${this.apiLotes}${this.lote.id}/`, lote)
-          .subscribe(
-            (response) => {
-              console.log('Lote actualizado correctamente', response);
-            },
-            (error) => {
-              console.error('Error al actualizar el lote', error);
-            }
-          );
+    // Realizar la llamada HTTP para actualizar el lote
+    return this.http.put(`${this.apiLotes}${this.lote.id}/`, lote).subscribe(
+      (response) => {
+        console.log('Lote actualizado correctamente', response);
       },
       (error) => {
-        console.error('Error al cargar el lote', error);
+        console.error('Error al actualizar el lote', error);
       }
     );
   }
@@ -506,7 +509,7 @@ export class DetalleLoteComponent {
     );
   }
 
-  wip(){
+  wip() {
     Notiflix.Notify.warning('Función en desarrollo');
   }
 }
@@ -550,21 +553,50 @@ export class CrearRegistroDialog {
   despachoTransporteForm: FormGroup;
   numeroCamion = 0;
   admin: boolean;
+  operator: boolean;
+  encargado: boolean;
   lote: any;
   porcentajeHumedad = 0;
   ngOnInit(): void {
-    this.admin = RolService.isTokenValid();
+        this.rolService
+      .getRoles(localStorage.getItem('email') || '')
+      .subscribe((roles) => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
+          this.operator = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        } else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+        } else {
+          this.admin = false;
+          this.operator = false;
+          this.encargado = false;
+        }
+      });
     this.cargarLote();
     console.log('El lote es: ' + this.lote);
     this.despachoTransporteForm.valueChanges.subscribe((changes) => {
-      const valorPesoBruto = this.despachoTransporteForm.get('brutoDestino')?.value;
-      const valorPesoTara = this.despachoTransporteForm.get('taraDestino')?.value;
-      const valorPesoNeto = this.despachoTransporteForm.get('netoHumedoDestino')?.value;
+      const valorPesoBruto =
+        this.despachoTransporteForm.get('brutoDestino')?.value;
+      const valorPesoTara =
+        this.despachoTransporteForm.get('taraDestino')?.value;
+      const valorPesoNeto =
+        this.despachoTransporteForm.get('netoHumedoDestino')?.value;
 
       if (valorPesoBruto && valorPesoTara) {
         const diferenciaPeso = valorPesoBruto - valorPesoTara - valorPesoNeto;
         const diferenciaHumeda = valorPesoNeto - valorPesoTara;
-        const diferenciaSeca = valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
+        const diferenciaSeca =
+          valorPesoNeto - valorPesoNeto * (this.porcentajeHumedad / 100);
 
         this.despachoTransporteForm.patchValue(
           {
@@ -580,6 +612,7 @@ export class CrearRegistroDialog {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
+    private rolService: RolService,
     private http: HttpClient,
     private fb: FormBuilder,
     private loteService: LoteService,
@@ -672,7 +705,6 @@ export class CrearRegistroDialog {
   }
 
   guardar() {
-
     const valorFOrigen = this.despachoTransporteForm.get('fOrigen')?.value;
     // Convertir a Date si es necesario
     if (valorFOrigen) {
@@ -683,9 +715,7 @@ export class CrearRegistroDialog {
         fechaDestino = valorFOrigen; // Asumimos que ya es un objeto Date
       }
       const fechaFormateada = this.formatDateToString(fechaDestino);
-      this.despachoTransporteForm.controls['fOrigen'].setValue(
-        fechaFormateada
-      );
+      this.despachoTransporteForm.controls['fOrigen'].setValue(fechaFormateada);
     }
 
     if (valorFOrigen) {
@@ -696,9 +726,7 @@ export class CrearRegistroDialog {
         fechaDestino = moment(valorFOrigen);
       }
       const fechaFormateada = fechaDestino.format('YYYY-MM-DD');
-      this.despachoTransporteForm.controls['fOrigen'].setValue(
-        fechaFormateada
-      );
+      this.despachoTransporteForm.controls['fOrigen'].setValue(fechaFormateada);
     }
 
     const valorFDestino = this.despachoTransporteForm.get('fDestino')?.value;
@@ -754,7 +782,9 @@ export class CrearRegistroDialog {
         const id = this.data.id;
         this.http
           .put(
-            'https://control.als-inspection.cl/api_min/api/despacho-camion/' + id + '/',
+            'https://control.als-inspection.cl/api_min/api/despacho-camion/' +
+              id +
+              '/',
             registroModificado
           )
           .subscribe((response) => {
@@ -908,88 +938,92 @@ export class CrearRegistroDialog {
     }
   }
 
-  calcularDifHumeda() : number {
+  calcularDifHumeda(): number {
     const valorNetoHumedoOrigen =
-    this.despachoTransporteForm.get('netoHumedoOrigen')?.value;
+      this.despachoTransporteForm.get('netoHumedoOrigen')?.value;
     const valorNetoHumedoDestino =
-    this.despachoTransporteForm.get('netoHumedoDestino')?.value;
+      this.despachoTransporteForm.get('netoHumedoDestino')?.value;
     let diferenciaHumeda = 0;
 
     // Calcular la diferencia húmeda si ambos valores son diferentes de 0
     if (valorNetoHumedoOrigen > 0 && valorNetoHumedoDestino > 0) {
       diferenciaHumeda = valorNetoHumedoOrigen - valorNetoHumedoDestino;
-      diferenciaHumeda = Number(diferenciaHumeda.toFixed(2))
+      diferenciaHumeda = Number(diferenciaHumeda.toFixed(2));
       console.log('la diferencia humeda es: ', diferenciaHumeda);
       return Number(diferenciaHumeda);
-    }else{
-      console.log('No se calculo la diferencia seca')
+    } else {
+      console.log('No se calculo la diferencia seca');
       return 0;
     }
   }
 
-  calcularDifSeca() : number {
+  calcularDifSeca(): number {
     const valorNetoHumedoOrigen =
-    this.despachoTransporteForm.get('netoHumedoOrigen')?.value;
+      this.despachoTransporteForm.get('netoHumedoOrigen')?.value;
     const valorNetoHumedoDestino =
-    this.despachoTransporteForm.get('netoHumedoDestino')?.value;
+      this.despachoTransporteForm.get('netoHumedoDestino')?.value;
     let diferenciaHumeda = this.calcularDifHumeda();
     let diferenciaSeca = 0;
 
     // Calcular la diferencia húmeda si ambos valores son diferentes de 0
     if (valorNetoHumedoOrigen > 0 && valorNetoHumedoDestino > 0) {
       diferenciaSeca =
-        diferenciaHumeda - (diferenciaHumeda * (this.porcentajeHumedad) * 1/100);
-        diferenciaSeca = Number(diferenciaSeca.toFixed(2))
-        console.log('la diferencia seca es: ' + diferenciaSeca);
+        diferenciaHumeda -
+        (diferenciaHumeda * this.porcentajeHumedad * 1) / 100;
+      diferenciaSeca = Number(diferenciaSeca.toFixed(2));
+      console.log('la diferencia seca es: ' + diferenciaSeca);
       return Number(diferenciaSeca);
-    }else{
-      console.log('No se calculo la diferencia seca')
+    } else {
+      console.log('No se calculo la diferencia seca');
       return 0;
     }
   }
 
-  calcularNetoHumedo(): number{
-    const valorPesoBruto = this.despachoTransporteForm.get('brutoDestino')?.value;
+  calcularNetoHumedo(): number {
+    const valorPesoBruto =
+      this.despachoTransporteForm.get('brutoDestino')?.value;
     const valorPesoTara = this.despachoTransporteForm.get('taraDestino')?.value;
     const valorPesoNeto = valorPesoBruto - valorPesoTara;
-    console.log(valorPesoNeto.toFixed(2))
+    console.log(valorPesoNeto.toFixed(2));
     return Number(valorPesoNeto.toFixed(2));
   }
 
   ingresoDetalleBodega(diferenciaSeca: number, bodega: number) {
-    this.bodegaService.crearDetalleBodega('Despacho', 0, diferenciaSeca, bodega).subscribe(
-      (response: any) => {
-        console.log('Detalle de bodega creado:', response);
-      },
-      (error: any) => {
-        console.error('Error al crear el detalle de bodega:', error);
-      }
-    );
+    this.bodegaService
+      .crearDetalleBodega('Despacho', 0, diferenciaSeca, bodega)
+      .subscribe(
+        (response: any) => {
+          console.log('Detalle de bodega creado:', response);
+        },
+        (error: any) => {
+          console.error('Error al crear el detalle de bodega:', error);
+        }
+      );
   }
 
   calcularTotalBodega(diferenciaSeca: number, idBodega: number) {
     //buscar el total actual de la bodega
     this.bodegaService.obtenerTotalBodega(idBodega).subscribe(
-      (response: { total: any; }) => {
+      (response: { total: any }) => {
         console.log('Total almacenado en bodega:', response.total);
         //sumar el total antiguo con la diferencia seca
         const totalBodega = Number(response.total) - Number(diferenciaSeca);
-        console.log(totalBodega)
+        console.log(totalBodega);
         //guardar el registro
-        this.bodegaService.modificarTotalBodega(idBodega, totalBodega).subscribe(
-          (response: any) => {
-            console.log('Total modificado:', response);
-          },
-          (error: any) => {
-            console.error('Error al modificar el total:', error);
-          }
-        );
+        this.bodegaService
+          .modificarTotalBodega(idBodega, totalBodega)
+          .subscribe(
+            (response: any) => {
+              console.log('Total modificado:', response);
+            },
+            (error: any) => {
+              console.error('Error al modificar el total:', error);
+            }
+          );
       },
       (error: any) => {
         console.error('Error al obtener el total de la bodega:', error);
       }
     );
-
   }
-
 }

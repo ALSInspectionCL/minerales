@@ -112,7 +112,7 @@
 </mat-dialog-content>
 <mat-dialog-actions fxLayout="row" fxLayoutAlign="end center" class="m-t-24">
   <button
-    *ngIf="admin"
+    *ngIf="admin || operator || encargado"
     mat-flat-button
     (click)="guardar()"
     type="submit"
@@ -124,7 +124,7 @@
   <button mat-flat-button (click)="onCancel()">Cerrar</button>
   <button
     class="m-l-48"
-    *ngIf="admin"
+    *ngIf="admin || encargado"
     mat-flat-button
     (click)="aprobar()"
     type="submit"

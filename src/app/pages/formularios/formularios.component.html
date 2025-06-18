@@ -261,66 +261,67 @@
 
     <mat-card-content>
       <mat-card-content class="b-t-1">
-        <form (ngSubmit)="preEliminarLote()">
-          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Servicio</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione un servicio"
-              [(ngModel)]="selectedServicioId"
-              (ngModelChange)="obtenerLotes()"
-              name="servicioSelect"
-            >
-              <mat-option
-                *ngFor="let servicio of servicios"
-                [value]="servicio.id"
-              >
-                {{ servicio.nServ }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+              <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Servicio</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione un servicio"
+          [(ngModel)]="idServicio"
+          (ngModelChange)="filtrarSolicitudes($event)"
+        >
+          <mat-option
+            *ngFor="let servicio of servicios"
+            [value]="servicio.id"
+            >{{ servicio.nServ }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Solicitud</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione una solicitud"
-              [(ngModel)]="selectedSolicitudId"
-              (ngModelChange)="obtenerLotes()"
-              name="solicitudSelect"
-            >
-              <mat-option
-                *ngFor="let solicitud of solicitudes"
-                [value]="solicitud.id"
-              >
-                {{ solicitud.nSoli }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Solicitud</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione una solicitud"
+          [(ngModel)]="idSolicitud"
+          (ngModelChange)="cargarLotesParaEliminar($event)"
+        >
+          <mat-option
+            *ngFor="let solicitud of solicitudesFiltradas"
+            [value]="solicitud.id"
+            >{{ solicitud.nSoli }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Lotes</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione una solicitud"
-              [(ngModel)]="selectedLoteId"
-              name="selectedLoteId"
-            >
-              <mat-option *ngFor="let lote of lotes" [value]="lote.id">
-                {{ lote.observacion }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <button mat-flat-button color="primary" class="m-t-20" type="submit">
-            Eliminar
-          </button>
-        </form>
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+          >Lotes</mat-label
+        >
+        <mat-select
+          matInput
+          placeholder="Seleccione una lote"
+          [(ngModel)]="loteSeleccionado"
+        >
+          <mat-option
+            *ngFor="let lote of lotes"
+            [value]="lote.id"
+            >{{ lote.observacion }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="primary"
+        class="m-t-20"
+        (click)="preEliminarLote()"
+      >
+        Buscar lotes
+      </button>
       </mat-card-content>
     </mat-card-content>
   </mat-card>

@@ -214,6 +214,8 @@ export class FormulariosComponent {
   rolSeleccionado: string;
   userSeleccionado: string;
   lotes: any[];
+  despachoSeleccionado: boolean;
+  recepcionSeleccionado: boolean;
   displayedColumns: string[] = ['email', 'fecha', 'hora'];
   constructor(
     private RolService: RolService,
@@ -419,24 +421,55 @@ export class FormulariosComponent {
   obtenerLotes(): void {
     const servicioId = this.selectedServicioId;
     const solicitudId = this.selectedSolicitudId;
-
+    this.despachoSeleccionado = false;
+    this.recepcionSeleccionado = false;
+    const apiUrlDes =
+      'https://control.als-inspection.cl/api_min/api/lote-despacho/?solicitud=' +
+      solicitudId +
+      '&servicio=' +
+      servicioId +
+      '/';
+    const apiUrlRes =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=' +
+      solicitudId +
+      '&servicio=' +
+      servicioId +
+      '/';
     console.log('Servicio seleccionado:', servicioId);
     console.log('Solicitud seleccionada:', solicitudId);
     if (servicioId && solicitudId) {
-      const apiUrl =
-        'https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=' +
-        solicitudId +
-        '&servicio=' +
-        servicioId +
-        '/';
-      ('/');
-      this.http.get<any[]>(apiUrl).subscribe(
+      this.http.get<any[]>(apiUrlRes).subscribe(
         (data) => {
           this.lotes = data.filter(
             (lote) =>
               lote.servicio === servicioId && lote.solicitud === solicitudId
           );
           console.log(this.lotes);
+          if (this.lotes.length === 0) {
+            this.http.get<any[]>(apiUrlDes).subscribe(
+              (data) => {
+                this.lotes = data.filter(
+                  (lote) =>
+                    lote.servicio === servicioId &&
+                    lote.solicitud === solicitudId
+                );
+                console.log(this.lotes);
+                if (this.lotes.length === 0) {
+                  Notiflix.Notify.warning(
+                    'No hay lotes para el servicio y solicitud seleccionados'
+                  );
+                } else {
+                  this.despachoSeleccionado = true;
+                }
+              },
+              (error) => {
+                console.error('Error al obtener lotes de despacho', error);
+                Notiflix.Notify.failure('Error al obtener lotes de despacho');
+              }
+            );
+          } else {
+            this.recepcionSeleccionado = true;
+          }
         },
         (error) => {
           console.error('Error al obtener lotes', error);
@@ -936,18 +969,19 @@ export class FormulariosComponent {
             );
             if (this.idServicio && !this.idSolicitud) {
               lotes = lotes.filter(
-                (lote: any) =>
-                  lote.servicio === this.idServicio
+                (lote: any) => lote.servicio === this.idServicio
               );
-            }else if (this.idSolicitud && this.idServicio) {
+            } else if (this.idSolicitud && this.idServicio) {
               lotes = lotes.filter(
                 (lote: any) =>
                   lote.servicio === this.idServicio &&
                   lote.solicitud === this.idSolicitud
-                  );
+              );
             }
             if (lotes.length === 0) {
-              Notiflix.Notify.warning('No hay lotes para los camiones seleccionados');
+              Notiflix.Notify.warning(
+                'No hay lotes para los camiones seleccionados'
+              );
               return;
             }
             console.log(lotes);
@@ -1797,6 +1831,46 @@ export class FormulariosComponent {
   filtrarSolicitudes(servicioId: any) {
     this.solicitudesFiltradas = this.solicitudes.filter(
       (solicitud) => solicitud.nServ === servicioId
+    );
+  }
+
+  loteSeleccionado: any = null;
+  cargarLotesParaEliminar(solicitudId: any) {
+    //Buscar los lotes que corresponden a la solicitud y servicio. Si no existe en recepcion, buscar en despacho
+    const apiRes =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?' +
+      this.idServicio +
+      this.idSolicitud +
+      '/';
+    const apiDes =
+      'https://control.als-inspection.cl/api_min/api/lote-despacho/?' +
+      this.idServicio +
+      this.idSolicitud +
+      '/';
+
+    console.log('consultando ' + apiRes);
+    this.http.get<any[]>(apiRes).subscribe(
+      (data) => {
+        this.lotes = data; // Asigna los lotes obtenidos a la variable
+        if ((this.lotes.length = 0)) {
+          this.http.get<any[]>(apiDes).subscribe(
+            (data) => {
+              this.lotes = data; // Asigna los lotes obtenidos a la variable
+              console.log(data);
+              if(this.lotes.length = 0){
+                Notiflix.Notify.warning('No se han encontrado lotes')
+              }
+            },
+            (error) => {
+              console.error('Error al obtener lotes', error);
+            }
+          );
+        }
+        console.log(data);
+      },
+      (error) => {
+        console.error('Error al obtener lotes', error);
+      }
     );
   }
 }

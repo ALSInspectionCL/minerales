@@ -1,6 +1,12 @@
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormsModule,
+  FormGroup,
+  FormControl,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule, MatCard } from '@angular/material/card';
@@ -13,12 +19,13 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTable } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import Notiflix from 'notiflix';
 import { MaterialModule } from 'src/app/material.module';
 
 //Crear intefrace para los datos del humedad
 
 interface Humedad {
-  id: number;
+  id?: number;
   nLote: string;
   observacion: string;
   nLata1: string;
@@ -74,6 +81,7 @@ interface Humedad {
   styleUrl: './detalle-humedad.component.scss',
 })
 export class DetalleHumedadComponent {
+  humedadForm: FormGroup;
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: {
@@ -81,9 +89,39 @@ export class DetalleHumedadComponent {
       idSolicitud: number;
       nLote: string;
       numero: number;
-    }
-  ) {}
+    },
+    private http: HttpClient
+  ) {
+    // Inicializar el formulario o cualquier otra lógica necesaria
+    this.humedadForm = new FormGroup({
+      id: new FormControl(0), // Este campo se actualizará después de verificar si el nLote existe
+      nLote: new FormControl(this.data.nLote),
+      observacion: new FormControl('Iniciado'),
+      nLata1: new FormControl(0),
+      nLata2: new FormControl(0),
+      pLata1: new FormControl(0),
+      pLata2: new FormControl(0),
+      pMaterial1: new FormControl(),
+      pMaterial2: new FormControl(),
+      pTotal1: new FormControl(0),
+      pTotal2: new FormControl(0),
+      horaIngresoHorno: new FormControl('00:00'),
+      horaSalidaHorno1: new FormControl('00:00'),
+      horaSalidaHorno2: new FormControl('00:00'),
+      horaSalidaHorno3: new FormControl('00:00'),
+      pSalidaHorno1Lata1: new FormControl(0),
+      pSalidaHorno1Lata2: new FormControl(0),
+      pSalidaHorno2Lata1: new FormControl(0),
+      pSalidaHorno2Lata2: new FormControl(0),
+      pSalidaHorno3Lata1: new FormControl(0),
+      pSalidaHorno3Lata2: new FormControl(0),
+      porcHumedad1: new FormControl(0),
+      porcHumedad2: new FormControl(0),
+      porcHumedadFinal: new FormControl(0),
+    });
+  }
   campoSeleccionado: string | null = null;
+  nLote = '';
   pesoLata1 = document.getElementById('pesoLata1');
   pesoLata2 = document.getElementById('pesoLata2');
   pesoTotal1 = document.getElementById('pesoTotal1');
@@ -91,10 +129,10 @@ export class DetalleHumedadComponent {
   pesoMaterial1 = document.getElementById('pesoMaterial1');
   pesoMaterial2 = document.getElementById('pesoMaterial2');
   dataSource: any = [];
-  dataDefault: any = {
-    id: 0,
+  encontrado: any = null;
+  dataDefault: Humedad = {
     nLote: '0',
-    observacion: 'lote sin observación',
+    observacion: 'Iniciado',
     nLata1: '1',
     nLata2: '2',
     pLata1: 0,
@@ -126,7 +164,54 @@ export class DetalleHumedadComponent {
     this.dataSource = [this.dataDefault];
     console.log(this.dataSource);
     console.log(this.data);
+    this.nLote = this.data.nLote;
     this.pesar();
+    // Verificar si existe en la API
+    this.cargarHumedad();
+  }
+
+  cargarHumedad() {
+    // Buscar en la API si existe el nLote
+    // Si existe, cargar los datos en dataSource
+    // Si no existe, dejar dataSource con los valores por defecto
+    this.http
+      .get<Humedad[]>(
+        `https://control.als-inspection.cl/api_min/api/humedades/`
+      )
+      .subscribe(
+        (data) => {
+          console.log('Datos obtenidos de la API:', data);
+          if (data && data.length > 0) {
+            //Ordenar los datos por id de forma descendente
+            data.sort((a, b) => (b.id || 0) - (a.id || 0));
+            // Buscar el último nLote que coincida con el nLote proporcionado
+            const encontrado = data.find((item) => item.nLote === this.nLote);
+            if (encontrado) {
+              console.log(
+                'Datos encontrados para el nLote:',
+                this.nLote,
+                encontrado
+              );
+              // this.cargarCamposConDatos(encontrado);
+              this.humedadForm.patchValue(encontrado);
+              this.dataSource = [encontrado];
+              this.actualizarPesoMaterial();
+              this.CalcularResultado();
+              // Actualizar los campos de pesoMaterial1 y pesoMaterial2
+            } else {
+              console.log('No se encontraron datos para el nLote:', this.nLote);
+              this.dataSource = [this.dataDefault];
+            }
+          } else {
+            console.log('No se encontraron datos para el nLote:', this.nLote);
+            this.dataSource = [this.dataDefault];
+          }
+        },
+        (error) => {
+          console.error('Error al cargar los datos de humedad:', error);
+          this.dataSource = [this.dataDefault];
+        }
+      );
   }
 
   displayedColumns: string[] = [
@@ -155,8 +240,31 @@ export class DetalleHumedadComponent {
     return diferencia >= 0 ? diferencia.toFixed(2) : '';
   }
   actualizarPesoMaterial() {
-    // this.pesoMaterial1.value = calcularPesoMaterial(pesoLata1, pesoTotal1);
-    // pesoMaterial2.value = calcularPesoMaterial(pesoLata2, pesoTotal2);
+    const pesoLata1 = this.humedadForm.value.pLata1;
+    const pesoTotal1 = this.humedadForm.value.pTotal1;
+    const pesoMaterial1 = this.calcularPesoMaterial(pesoLata1, pesoTotal1);
+    if (pesoMaterial1 !== '') {
+      this.humedadForm.patchValue({
+        pMaterial1: parseFloat(pesoMaterial1),
+      });
+    } else {
+      this.humedadForm.patchValue({
+        pMaterial1: '',
+      });
+    }
+    // Actualizar el pesoMaterial2
+    const pesoLata2 = this.humedadForm.value.pLata2;
+    const pesoTotal2 = this.humedadForm.value.pTotal2;
+    const pesoMaterial2 = this.calcularPesoMaterial(pesoLata2, pesoTotal2);
+    if (pesoMaterial2 !== '') {
+      this.humedadForm.patchValue({
+        pMaterial2: parseFloat(pesoMaterial2),
+      });
+    } else {
+      this.humedadForm.patchValue({
+        pMaterial2: '',
+      });
+    }
   }
 
   pesar() {
@@ -215,14 +323,487 @@ export class DetalleHumedadComponent {
   }
 
   leerValorBalanzaDigital(): number {
-  // Implementa la lógica para leer el valor de la balanza digital
-  // Por ejemplo, utilizando un controlador o una biblioteca para interactuar con la balanza
-  // Devuelve el valor leído como un número
-  return 0;
-}
+    // Implementa la lógica para leer el valor de la balanza digital
+    // Por ejemplo, utilizando un controlador o una biblioteca para interactuar con la balanza
+    // Devuelve el valor leído como un número
+    return 0;
+  }
 
-  // pesoLata1.addEventListener('input', actualizarPesoMaterial);
-  // pesoTotal1.addEventListener('input', actualizarPesoMaterial);
-  // pesoLata2.addEventListener('input', actualizarPesoMaterial);
-  // pesoTotal2.addEventListener('input', actualizarPesoMaterial);
+  guardarDatos() {
+    // Verificar si el nLote ya existe en la API, si no existe, se crea un nuevo registro. Si existe, se actualiza el registro para el ultimo nLote.
+    this.actualizarPesoMaterial();
+    this.CalcularResultado();
+    const nLote = this.nLote;
+    const url = `https://control.als-inspection.cl/api_min/api/humedades/`;
+    this.http.get<Humedad[]>(url).subscribe(
+      (data) => {
+        const existe = data.some((item) => item.nLote === nLote);
+        if (existe) {
+          // Si existe, se actualiza el registro
+          this.actualizarPesoMaterial();
+          this.actualizarPorcentajeHumedad();
+          this.actualizarDatos();
+        } else {
+          // Si no existe, se crea un nuevo registro
+          this.crearDatos();
+        }
+      },
+      (error) => {
+        console.error('Error al verificar si el nLote existe:', error);
+        Notiflix.Notify.failure('Error al verificar si el nLote existe');
+      }
+    );
+  }
+
+  crearDatos() {
+    console.log('Datos guardados:', this.humedadForm.value);
+    const datosHumedad: Humedad = {
+      //Dejar que django asigne el id
+      nLote: this.humedadForm.value.nLote,
+      observacion: this.humedadForm.value.observacion,
+      nLata1: this.humedadForm.value.nLata1,
+      nLata2: this.humedadForm.value.nLata2,
+      pLata1: parseFloat(this.humedadForm.value.pLata1),
+      pLata2: parseFloat(this.humedadForm.value.pLata2),
+      pMaterial1: parseFloat(this.humedadForm.value.pMaterial1),
+      pMaterial2: parseFloat(this.humedadForm.value.pMaterial2),
+      pTotal1: parseFloat(this.humedadForm.value.pTotal1),
+      pTotal2: parseFloat(this.humedadForm.value.pTotal2),
+      horaIngresoHorno: this.humedadForm.value.horaIngresoHorno,
+      horaSalidaHorno1: this.humedadForm.value.horaSalidaHorno1,
+      horaSalidaHorno2: this.humedadForm.value.horaSalidaHorno2,
+      horaSalidaHorno3: this.humedadForm.value.horaSalidaHorno3,
+      pSalidaHorno1Lata1: parseFloat(this.humedadForm.value.pSalidaHorno1Lata1),
+      pSalidaHorno1Lata2: parseFloat(this.humedadForm.value.pSalidaHorno1Lata2),
+      pSalidaHorno2Lata1: parseFloat(this.humedadForm.value.pSalidaHorno2Lata1),
+      pSalidaHorno2Lata2: parseFloat(this.humedadForm.value.pSalidaHorno2Lata2),
+      pSalidaHorno3Lata1: parseFloat(this.humedadForm.value.pSalidaHorno3Lata1),
+      pSalidaHorno3Lata2: parseFloat(this.humedadForm.value.pSalidaHorno3Lata2),
+      porcHumedad1: parseFloat(this.humedadForm.value.porcHumedad1),
+      porcHumedad2: parseFloat(this.humedadForm.value.porcHumedad2),
+      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal),
+    };
+    // Aquí se guardan los datos en la API
+    this.http
+      .post(
+        'https://control.als-inspection.cl/api_min/api/humedades/',
+        datosHumedad
+      )
+      .subscribe(
+        (response) => {
+          console.log('Datos guardados correctamente:', response);
+          this.cargarDatos(); // Cargar los datos actualizados después de guardar
+          this.actualizarTabla();
+          this.CalcularResultado();
+          Notiflix.Notify.success('Datos guardados correctamente');
+        },
+        (error) => {
+          console.error('Error al guardar los datos:', error);
+        }
+      );
+  }
+
+  actualizarDatos() {
+    console.log('Datos actualizados:', this.humedadForm.value);
+    this.actualizarPesoMaterial();
+    this.actualizarPorcentajeHumedad();
+    this.CalcularResultado();
+    const datosHumedad: Humedad = {
+      id: this.humedadForm.value.id, // Este campo se actualizará después de verificar si el nLote existe
+      nLote: this.humedadForm.value.nLote,
+      observacion: this.humedadForm.value.observacion,
+      nLata1: this.humedadForm.value.nLata1,
+      nLata2: this.humedadForm.value.nLata2,
+      pLata1: parseFloat(this.humedadForm.value.pLata1),
+      pLata2: parseFloat(this.humedadForm.value.pLata2),
+      pMaterial1: parseFloat(this.humedadForm.value.pMaterial1),
+      pMaterial2: parseFloat(this.humedadForm.value.pMaterial2),
+      pTotal1: parseFloat(this.humedadForm.value.pTotal1),
+      pTotal2: parseFloat(this.humedadForm.value.pTotal2),
+      horaIngresoHorno: this.humedadForm.value.horaIngresoHorno,
+      horaSalidaHorno1: this.humedadForm.value.horaSalidaHorno1,
+      horaSalidaHorno2: this.humedadForm.value.horaSalidaHorno2,
+      horaSalidaHorno3: this.humedadForm.value.horaSalidaHorno3,
+      pSalidaHorno1Lata1: parseFloat(this.humedadForm.value.pSalidaHorno1Lata1),
+      pSalidaHorno1Lata2: parseFloat(this.humedadForm.value.pSalidaHorno1Lata2),
+      pSalidaHorno2Lata1: parseFloat(this.humedadForm.value.pSalidaHorno2Lata1),
+      pSalidaHorno2Lata2: parseFloat(this.humedadForm.value.pSalidaHorno2Lata2),
+      pSalidaHorno3Lata1: parseFloat(this.humedadForm.value.pSalidaHorno3Lata1),
+      pSalidaHorno3Lata2: parseFloat(this.humedadForm.value.pSalidaHorno3Lata2),
+      porcHumedad1: parseFloat(this.humedadForm.value.porcHumedad1),
+      porcHumedad2: parseFloat(this.humedadForm.value.porcHumedad2),
+      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal),
+    };
+    // Aquí se actualizan los datos en la API
+    // Primero se busca el id del nLote
+    const nLote = this.humedadForm.value.nLote;
+    if (!datosHumedad.id) {
+      console.error('El id no está definido en los datos de humedad');
+      Notiflix.Notify.failure('Error de ID');
+      return;
+    }
+    const url = `https://control.als-inspection.cl/api_min/api/humedades/${datosHumedad.id}/`;
+    this.http.put<Humedad[]>(url, datosHumedad).subscribe(
+      (response) => {
+        Notiflix.Notify.success('Datos actualizados correctamente');
+        console.log('Datos actualizados correctamente:', response);
+      },
+      (error) => {
+        console.error('Error al verificar si el nLote existe:', error);
+      }
+    );
+  }
+
+  cargarDatos() {
+    // Se cargan los datos del formulario desde la API
+    this.http
+      .get<Humedad>(`https://control.als-inspection.cl/api_min/api/humedades/`)
+      .subscribe(
+        (response) => {
+          this.humedadForm.patchValue(response);
+          this.CalcularResultado();
+          console.log('Datos cargados correctamente:', response);
+        },
+        (error) => {
+          console.error('Error al cargar los datos:', error);
+        }
+      );
+  }
+
+  actualizarTabla() {
+    // Se actualiza dataSource con los datos del formulario para que se actualice la tabla
+    this.actualizarPesoMaterial();
+    this.actualizarPorcentajeHumedad();
+    this.actualizarHoras();
+    this.dataSource = [this.humedadForm.value];
+    console.log(
+      'Tabla actualizada con los datos del formulario:',
+      this.dataSource
+    );
+    Notiflix.Notify.success('Tabla actualizada correctamente');
+  }
+  actualizarPorcentajeHumedad() {
+    // Calcular el porcentaje de humedad
+    const pLata1 = this.humedadForm.value.pLata1;
+    const pLata2 = this.humedadForm.value.pLata2;
+    const pTotal1 = this.humedadForm.value.pTotal1;
+    const pTotal2 = this.humedadForm.value.pTotal2;
+    const pMaterial1 = pTotal1 - pLata1;
+    const pMaterial2 = pTotal2 - pLata2;
+    const pSalidaHorno1Lata1 = this.humedadForm.value.pSalidaHorno1Lata1;
+    const pSalidaHorno1Lata2 = this.humedadForm.value.pSalidaHorno1Lata2;
+    const pSalidaHorno2Lata1 = this.humedadForm.value.pSalidaHorno2Lata1;
+    const pSalidaHorno2Lata2 = this.humedadForm.value.pSalidaHorno2Lata2;
+    const pSalidaHorno3Lata1 = this.humedadForm.value.pSalidaHorno3Lata1;
+    const pSalidaHorno3Lata2 = this.humedadForm.value.pSalidaHorno3Lata2;
+    //El porcentaje de humedad se calcula como: ((pMaterialx - pSalidaHornoxLatay) / pMaterialx) * 100)
+    //Todos los porcentajes se guardan en el formulario y además solo se guardan los primeros 5 digitos de la parte decimal
+    console.log('Calculando porcentaje de humedad...');
+    console.log('pMaterial1:', pMaterial1);
+    console.log('pMaterial2:', pMaterial2);
+    if (pMaterial1 <= 0 || pMaterial2 <= 0) {
+      return;
+    }
+    if (pSalidaHorno1Lata1 <= 0 && pSalidaHorno1Lata2 <= 0) {
+      return;
+    } else {
+      const porcHumedad1 =
+        ((pMaterial1 - (pSalidaHorno1Lata1 - pLata1)) / pMaterial1) * 100;
+      console.log('porcHumedad1:', porcHumedad1);
+      this.humedadForm.patchValue({
+        porcHumedad1: parseFloat(porcHumedad1.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(5));
+      const porcHumedad2 =
+        ((pMaterial2 - (pSalidaHorno1Lata2 - pLata2)) / pMaterial2) * 100;
+      console.log('porcHumedad2:', porcHumedad2);
+      this.humedadForm.patchValue({
+        porcHumedad2: parseFloat(porcHumedad2.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedad2 = parseFloat(porcHumedad2.toFixed(5));
+      const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
+      console.log('porcHumedadFinal:', porcHumedadFinal);
+      this.humedadForm.patchValue({
+        porcHumedadFinal: parseFloat(porcHumedadFinal.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedadFinal = parseFloat(
+        porcHumedadFinal.toFixed(5)
+      );
+    }
+    if (pSalidaHorno2Lata1 <= 0 && pSalidaHorno2Lata2 <= 0) {
+      return;
+    } else {
+      const porcHumedad1 =
+        ((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100;
+      this.humedadForm.patchValue({
+        porcHumedad1: parseFloat(porcHumedad1.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(5));
+      const porcHumedad2 =
+        ((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100;
+      this.humedadForm.patchValue({
+        porcHumedad2: parseFloat(porcHumedad2.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedad2 = parseFloat(porcHumedad2.toFixed(5));
+      const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
+      this.humedadForm.patchValue({
+        porcHumedadFinal: parseFloat(porcHumedadFinal.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedadFinal = parseFloat(
+        porcHumedadFinal.toFixed(5)
+      );
+    }
+    if (pSalidaHorno3Lata1 <= 0 && pSalidaHorno3Lata2 <= 0) {
+      return;
+    } else {
+      const porcHumedad1 =
+        ((pMaterial1 - (pSalidaHorno3Lata1 - pLata1)) / pMaterial1) * 100;
+      this.humedadForm.patchValue({
+        porcHumedad1: parseFloat(porcHumedad1.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(5));
+      const porcHumedad2 =
+        ((pMaterial2 - (pSalidaHorno3Lata2 - pLata2)) / pMaterial2) * 100;
+      this.humedadForm.patchValue({
+        porcHumedad2: parseFloat(porcHumedad2.toFixed(5)),
+      });
+      const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
+      this.humedadForm.patchValue({
+        porcHumedadFinal: parseFloat(porcHumedadFinal.toFixed(5)),
+      });
+      this.dataSource[0].porcHumedadFinal = parseFloat(
+        porcHumedadFinal.toFixed(5)
+      );
+    }
+  }
+
+  actualizarHoras() {
+    // Actualizar las horas de ingreso y salida del horno
+    const horaIngresoHorno = this.humedadForm.value.horaIngresoHorno;
+    const horaSalidaHorno1 = this.humedadForm.value.horaSalidaHorno1;
+    const horaSalidaHorno2 = this.humedadForm.value.horaSalidaHorno2;
+    const horaSalidaHorno3 = this.humedadForm.value.horaSalidaHorno3;
+
+    // Aquí puedes agregar la lógica para actualizar las horas en la API si es necesario
+    console.log('Hora de ingreso al horno:', horaIngresoHorno);
+    console.log('Hora de salida del horno 1:', horaSalidaHorno1);
+    console.log('Hora de salida del horno 2:', horaSalidaHorno2);
+    console.log('Hora de salida del horno 3:', horaSalidaHorno3);
+
+    this.dataSource[0].horaIngresoHorno = horaIngresoHorno;
+    this.dataSource[0].horaSalidaHorno1 = horaSalidaHorno1;
+    this.dataSource[0].horaSalidaHorno2 = horaSalidaHorno2;
+    this.dataSource[0].horaSalidaHorno3 = horaSalidaHorno3;
+  }
+
+  displayedColumnsResultados: string[] = [
+    'condicion',
+    'resultado',
+    'observacion',
+  ];
+  dataSourceResultados = [
+    {
+      condicion: 'Variación de peso 0.06 kg',
+      resultado: '',
+      observacion: '',
+    },
+    {
+      condicion: 'Variación porcentaje 0.2%',
+      resultado: '',
+      observacion: '',
+    },
+    {
+      condicion: 'Conclusión',
+      resultado: '',
+      observacion: '',
+    },
+  ];
+
+  CalcularResultado() {
+    // Tenemos 3 condiciones para calcular el resultado:
+    // 1. Si la variación de peso es menor a 0.06, el resultado es "Aprobado"
+    // 2. Si la variación de porcentaje es menor a 0.2%, el resultado es "Aprobado"
+    // 3. Si la conclusión es "Aprobado", el resultado es "Aprobado"
+
+    // Almacenar los pSalidaHorno1Lata1, pSalidaHorno1Lata2, pSalidaHorno2Lata1, pSalidaHorno2Lata2, pSalidaHorno3Lata1, pSalidaHorno3Lata2
+    const pSalidaHorno1Lata1 = this.humedadForm.value.pSalidaHorno1Lata1;
+    const pSalidaHorno1Lata2 = this.humedadForm.value.pSalidaHorno1Lata2;
+    const pSalidaHorno2Lata1 = this.humedadForm.value.pSalidaHorno2Lata1;
+    const pSalidaHorno2Lata2 = this.humedadForm.value.pSalidaHorno2Lata2; 
+    const pSalidaHorno3Lata1 = this.humedadForm.value.pSalidaHorno3Lata1;
+    const pSalidaHorno3Lata2 = this.humedadForm.value.pSalidaHorno3Lata2;
+
+    // Calcular la variación de peso y porcentaje
+    if (pSalidaHorno1Lata1 <= 0 || pSalidaHorno1Lata2 <= 0 ){
+      this.dataSourceResultados[0].resultado = 'Pendiente';
+      this.dataSourceResultados[0].observacion = 'No se han registrado datos de salida del horno';
+      this.dataSourceResultados[1].resultado = 'Pendiente';
+      this.dataSourceResultados[1].observacion = 'No se han registrado datos de salida del horno';
+      this.dataSourceResultados[2].resultado = 'Pendiente';
+      this.dataSourceResultados[2].observacion = 'No se han registrado datos de salida del horno';
+      this.dataSourceResultados = [...this.dataSourceResultados];
+    }else if (pSalidaHorno2Lata1 <= 0 || pSalidaHorno2Lata2 <= 0) {
+      this.dataSourceResultados[0].resultado = 'Pendiente';
+      this.dataSourceResultados[0].observacion = 'No se han registrado datos de salida del horno';
+      this.dataSourceResultados[1].resultado = 'Pendiente';
+      this.dataSourceResultados[1].observacion = 'No se han registrado datos de salida del horno';  
+      this.dataSourceResultados[2].resultado = 'Pendiente';
+      this.dataSourceResultados[2].observacion = 'No se han registrado datos de salida del horno';
+      this.dataSourceResultados = [...this.dataSourceResultados];
+    }else if (((pSalidaHorno1Lata1 > 0 && pSalidaHorno1Lata2 > 0) && (pSalidaHorno2Lata1 > 0 && pSalidaHorno2Lata2 > 0)) && pSalidaHorno3Lata1 <= 0 && pSalidaHorno3Lata2 <= 0) {
+      // Calcular la variación de peso
+      const variacionPeso1 = Math.abs(
+        pSalidaHorno1Lata1 - pSalidaHorno2Lata1 
+      );
+      const variacionPeso2 = Math.abs(
+        pSalidaHorno1Lata2 - pSalidaHorno2Lata2
+        );
+      const variacionPesoPromedio = (variacionPeso1 + variacionPeso2) / 2;
+      
+      // Calcular el porcentaje de humedad
+      const pLata1 = this.humedadForm.value.pLata1;
+      const pLata2 = this.humedadForm.value.pLata2;
+      const pMaterial1 = this.humedadForm.value.pMaterial1;
+      const pMaterial2 = this.humedadForm.value.pMaterial2;
+      const porcHumedadInicial1 =
+        ((pMaterial1 - (pSalidaHorno1Lata1 - pLata1)) / pMaterial1) * 100;
+      const porcHumedadInicial2 =
+        ((pMaterial2 - (pSalidaHorno1Lata2 - pLata2)) / pMaterial2) * 100;
+      const porcHumedadFinal1 =
+        ((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100;
+      const porcHumedadFinal2 =
+        ((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100;
+
+      const variacionPorcentaje1 = Math.abs(
+        porcHumedadFinal1 - porcHumedadInicial1
+        );
+      const variacionPorcentaje2 = Math.abs(
+        porcHumedadFinal2 - porcHumedadInicial2
+      );
+      const variacionPorcentajePromedio = (variacionPorcentaje1 + variacionPorcentaje2) / 2;
+
+
+      // Si la condición se cumple, condicionx es 'Aprobado', si no, es 'Rechazado';
+      const condicion1 = variacionPeso1 <= 60 && variacionPeso2 <= 60; // 0.06 kg = 60 g
+      if (condicion1) {
+        this.dataSourceResultados[0].resultado = 'Aprobado';
+        this.dataSourceResultados[0].observacion = `La variación promedio de los pesos es ${variacionPesoPromedio.toFixed(2)} g, lo que está dentro del límite permitido de 0.06 kg.`;
+      } else {
+        this.dataSourceResultados[0].resultado = 'Rechazado';
+        this.dataSourceResultados[0].observacion = `Una variación de peso (o ambas) exceden el límite permitido de 0.06 kg.`;
+      }
+      const condicion2 = variacionPorcentaje1 < 0.2 && variacionPorcentaje2 < 0.2; // 0.2% = 0.002
+      if (condicion2) {
+        this.dataSourceResultados[1].resultado = 'Aprobado';
+        this.dataSourceResultados[1].observacion = `La variación porcentual promedio es ${variacionPorcentajePromedio.toFixed(2)}%, lo que está dentro del límite permitido de 0.2%.`;
+      } else {
+        this.dataSourceResultados[1].resultado = 'Rechazado';
+        this.dataSourceResultados[1].observacion = `La variación porcentual excede el límite permitido de 0.2%.`;
+      }
+      if (condicion1 && condicion2) {
+        this.dataSourceResultados[2].resultado = 'Aprobado';
+        this.dataSourceResultados[2].observacion = 'Todas las condiciones se cumplen, por lo tanto, el resultado es Aprobado.';
+      } else {
+        this.dataSourceResultados[2].resultado = 'Rechazado';
+        this.dataSourceResultados[2].observacion = 'Algunas condiciones no se cumplen, por lo tanto, el resultado es Rechazado.';
+      }
+    }else if ((pSalidaHorno1Lata1 > 0 && pSalidaHorno1Lata2 > 0) && (pSalidaHorno2Lata1 > 0 && pSalidaHorno2Lata2 > 0) && (pSalidaHorno3Lata1 > 0 && pSalidaHorno3Lata2 > 0)) {
+      //Comparar solo los datos de salida del horno 2 y 3
+      // Calcular la variación de peso
+      const variacionPeso1 = Math.abs(
+        pSalidaHorno3Lata1 - pSalidaHorno2Lata1 
+      );
+      const variacionPeso2 = Math.abs(
+        pSalidaHorno3Lata2 - pSalidaHorno2Lata2
+        );
+      const variacionPesoPromedio = (variacionPeso1 + variacionPeso2) / 2;
+    
+      // Calcular el porcentaje de humedad
+      const pLata1 = this.humedadForm.value.pLata1;
+      const pLata2 = this.humedadForm.value.pLata2;
+      const pMaterial1 = this.humedadForm.value.pMaterial1;
+      const pMaterial2 = this.humedadForm.value.pMaterial2;
+      const porcHumedadInicial1 =
+        ((pMaterial1 - (pSalidaHorno3Lata1 - pLata1)) / pMaterial1) * 100;
+      const porcHumedadInicial2 =
+        ((pMaterial2 - (pSalidaHorno3Lata2 - pLata2)) / pMaterial2) * 100;
+      const porcHumedadFinal1 =
+        ((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100;
+      const porcHumedadFinal2 =
+        ((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100;
+
+      const variacionPorcentaje1 = Math.abs(
+        porcHumedadFinal1 - porcHumedadInicial1
+        );
+      const variacionPorcentaje2 = Math.abs(
+        porcHumedadFinal2 - porcHumedadInicial2
+      );
+      const variacionPorcentajePromedio = (variacionPorcentaje1 + variacionPorcentaje2) / 2;
+
+      // Si la condición se cumple, condicionx es 'Aprobado', si no, es 'Rechazado';
+      const condicion1 = variacionPeso1 <= 60 && variacionPeso2 <= 60; // 0.06 kg = 60 g
+      if (condicion1) {
+        this.dataSourceResultados[0].resultado = 'Aprobado';
+        this.dataSourceResultados[0].observacion = `La variación promedio de los pesos es ${variacionPesoPromedio.toFixed(2)} g, lo que está dentro del límite permitido de 0.06 kg.`;
+      } else {
+        this.dataSourceResultados[0].resultado = 'Rechazado';
+        this.dataSourceResultados[0].observacion = `Una variación de peso (o ambas) exceden el límite permitido de 0.06 kg.`;
+      }
+      const condicion2 = variacionPorcentaje1 < 0.2 && variacionPorcentaje2 < 0.2; // 0.2% = 0.002
+      if (condicion2) {
+        this.dataSourceResultados[1].resultado = 'Aprobado';
+        this.dataSourceResultados[1].observacion = `La variación porcentual promedio es ${variacionPorcentajePromedio.toFixed(2)}%, lo que está dentro del límite permitido de 0.2%.`;
+      } else {
+        this.dataSourceResultados[1].resultado = 'Rechazado';
+        this.dataSourceResultados[1].observacion = `La variación porcentual excede el límite permitido de 0.2%.`;
+      }
+      if (condicion1 && condicion2) {
+        this.dataSourceResultados[2].resultado = 'Aprobado';
+        this.dataSourceResultados[2].observacion = 'Todas las condiciones se cumplen, por lo tanto, el resultado es Aprobado.';
+      } else {
+        this.dataSourceResultados[2].resultado = 'Rechazado';
+        this.dataSourceResultados[2].observacion = 'Algunas condiciones no se cumplen, por lo tanto, el resultado es Rechazado.';
+      }
+
+    }
+
+    
+
+
+
+    // const variacionPeso = Math.abs(
+    //   this.humedadForm.value.pTotal1 - this.humedadForm.value.pTotal2
+    // );
+    // const variacionPorcentaje = Math.abs(
+    //   this.humedadForm.value.porcHumedad1 - this.humedadForm.value.porcHumedad2
+    // );
+    // // Si la condición se cumple, condicionx es 'Aprobado', si no, es 'Rechazado';
+    // const condicion1 = variacionPeso < 0.06;
+    // if (condicion1) {
+    //   this.dataSourceResultados[0].resultado = 'Aprobado';
+    //   this.dataSourceResultados[0].observacion = `La variación de peso es ${variacionPeso.toFixed(2)}, lo que está dentro del límite permitido de 0.06.`;
+    //   } else {
+    //     this.dataSourceResultados[0].resultado = 'Rechazado';
+    //     this.dataSourceResultados[0].observacion = `La variación de peso es ${variacionPeso.toFixed(2)}, lo que excede el límite permitido de 0.06.`;
+    // }
+    // const condicion2 = variacionPorcentaje < 0.2;
+    // if (condicion2) {
+    //   this.dataSourceResultados[1].resultado = 'Aprobado';
+    //   this.dataSourceResultados[1].observacion = `La variación porcentual es ${variacionPorcentaje.toFixed(2)}%, lo que está dentro del límite permitido de 0.2%.`;
+    //   } else {
+    //     this.dataSourceResultados[1].resultado = 'Rechazado';
+    //     this.dataSourceResultados[1].observacion = `La variación porcentual es ${variacionPorcentaje.toFixed(2)}%, lo que excede el límite permitido de 0.2%.`;
+    // }
+    // // Aquí puedes agregar la lógica para calcular el resultado de la conclusión si es necesario
+    // const condicion3 = condicion1 && condicion2;
+    // if (condicion3) {
+    //   this.dataSourceResultados[2].resultado = 'Aprobado';
+    //   this.dataSourceResultados[2].observacion = 'Todas las condiciones se cumplen, por lo tanto, el resultado es Aprobado.';
+    //   } else {
+    //     this.dataSourceResultados[2].resultado = 'Rechazado';
+    //     this.dataSourceResultados[2].observacion = 'Algunas condiciones no se cumplen, por lo tanto, el resultado es Rechazado.';
+    // }
+    // Actualizar la tabla de resultados
+    this.dataSourceResultados = [...this.dataSourceResultados];
+  }
 }

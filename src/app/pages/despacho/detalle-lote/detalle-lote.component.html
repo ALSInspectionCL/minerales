@@ -134,12 +134,12 @@
         </div>
       </div>
       <mat-divider></mat-divider>
-      <mat-card-title *ngIf="admin || operator" class="m-t-12">Crear registro</mat-card-title>
-      <div *ngIf="admin || operator" class="row">
+      <mat-card-title *ngIf="admin || operator || encargado" class="m-t-12">Crear registro</mat-card-title>
+      <div *ngIf="admin || operator || encargado" class="row">
         <div class="col">
           <button
             mat-flat-button
-            *ngIf="(admin || operator)"
+            *ngIf="(admin || operator || encargado)"
             (click)="crearRegistro()"
             color="primary"
             class="m-t-8 m-b-8"

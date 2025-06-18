@@ -95,11 +95,16 @@ export class LoteService {
     return this.http.delete(`https://control.als-inspection.cl/api_min/api/trazabilidad/${id}/`);
   }
 
-getLotesByServicioAndSolicitud(servicio: number, solicitud: number): Observable<any> {
-  const params = new HttpParams()
-    .set('servicio', servicio.toString())
-    .set('solicitud', solicitud.toString());
+  getLotesByServicioAndSolicitud(servicio: number, solicitud: number): Observable<any> {
+    const params = new HttpParams()
+      .set('servicio', servicio.toString())
+      .set('solicitud', solicitud.toString());
 
-  return this.http.get(this.apiUrl, { params });
-}
+    return this.http.get(this.apiUrl, { params });
+  }
+
+  getLoteByNLoteDes(nLote: string): Observable<any> {
+    const params = new HttpParams().set('nLote', nLote);
+    return this.http.get('https://control.als-inspection.cl/api_min/api/lote-despacho/', { params });
+  }
 }

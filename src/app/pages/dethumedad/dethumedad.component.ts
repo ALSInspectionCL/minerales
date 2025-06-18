@@ -197,6 +197,7 @@ guardarPeso() {
     });
   }
 
+
   onPageEvent(event: any) {
     this.dataSource2.paginator = this.paginator;
   }

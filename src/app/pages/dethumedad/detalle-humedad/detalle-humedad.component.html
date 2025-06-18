@@ -2,469 +2,577 @@
   <h2>Determinación de Humedad Lote</h2>
 </div>
 <mat-card>
-  <mat-card-content>
-    <mat-stepper #stepper>
-      <mat-step>
-        <ng-template matStepLabel>Datos Iniciales</ng-template>
-        <div class="container text-center m-8">
-          <h3>Formulario primera Lata</h3>
-          <div class="row">
-            <div class="col">
+  <form [formGroup]="humedadForm">
+    <mat-card-content>
+      <mat-stepper #stepper>
+        <mat-step>
+          <ng-template matStepLabel>Datos Iniciales</ng-template>
+          <div class="container text-center m-8">
+            <h3>Formulario primera Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                >
+                  <mat-label>Número de Lata</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    formControlName="nLata1"
+                    id="nLata1"
+                    placeholder="Ingrese número de lata"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pLata1')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pLata1"
+                    matInput
+                    formControlName="pLata1"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pTotal1')"
+                >
+                  <mat-label>Peso con material (g)</mat-label>
+                  <input
+                    id="pTotal1"
+                    matInput
+                    formControlName="pTotal1"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pMaterial1')"
+                >
+                  <mat-label>Peso total material (g)</mat-label>
+                  <input
+                    id="pMaterial1"
+                    matInput
+                    readonly
+                    formControlName="pMaterial1"
+                    type="number"
+                    placeholder="Cálculo automático"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <h3>Formulario segunda Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                >
+                  <mat-label>Número de Lata</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    formControlName="nLata2"
+                    placeholder="Ingrese número de lata"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pLata2')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pLata2"
+                    matInput
+                    formControlName="pLata2"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pTotal2')"
+                >
+                  <mat-label>Peso con material (g)</mat-label>
+                  <input
+                    id="pTotal2"
+                    matInput
+                    formControlName="pTotal2"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pMaterial2')"
+                >
+                  <mat-label>Peso total material (g)</mat-label>
+                  <input
+                    id="pMaterial2"
+                    matInput
+                    readonly
+                    placeholder="Cálculo automático"
+                    type="number"
+                    formControlName="pMaterial2"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="text-center m-8">
               <mat-form-field
                 appearance="outline"
                 class="w-50 m-8"
                 color="primary"
               >
-                <mat-label>Número de Lata</mat-label>
+                <mat-label>Hora</mat-label>
                 <input
                   matInput
-                  type="text"
-                  placeholder="Ingrese número de lata"
+                  type="time"
+                  formControlName="horaIngresoHorno"
+                  placeholder="Ingrese hora"
                 />
               </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
+              <button
+                mat-raised-button
+                (click)="guardarDatos()"
                 color="primary"
-                (click)="seleccionarCampo('pLata1')"
+                class="w-50"
               >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pLata1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pTotal1')"
-              >
-                <mat-label>Peso con material (kg)</mat-label>
-                <input
-                  id="pTotal1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pMaterial1')"
-              >
-                <mat-label>Peso total material (kg)</mat-label>
-                <input
-                  id="pMaterial1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
+                Enviar Datos
+              </button>
             </div>
           </div>
-          <mat-divider></mat-divider>
-          <h3>Formulario segunda Lata</h3>
-          <div class="row">
-            <div class="col">
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Salida de horno 1</ng-template>
+          <div class="container text-center m-8">
+            <h3>Formulario primera Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno1Lata1')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno1Lata1"
+                    matInput
+                    formControlName="pSalidaHorno1Lata1"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <h3>Formulario segunda Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno1Lata2')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno1Lata2"
+                    matInput
+                    formControlName="pSalidaHorno1Lata2"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="text-center m-8">
               <mat-form-field
                 appearance="outline"
                 class="w-50 m-8"
                 color="primary"
               >
-                <mat-label>Número de Lata</mat-label>
+                <mat-label>Hora</mat-label>
                 <input
                   matInput
-                  type="text"
-                  placeholder="Ingrese número de lata"
+                  type="time"
+                  formControlName="horaSalidaHorno1"
+                  placeholder="Ingrese hora"
                 />
               </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
+              <button
+                mat-raised-button
+                (click)="guardarDatos()"
                 color="primary"
-                (click)="seleccionarCampo('pLata2')"
+                class="w-50"
               >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pLata2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pTotal2')"
-              >
-                <mat-label>Peso con material (kg)</mat-label>
-                <input
-                  id="pTotal2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pMaterial2')"
-              >
-                <mat-label>Peso total material (kg)</mat-label>
-                <input
-                  id="pMaterial2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
+                Enviar Datos
+              </button>
             </div>
           </div>
-          <div class="text-center m-8">
-            <mat-form-field
-              appearance="outline"
-              class="w-50 m-8"
-              color="primary"
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Salida de horno 2</ng-template>
+          <div class="container text-center m-8">
+            <h3>Formulario primera Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno2Lata1')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno2Lata1"
+                    matInput
+                    formControlName="pSalidaHorno2Lata1"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <h3>Formulario segunda Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno2Lata2')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno2Lata2"
+                    matInput
+                    type="number"
+                    formControlName="pSalidaHorno2Lata2"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="text-center m-8">
+              <mat-form-field
+                appearance="outline"
+                class="w-50 m-8"
+                color="primary"
+              >
+                <mat-label>Hora</mat-label>
+                <input
+                  matInput
+                  formControlName="horaSalidaHorno2"
+                  type="time"
+                  placeholder="Ingrese hora"
+                />
+              </mat-form-field>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="guardarDatos()"
+                class="w-50"
+              >
+                Enviar Datos
+              </button>
+            </div>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Salida de horno 3</ng-template>
+          <div class="container text-center m-8">
+            <h3>Formulario primera Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno3Lata1')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno3Lata1"
+                    matInput
+                    formControlName="pSalidaHorno3Lata1"
+                    type="number"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <h3>Formulario segunda Lata</h3>
+            <div class="row">
+              <div class="col">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-50 m-8"
+                  color="primary"
+                  (click)="seleccionarCampo('pSalidaHorno3Lata2')"
+                >
+                  <mat-label>Peso Lata (g)</mat-label>
+                  <input
+                    id="pSalidaHorno3Lata2"
+                    matInput
+                    type="number"
+                    formControlName="pSalidaHorno3Lata2"
+                    placeholder="Ej: 3.0"
+                    step="0.01"
+                    min="0"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="text-center m-8">
+              <mat-form-field
+                appearance="outline"
+                class="w-50 m-8"
+                color="primary"
+              >
+                <mat-label>Hora</mat-label>
+                <input
+                  matInput
+                  type="time"
+                  formControlName="horaSalidaHorno3"
+                  placeholder="Ingrese hora"
+                />
+              </mat-form-field>
+              <button mat-raised-button color="primary" class="w-50">
+                Enviar Datos
+              </button>
+            </div>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Resultado</ng-template>
+          <!-- Tabla resultados, contiene los datos ingresados por el usuario y el calculo de humedad -->
+          <h2>Resultados del Cálculo de Humedades</h2>
+
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="nLata">
+              <th mat-header-cell *matHeaderCellDef>Lata</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.nLata1 }}
+                <mat-divider></mat-divider>
+                {{ element.nLata2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pesoLata">
+              <th mat-header-cell *matHeaderCellDef>Peso Lata (g)</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pLata1 }}
+                <mat-divider></mat-divider>
+                {{ element.pLata2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pesoTotal">
+              <th mat-header-cell *matHeaderCellDef>Peso Total (g)</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pTotal1 }}
+                <mat-divider></mat-divider>
+                {{ element.pTotal2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pesoMaterial">
+              <th mat-header-cell *matHeaderCellDef>Peso Material (g)</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pMaterial1 }}
+                <mat-divider></mat-divider>
+                {{ element.pMaterial2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="horaIngresoHorno">
+              <th mat-header-cell *matHeaderCellDef>Hora Ingreso Horno</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.horaIngresoHorno }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="horaSalidaHorno1">
+              <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 1</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.horaSalidaHorno1 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pSalidaHorno1">
+              <th mat-header-cell *matHeaderCellDef>
+                Peso Salida de Horno 1 (g)
+              </th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pSalidaHorno1Lata1 }}
+                <mat-divider></mat-divider>
+                {{ element.pSalidaHorno1Lata2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="horaSalidaHorno2">
+              <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 2</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.horaSalidaHorno2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pSalidaHorno2">
+              <th mat-header-cell *matHeaderCellDef>
+                Peso Salida de Horno 2 (g)
+              </th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pSalidaHorno2Lata1 }}
+                <mat-divider></mat-divider>
+                {{ element.pSalidaHorno2Lata2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="horaSalidaHorno3">
+              <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 3</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.horaSalidaHorno3 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pSalidaHorno3">
+              <th mat-header-cell *matHeaderCellDef>
+                Peso Salida de Horno 3 (g)
+              </th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.pSalidaHorno3Lata1 }}
+                <mat-divider></mat-divider>
+                {{ element.pSalidaHorno3Lata2 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="porcHumedad">
+              <th mat-header-cell *matHeaderCellDef>Humedad (%)</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.porcHumedad1 }}
+                <mat-divider></mat-divider>
+                {{ element.porcHumedad2 }}
+              </td></ng-container
             >
-              <mat-label>Hora</mat-label>
-              <input matInput type="time" placeholder="Ingrese hora" />
-            </mat-form-field>
-            <button mat-raised-button color="primary" class="w-50">
-              Enviar Datos
-            </button>
-          </div>
-        </div>
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Salida de horno 1</ng-template>
-        <div class="container text-center m-8">
-          <h3>Formulario primera Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno1Lata1')"
-              >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno1Lata1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <mat-divider></mat-divider>
-          <h3>Formulario segunda Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno1Lata2')"
-              >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno1Lata2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <div class="text-center m-8">
-            <mat-form-field
-              appearance="outline"
-              class="w-50 m-8"
-              color="primary"
+
+            <ng-container matColumnDef="porcHumedadFinal">
+              <th mat-header-cell *matHeaderCellDef>Humedad del Lote (%)</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.porcHumedadFinal }}
+              </td></ng-container
             >
-              <mat-label>Hora</mat-label>
-              <input matInput type="time" placeholder="Ingrese hora" />
-            </mat-form-field>
-            <button mat-raised-button color="primary" class="w-50">
-              Enviar Datos
-            </button>
-          </div>
-        </div>
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Salida de horno 2</ng-template>
-        <div class="container text-center m-8">
-          <h3>Formulario primera Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno2Lata1')"
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+
+          <mat-divider class="m-8"></mat-divider>
+
+          <h2>Observaciones</h2>
+          <p>
+            Esta tabla muestra las condiciones, resultados y observaciones
+            relevantes para el proceso de determinación de humedad del lote.
+          </p>
+          <table
+            mat-table
+            [dataSource]="dataSourceResultados"
+            class="mat-elevation-z8"
+            aria-label="Tabla Resultados"
+          >
+            <!-- Condición Column -->
+            <ng-container matColumnDef="condicion">
+              <th mat-header-cell *matHeaderCellDef>Condición</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.condicion }}
+              </td>
+            </ng-container>
+            <!-- Resultado Column -->
+            <ng-container matColumnDef="resultado">
+              <th mat-header-cell *matHeaderCellDef>Resultado</th>
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [ngClass]="{
+                  'resultado-aprobado': element.resultado === 'Aprobado',
+                  'resultado-rechazado': element.resultado === 'Rechazado',
+                  'resultado-pendiente': element.resultado === 'Pendiente'
+                }"
               >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno2Lata1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <mat-divider></mat-divider>
-          <h3>Formulario segunda Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno2Lata2')"
-              >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno2Lata2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <div class="text-center m-8">
-            <mat-form-field
-              appearance="outline"
-              class="w-50 m-8"
-              color="primary"
-            >
-              <mat-label>Hora</mat-label>
-              <input matInput type="time" placeholder="Ingrese hora" />
-            </mat-form-field>
-            <button mat-raised-button color="primary" class="w-50">
-              Enviar Datos
-            </button>
-          </div>
-        </div>
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Salida de horno 3</ng-template>
-        <div class="container text-center m-8">
-          <h3>Formulario primera Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno3Lata1')"
-              >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno3Lata1"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <mat-divider></mat-divider>
-          <h3>Formulario segunda Lata</h3>
-          <div class="row">
-            <div class="col">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-                (click)="seleccionarCampo('pSalidaHorno3Lata2')"
-              >
-                <mat-label>Peso Lata (kg)</mat-label>
-                <input
-                  id="pSalidaHorno3Lata2"
-                  matInput
-                  type="number"
-                  placeholder="Ej: 3.0"
-                  step="0.01"
-                  min="0"
-                />
-              </mat-form-field>
-            </div>
-          </div>
-          <div class="text-center m-8">
-            <mat-form-field
-              appearance="outline"
-              class="w-50 m-8"
-              color="primary"
-            >
-              <mat-label>Hora</mat-label>
-              <input matInput type="time" placeholder="Ingrese hora" />
-            </mat-form-field>
-            <button mat-raised-button color="primary" class="w-50">
-              Enviar Datos
-            </button>
-          </div>
-        </div>
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Resultado</ng-template>
-        <!-- Tabla resultados, contiene los datos ingresados por el usuario y el calculo de humedad -->
-        <h2>Resultados del Cálculo de Humedades</h2>
-
-        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-          <ng-container matColumnDef="nLata">
-            <th mat-header-cell *matHeaderCellDef>Lata</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.nLata1 }}
-              <mat-divider></mat-divider>
-              {{ element.nLata2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pesoLata">
-            <th mat-header-cell *matHeaderCellDef>Peso Lata (kg)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pLata1 }}
-              <mat-divider></mat-divider>
-              {{ element.pLata2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pesoTotal">
-            <th mat-header-cell *matHeaderCellDef>Peso Total (kg)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pTotal1 }}
-              <mat-divider></mat-divider>
-              {{ element.pTotal2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pesoMaterial">
-            <th mat-header-cell *matHeaderCellDef>Peso Material (kg)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pMaterial1 }}
-              <mat-divider></mat-divider>
-              {{ element.pMaterial2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="horaIngresoHorno">
-            <th mat-header-cell *matHeaderCellDef>Hora Ingreso Horno</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.horaIngresoHorno }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="horaSalidaHorno1">
-            <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 1</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.horaSalidaHorno1 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pSalidaHorno1">
-            <th mat-header-cell *matHeaderCellDef>
-              Peso Salida de Horno 1 (kg)
-            </th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pSalidaHorno1Lata1 }}
-              <mat-divider></mat-divider>
-              {{ element.pSalidaHorno1Lata2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="horaSalidaHorno2">
-            <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 2</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.horaSalidaHorno2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pSalidaHorno2">
-            <th mat-header-cell *matHeaderCellDef>
-              Peso Salida de Horno 2 (kg)
-            </th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pSalidaHorno2Lata1 }}
-              <mat-divider></mat-divider>
-              {{ element.pSalidaHorno2Lata2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="horaSalidaHorno3">
-            <th mat-header-cell *matHeaderCellDef>Hora Salida Horno 3</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.horaSalidaHorno3 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="pSalidaHorno3">
-            <th mat-header-cell *matHeaderCellDef>
-              Peso Salida de Horno 3 (kg)
-            </th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.pSalidaHorno3Lata1 }}
-              <mat-divider></mat-divider>
-              {{ element.pSalidaHorno3Lata2 }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="porcHumedad">
-            <th mat-header-cell *matHeaderCellDef>Humedad (%)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.porcHumedad1 }}
-              <mat-divider></mat-divider>
-              {{ element.porcHumedad2 }}
-          </ng-container>
-
-          <ng-container matColumnDef="porcHumedadFinal">
-            <th mat-header-cell *matHeaderCellDef>Humedad del Lote (%)</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.porcHumedadFinal }}
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
-      </mat-step>
-    </mat-stepper>
-  </mat-card-content>
-  <mat-card-actions>
-    <button (click)="pesar()" id="boton-pesar" mat-raised-button color="primary" class="w-100">
+                {{ element.resultado }}
+              </td>
+            </ng-container>
+            <!-- Observación Column -->
+            <ng-container matColumnDef="observacion">
+              <th mat-header-cell *matHeaderCellDef>Observación</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.observacion }}
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumnsResultados"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumnsResultados"
+            ></tr>
+          </table>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
+    <mat-card-actions>
+      <!-- <button (click)="pesar()" id="boton-pesar" mat-raised-button color="primary" class="w-100">
       <mat-icon>save</mat-icon>
       Capturar Peso
-    </button>
-  </mat-card-actions>
+    </button> -->
+    </mat-card-actions>
+  </form>
 </mat-card>
 <mat-divider></mat-divider>
 <mat-card> </mat-card>
