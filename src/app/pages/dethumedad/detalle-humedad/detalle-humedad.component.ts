@@ -674,6 +674,9 @@ export class DetalleHumedadComponent {
       const porcHumedadFinal2 =
         ((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100;
 
+      //LA VARIACION ES ENTRE EL PORCENTAJE DE HUMEDAD DE LA LATA 1 Y DE LA LATA 2, NO DE LA HUMEDAD INICIAL Y LA FINAL.
+      //LA VARIACION DE PESOS ES ENTRE LOS RESULTADOS DE HORNO 1 Y HORNO 2. SI ESA VARIACION ES DE MÁS DE 0,6 G, NO CUMPLE EL CRITERIO 
+      
       const variacionPorcentaje1 = Math.abs(
         porcHumedadFinal1 - porcHumedadInicial1
         );
