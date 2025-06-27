@@ -89,7 +89,7 @@
                   <!-- <a class="m-r-10 cursor-pointer">
                     <i-tabler name="qrcode" class="icon-18"></i-tabler>
                   </a> -->
-                  <a class="m-r-10 cursor-pointer">
+                  <a *ngIf="!cliente" class="m-r-10 cursor-pointer">
                     <i-tabler name="trash" class="icon-18" (click)="eliminarTrazabilidad(element.id,element.observacion)"></i-tabler>
                   </a>
                 </td>

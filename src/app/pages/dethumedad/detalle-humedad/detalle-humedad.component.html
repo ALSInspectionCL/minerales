@@ -8,7 +8,7 @@
         <mat-step>
           <ng-template matStepLabel>Datos Iniciales</ng-template>
           <div class="container text-center m-8">
-            <h3>Formulario primera Lata</h3>
+            <h3>Formulario primera Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -16,7 +16,7 @@
                   class="w-50 m-8"
                   color="primary"
                 >
-                  <mat-label>Número de Lata</mat-label>
+                  <mat-label>Número de Bandeja</mat-label>
                   <input
                     matInput
                     type="text"
@@ -31,7 +31,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pLata1')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pLata1"
                     matInput
@@ -80,7 +80,7 @@
               </div>
             </div>
             <mat-divider></mat-divider>
-            <h3>Formulario segunda Lata</h3>
+            <h3>Formulario segunda Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -88,7 +88,7 @@
                   class="w-50 m-8"
                   color="primary"
                 >
-                  <mat-label>Número de Lata</mat-label>
+                  <mat-label>Número de Bandeja</mat-label>
                   <input
                     matInput
                     type="text"
@@ -102,7 +102,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pLata2')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pLata2"
                     matInput
@@ -165,6 +165,7 @@
                 />
               </mat-form-field>
               <button
+                *ngIf="!cliente"
                 mat-raised-button
                 (click)="guardarDatos()"
                 color="primary"
@@ -178,7 +179,7 @@
         <mat-step>
           <ng-template matStepLabel>Salida de horno 1</ng-template>
           <div class="container text-center m-8">
-            <h3>Formulario primera Lata</h3>
+            <h3>Formulario primera Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -187,7 +188,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pSalidaHorno1Lata1')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pSalidaHorno1Lata1"
                     matInput
@@ -201,7 +202,7 @@
               </div>
             </div>
             <mat-divider></mat-divider>
-            <h3>Formulario segunda Lata</h3>
+            <h3>Formulario segunda Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -210,7 +211,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pSalidaHorno1Lata2')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pSalidaHorno1Lata2"
                     matInput
@@ -238,6 +239,7 @@
                 />
               </mat-form-field>
               <button
+                *ngIf="!cliente"
                 mat-raised-button
                 (click)="guardarDatos()"
                 color="primary"
@@ -251,7 +253,7 @@
         <mat-step>
           <ng-template matStepLabel>Salida de horno 2</ng-template>
           <div class="container text-center m-8">
-            <h3>Formulario primera Lata</h3>
+            <h3>Formulario primera Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -274,7 +276,7 @@
               </div>
             </div>
             <mat-divider></mat-divider>
-            <h3>Formulario segunda Lata</h3>
+            <h3>Formulario segunda Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -283,7 +285,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pSalidaHorno2Lata2')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pSalidaHorno2Lata2"
                     matInput
@@ -311,6 +313,7 @@
                 />
               </mat-form-field>
               <button
+                *ngIf="!cliente"
                 mat-raised-button
                 color="primary"
                 (click)="guardarDatos()"
@@ -324,7 +327,7 @@
         <mat-step>
           <ng-template matStepLabel>Salida de horno 3</ng-template>
           <div class="container text-center m-8">
-            <h3>Formulario primera Lata</h3>
+            <h3>Formulario primera Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -333,7 +336,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pSalidaHorno3Lata1')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pSalidaHorno3Lata1"
                     matInput
@@ -347,7 +350,7 @@
               </div>
             </div>
             <mat-divider></mat-divider>
-            <h3>Formulario segunda Lata</h3>
+            <h3>Formulario segunda Bandeja</h3>
             <div class="row">
               <div class="col">
                 <mat-form-field
@@ -356,7 +359,7 @@
                   color="primary"
                   (click)="seleccionarCampo('pSalidaHorno3Lata2')"
                 >
-                  <mat-label>Peso Lata (g)</mat-label>
+                  <mat-label>Peso Bandeja (g)</mat-label>
                   <input
                     id="pSalidaHorno3Lata2"
                     matInput
@@ -383,7 +386,7 @@
                   placeholder="Ingrese hora"
                 />
               </mat-form-field>
-              <button mat-raised-button color="primary" class="w-50">
+              <button *ngIf="!cliente" mat-raised-button color="primary" class="w-50">
                 Enviar Datos
               </button>
             </div>

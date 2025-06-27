@@ -118,11 +118,7 @@ export class TrazabilidadComponent {
     public datePipe: DatePipe,
     private loteService: LoteService
   ) {}
-
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.cargarLote();
-    this.cargarTrazabilidades();
+  ngOnInit(): void {
     this.rolService.hasRole(localStorage.getItem('email') || '', 'Cliente').subscribe((hasRole) => {
       if (hasRole) {
         this.cliente = true;
@@ -132,6 +128,12 @@ export class TrazabilidadComponent {
         console.log('El usuario no tiene el rol de cliente');
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.cargarLote();
+    this.cargarTrazabilidades();
   }
 
   applyFilter(filterValue: string): void {
