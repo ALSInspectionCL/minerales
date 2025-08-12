@@ -169,7 +169,7 @@ export class DetalleLoteComponent {
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.bodegas = data;
-
+        this.bodegaSeleccionada = this.bodegas[0]; // Selecciona la primera bodega por defecto
         console.log(data);
       },
       (error) => {

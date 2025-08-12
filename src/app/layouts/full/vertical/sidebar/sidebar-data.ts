@@ -29,6 +29,11 @@ export const navItems: NavItem[] = [
     iconName: 'droplet-half-2',
     route: '/home/dethumedad',
   },
+    {
+    displayName: 'IMO',
+    iconName:  'microscope',
+    route: '/home/imo'  
+  },
   {
     displayName: 'Despachos',
     iconName:  'truck-delivery',

@@ -1,0 +1,58 @@
+.cardWithShadow {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 32px auto;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 2;
+  padding-bottom: 8px;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+/* NUEVO GRID PERSONALIZADO: 2 columnas fijas */
+.form-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: nowrap; /* Evita que salte de línea */
+  justify-content: space-between;
+}
+
+/* Columna izquierda: 4 campos */
+.form-col-left {
+  flex: 0 0 48%; /* 48% para que ambas columnas quepan con gap */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Columna derecha: 3 campos */
+.form-col-right {
+  flex: 0 0 48%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Reducir tamaño de los mat-form-field internos */
+mat-form-field {
+  font-size: 13px;
+}
+
+mat-form-field input,
+mat-form-field textarea {
+  font-size: 13px;
+  height: 36px;
+}

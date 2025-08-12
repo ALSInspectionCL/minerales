@@ -1,3 +1,4 @@
+import { PesometroService } from './../../services/pesometro.service';
 import { CookieService } from 'src/app/services/CookieService';
 import { Token } from '@angular/compiler';
 import { SolicitudService } from './../../services/solicitud.service';
@@ -22,7 +23,9 @@ import {
 } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import {
+  FormBuilder,
   FormControl,
+  FormGroup,
   FormsModule,
   ReactiveFormsModule,
   Validators,
@@ -53,6 +56,8 @@ import {
   MatChipsModule,
 } from '@angular/material/chips';
 import { ENTER, COMMA } from '@angular/cdk/keycodes';
+import { EditComponent } from './edit/edit.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
@@ -149,6 +154,8 @@ filteredOptions: Observable<any[]>;
   ],
 })
 export class FormulariosComponent {
+  BalanzaForm: FormGroup;
+  pesometroForm: FormGroup;
   dataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator: MatPaginator;
   myControl = new FormControl('');
@@ -162,6 +169,8 @@ export class FormulariosComponent {
   horaInicial: String;
   horaFinal: String;
   nombreBodega: string;
+  idServicioEliminar: any;
+  idSolicitudEliminar: any;
   servicios: Servicio[];
   solicitudes: Solicitud[];
   bodegas: any[];
@@ -214,17 +223,33 @@ export class FormulariosComponent {
   rolSeleccionado: string;
   userSeleccionado: string;
   lotes: any[];
+  idPesometro : any;
   despachoSeleccionado: boolean;
   recepcionSeleccionado: boolean;
   displayedColumns: string[] = ['email', 'fecha', 'hora'];
   constructor(
     private RolService: RolService,
+    private dialog : MatDialog,
+    private pesometroService: PesometroService,
+    private formBuilder: FormBuilder,
     private loteService: LoteService,
     private bodegaService: Bodega,
     private solicitudService: SolicitudService,
     private servicioService: ServicioService,
     private http: HttpClient // private CookieService : CookieService,
-  ) {}
+  ) {
+    this.BalanzaForm = new FormGroup({
+      fechaBalanzaInicial: new FormControl('', Validators.required),
+      fechaBalanzaFinal: new FormControl('', Validators.required),
+    });
+    this.pesometroForm = new FormGroup({
+      marca: new FormControl('', Validators.required),
+      capacidad: new FormControl('', Validators.required),
+      codigo: new FormControl('', Validators.required),
+      fechaCalibracion: new FormControl('', Validators.required),
+    })
+
+  }
   csrfToken: string;
 
   ngOnInit() {
@@ -479,16 +504,16 @@ export class FormulariosComponent {
   }
 
   selectedLoteId: any;
-  preEliminarLote() {
-    const loteId = this.selectedLoteId;
-    console.log('Lote seleccionado para eliminar:', this.selectedLoteId);
+  preEliminarLote(loteSeleccionadoEliminar: any) {
+    console.log('lote seleccionado para eliminar:');
+    console.log(loteSeleccionadoEliminar);
     Notiflix.Confirm.show(
       '¿Estás seguro de eliminar el lote?',
       'Esta acción no se puede deshacer',
       'Eliminar',
       'Cancelar',
       () => {
-        this.eliminarLote(loteId);
+        this.eliminarLote(loteSeleccionadoEliminar);
         Notiflix.Notify.success('Lote eliminado');
       },
       () => {
@@ -497,20 +522,113 @@ export class FormulariosComponent {
     );
   }
 
-  eliminarLote(loteId: number) {
-    const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/${loteId}/`;
-    this.http.delete(apiUrl).subscribe(
-      (respuesta) => {
-        console.log('Lote eliminado:', respuesta);
-        this.lotes = this.lotes.filter((lote) => lote.id !== loteId);
-        this.selectedLoteId = null;
-        Notiflix.Notify.success('Lote eliminado con éxito');
-      },
-      (error) => {
-        console.error('Error al eliminar el lote:', error);
-        Notiflix.Notify.failure('Error al eliminar el lote');
+  eliminarLote(loteSeleccionadoEliminar: any) {
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/`;
+    const apiUrl2 = `https://control.als-inspection.cl/api_min/api/lote-despacho/`;
+    //Buscar el lote en apiUrl y apiUrl2, si lo encuentra, lo elimina
+    this.http.get<any[]>(apiUrl).subscribe((response) => {
+      const lotes = response;
+      const lote = lotes.find(
+        (lote) => lote.id === loteSeleccionadoEliminar.id
+      );
+      if (lote) {
+        this.eliminarSublotes(loteSeleccionadoEliminar);
+        this.http.delete(`${apiUrl}${lote.id}/`).subscribe(
+          () => {
+            console.log('Lote eliminado con éxito');
+            Notiflix.Notify.success('Lote eliminado con éxito');
+          },
+          (error) => {
+            console.error('Error al eliminar lote', error);
+          }
+        );
+      } else {
+        console.log('Lote no encontrado');
+        this.http.get<any[]>(apiUrl2).subscribe((response2) => {
+          const lotes2 = response2;
+          const lote2 = lotes2.find(
+            (lote) => lote.id === loteSeleccionadoEliminar.id
+          );
+          if (lote2) {
+            this.eliminarSublotes(loteSeleccionadoEliminar);
+            this.http.delete(`${apiUrl2}${lote2.id}/`).subscribe(() => {
+              console.log('Lote eliminado con éxito');
+              Notiflix.Notify.success('Lote eliminado con éxito');
+            });
+          } else {
+            console.log('Lote no encontrado');
+          }
+        });
       }
-    );
+    });
+  }
+
+  eliminarSublotes(loteSeleccionadoEliminar: any) {
+    //Eliminar todos los sublotes del lote seleccionado. Buscar por nLote
+    console.log('Eliminar sublotes del lote seleccionado');
+    console.log(loteSeleccionadoEliminar);
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/recepcion-transporte/`;
+    const apiUrl2 =
+      'https://control.als-inspection.cl/api_min/api/despacho-camion/';
+    const apiUrl3 =
+      'https://control.als-inspection.cl/api_min/api/despacho-embarque/';
+
+    //Eliminar todos los registros de las APIS que tengan el mismo nLote
+    this.http.get<any[]>(apiUrl).subscribe((respuesta) => {
+      console.log('Registros encontrados:', respuesta);
+      if (respuesta.length > 0) {
+        respuesta.forEach((registro) => {
+          if (registro.nLote === loteSeleccionadoEliminar.nLote) {
+            const deleteUrl = `${apiUrl}${registro.id}/`;
+            this.http.delete(deleteUrl).subscribe(
+              (res) => {
+                console.log('Registro eliminado:', res);
+              },
+              (error) => {
+                console.error('Error al eliminar el registro:', error);
+              }
+            );
+          }
+        });
+        Notiflix.Notify.success('Sublotes eliminados con éxito');
+      }
+      this.http.get<any[]>(apiUrl2).subscribe((respuesta) => {
+        console.log('Registros encontrados:', respuesta);
+        if (respuesta.length > 0) {
+          respuesta.forEach((registro) => {
+            if (registro.nLote === loteSeleccionadoEliminar.nLote) {
+              const deleteUrl = `${apiUrl2}${registro.id}/`;
+              this.http.delete(deleteUrl).subscribe(
+                (res) => {
+                  console.log('Registro eliminado:', res);
+                },
+                (error) => {
+                  console.error('Error al eliminar el registro:', error);
+                }
+              );
+            }
+          });
+        }
+        this.http.get<any[]>(apiUrl3).subscribe((respuesta) => {
+          console.log('Registros encontrados:', respuesta);
+          if (respuesta.length > 0) {
+            respuesta.forEach((registro) => {
+              if (registro.nLote === loteSeleccionadoEliminar.nLote) {
+                const deleteUrl = `${apiUrl3}${registro.id}/`;
+                this.http.delete(deleteUrl).subscribe(
+                  (res) => {
+                    console.log('Registro eliminado:', res);
+                  },
+                  (error) => {
+                    console.error('Error al eliminar el registro:', error);
+                  }
+                );
+              }
+            });
+          }
+        });
+      });
+    });
   }
 
   enviarServicio() {
@@ -593,9 +711,11 @@ export class FormulariosComponent {
 
     const formData = new FormData();
     formData.append('nombreBodega', bodega.nombreBodega);
-    formData.append('imagen', this.imagenBodega || null);
+    if (this.imagenBodega) {
+      formData.append('imagen', this.imagenBodega);
+    }
 
-    this.http.post(apiUrl, bodega).subscribe(
+    this.http.post(apiUrl, formData).subscribe(
       (respuesta) => {
         console.log('Bodega creada:', respuesta);
         console.log(bodega);
@@ -620,7 +740,12 @@ export class FormulariosComponent {
     const formData = new FormData();
     formData.append('idBodega', bodega.idBodega.toString());
     formData.append('nombreBodega', bodega.nombreBodega);
-    formData.append('imagen', bodega.imagen || this.imagenBodega);
+    // Append image only if it is a File object
+    if (bodega.imagen && bodega.imagen instanceof File) {
+      formData.append('imagen', bodega.imagen);
+    } else if (this.imagenBodega) {
+      formData.append('imagen', this.imagenBodega);
+    }
     formData.append('total', bodega.total.toFixed(2).toString() || '0'); // Asegúrate de que el total sea un número
 
     const apiUrl = `https://control.als-inspection.cl/api_min/api/bodega/${bodega.idBodega}/`;
@@ -1105,11 +1230,25 @@ export class FormulariosComponent {
       'https://control.als-inspection.cl/api_min/api/lote-recepcion/?';
 
     //Buscar los registros de los lotes de camiones de nLotes
-    this.http.get(
-      `https://control.als-inspection.cl/api_min/api/recepcion-transporte/`
-    );
-    {
-    }
+    let lotes = [];
+    this.http.get(`${apiLote}/`).subscribe((response) => {
+      lotes = (response as any[]).filter((lote: any) => {
+        if (this.idServicio && this.idSolicitud) {
+          return (
+            lote.servicio === this.idServicio &&
+            lote.solicitud === this.idSolicitud
+          );
+        } else if (this.idServicio) {
+          return lote.servicio === this.idServicio;
+        } else {
+          return true; // Si no hay filtro, devuelve todos los lotes
+        }
+      });
+      if (lotes.length === 0) {
+        Notiflix.Notify.warning('No hay lotes para los camiones seleccionados');
+        return;
+      }
+    });
   }
 
   documento: File;
@@ -1675,6 +1814,19 @@ export class FormulariosComponent {
     const mails = this.fruits.map((fruit) => fruit.name);
 
     mails.forEach((correo) => {
+      //Verificar que los caracteres del correo sean válidos
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(correo)) {
+        console.log('Correo no válido');
+        Notiflix.Notify.failure('Correo no válido: ' + correo);
+        return;
+      }
+      //Verificar que el correo no esté repetido
+      if (this.correos.filter((c) => c === correo).length > 1) {
+        console.log('Correo repetido: ' + correo);
+        Notiflix.Notify.failure('Correo repetido: ' + correo);
+        return;
+      }
       const apiUrl =
         'https://control.als-inspection.cl/api_min/api/enviar-correo/'; // URL de tu servidor Django
       const datos = new FormData();
@@ -1834,43 +1986,363 @@ export class FormulariosComponent {
     );
   }
 
-  loteSeleccionado: any = null;
+  loteSeleccionadoEliminar: any = null;
+  lotesEliminar: any[] = [];
+
   cargarLotesParaEliminar(solicitudId: any) {
     //Buscar los lotes que corresponden a la solicitud y servicio. Si no existe en recepcion, buscar en despacho
     const apiRes =
-      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?' +
-      this.idServicio +
-      this.idSolicitud +
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=' +
+      this.idSolicitudEliminar +
+      '&servicio=' +
+      this.idServicioEliminar +
       '/';
     const apiDes =
-      'https://control.als-inspection.cl/api_min/api/lote-despacho/?' +
-      this.idServicio +
-      this.idSolicitud +
+      'https://control.als-inspection.cl/api_min/api/lote-despacho/?solicitud=' +
+      this.idSolicitudEliminar +
+      '&servicio=' +
+      this.idServicioEliminar +
       '/';
-
     console.log('consultando ' + apiRes);
-    this.http.get<any[]>(apiRes).subscribe(
-      (data) => {
-        this.lotes = data; // Asigna los lotes obtenidos a la variable
-        if ((this.lotes.length = 0)) {
-          this.http.get<any[]>(apiDes).subscribe(
-            (data) => {
-              this.lotes = data; // Asigna los lotes obtenidos a la variable
-              console.log(data);
-              if(this.lotes.length = 0){
-                Notiflix.Notify.warning('No se han encontrado lotes')
-              }
-            },
-            (error) => {
-              console.error('Error al obtener lotes', error);
-            }
+    console.log('consultando ' + apiDes);
+    // Obtener lotes de recepción
+    this.http.get<any[]>(apiRes).subscribe((response: any) => {
+      console.log(response);
+      this.lotesEliminar = response.filter(
+        (lote: any) =>
+          lote.solicitud === this.idSolicitudEliminar &&
+          lote.servicio === this.idServicioEliminar
+      );
+      console.log(this.lotesEliminar);
+      if (this.lotesEliminar.length === 0) {
+        this.http.get<any[]>(apiDes).subscribe((response: any) => {
+          console.log(response);
+          this.lotesEliminar = response.filter(
+            (lote: any) =>
+              lote.solicitud === this.idSolicitudEliminar &&
+              lote.servicio === this.idServicioEliminar
           );
+          console.log(this.lotesEliminar);
+        });
+      }
+    });
+  }
+
+  balanzaData: any[] = [];
+  consultarBalanza() {
+    this.balanzaCargada = false; // Reiniciar el estado de carga de balanza
+    const api =
+      'https://control.als-inspection.cl/api_min/api/verificacion-balanza/?';
+    this.http.get<any[]>(api).subscribe(
+      (data) => {
+        this.balanzaData = data;
+        // Obtener los valores de los controles del formulario
+        const fechaInicialForm = this.BalanzaForm.get(
+          'fechaBalanzaInicial'
+        )?.value;
+        const fechaFinalForm = this.BalanzaForm.get('fechaBalanzaFinal')?.value;
+        // Asegurarse de que las fechas existan antes de filtrar
+        if (fechaInicialForm && fechaFinalForm) {
+          const fechaInicialDate = new Date(fechaInicialForm);
+          const fechaFinalDate = new Date(fechaFinalForm);
+          if (fechaFinalDate < fechaInicialDate) {
+            Notiflix.Notify.warning(
+              'La fecha final debe ser mayor o igual a la fecha inicial.'
+            );
+            return;
+          }
+          // Filtrar si las fechas son iguales
+          if (fechaInicialDate.getTime() === fechaFinalDate.getTime()) {
+            this.balanzaData = this.balanzaData.filter((item) => {
+              const fechaCalibracion = new Date(item.fechaCalibracion);
+              return fechaCalibracion.getTime() === fechaInicialDate.getTime();
+            });
+          }
+          // Filtrar por rango de fechas
+          else {
+            this.balanzaData = this.balanzaData.filter((item) => {
+              const fechaCalibracion = new Date(item.fechaCalibracion);
+              return (
+                fechaCalibracion >= fechaInicialDate &&
+                fechaCalibracion <= fechaFinalDate
+              );
+            });
+          }
+          console.log(this.balanzaData);
+          if (this.balanzaData.length === 0) {
+            Notiflix.Notify.warning(
+              'No se han encontrado registros de balanza'
+            );
+          } else {
+            Notiflix.Notify.success(
+              'Registros de balanza obtenidos correctamente'
+            );
+            this.balanzaCargada = true;
+            // Aquí podrías decidir qué hacer con los datos filtrados, como mostrarlos en una tabla
+            // o procesarlos de alguna manera.
+          }
+        } else {
+          // Manejar el caso en que las fechas del formulario no estén seleccionadas
+          console.warn('Fechas de balanza no seleccionadas en el formulario.');
+          Notiflix.Notify.warning(
+            'Por favor, selecciona las fechas de balanza para filtrar los resultados.'
+          );
+          // Podrías decidir no filtrar o mostrar un mensaje al usuario
         }
-        console.log(data);
       },
       (error) => {
-        console.error('Error al obtener lotes', error);
+        console.error('Error al obtener balanza', error);
+        Notiflix.Notify.failure('Error al obtener datos de balanza');
       }
     );
   }
+  balanzaCargada: boolean = false;
+  descargarReporte() {
+    if (!this.balanzaCargada) {
+      Notiflix.Notify.warning('No hay datos de balanza cargados para generar el reporte');
+      return;
+    }
+
+    if (!this.balanzaData || this.balanzaData.length === 0) {
+      Notiflix.Notify.warning('No hay datos disponibles para generar el reporte');
+      return;
+    }
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Reporte de Calibración de Balanza');
+
+      // Configurar columnas según la estructura real de datos de calibración
+      worksheet.columns = [
+        { header: 'Código Balanza', key: 'codigoBalanza', width: 15 },
+        { header: 'Sello Calibración', key: 'selloCalibracion', width: 20 },
+        { header: 'Fecha Calibración', key: 'fechaCalibracion', width: 15 },
+        { header: 'Hora Calibración', key: 'horaCalibracion', width: 12 },
+        { header: 'Nombre Técnico', key: 'nombreTecnico', width: 20 },
+        { header: 'Mail Técnico', key: 'mailTecnico', width: 25 },
+        { header: 'Código Masa Patrón 1', key: 'codigoMasaPatron1', width: 18 },
+        { header: 'Código Masa Patrón 2', key: 'codigoMasaPatron2', width: 18 },
+        { header: 'Peso Teórico Masa Patrón 1', key: 'pesoTeoricoMasaPatron1', width: 20 },
+        { header: 'Peso Teórico Masa Patrón 2', key: 'pesoTeoricoMasaPatron2', width: 20 },
+        { header: 'Masa 1 Peso 1', key: 'masa1peso1', width: 15 },
+        { header: 'Masa 1 Peso 2', key: 'masa1peso2', width: 15 },
+        { header: 'Masa 2 Peso 1', key: 'masa2peso1', width: 15 },
+        { header: 'Masa 2 Peso 2', key: 'masa2peso2', width: 15 },
+        { header: 'Masa 3 Peso 1', key: 'masa3peso1', width: 15 },
+        { header: 'Masa 3 Peso 2', key: 'masa3peso2', width: 15 },
+        { header: 'Masa 4 Peso 1', key: 'masa4peso1', width: 15 },
+        { header: 'Masa 4 Peso 2', key: 'masa4peso2', width: 15 },
+        { header: 'Masa 5 Peso 1', key: 'masa5peso1', width: 15 },
+        { header: 'Masa 5 Peso 2', key: 'masa5peso2', width: 15 },
+        { header: 'Intervalo Aceptación', key: 'intervaloAceptacion', width: 18 },
+        { header: 'Estado', key: 'estado', width: 12 }
+      ];
+
+      // Estilizar encabezados
+      worksheet.getRow(1).eachCell((cell: any) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFF' } };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: '4472C4' }
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Agregar datos de calibración
+      this.balanzaData.forEach((item: any, index: number) => {
+        const row = worksheet.addRow({
+          codigoBalanza: item.codigoBalanza || '',
+          selloCalibracion: item.selloCalibracion || '',
+          fechaCalibracion: item.fechaCalibracion || '',
+          horaCalibracion: item.horaCalibracion || '',
+          nombreTecnico: item.nombreTecnico || '',
+          mailTecnico: item.mailTecnico || '',
+          codigoMasaPatron1: item.codigoMasaPatron1 || '',
+          codigoMasaPatron2: item.codigoMasaPatron2 || '',
+          pesoTeoricoMasaPatron1: item.pesoTeoricoMasaPatron1 || 0,
+          pesoTeoricoMasaPatron2: item.pesoTeoricoMasaPatron2 || 0,
+          masa1peso1: item.masa1peso1 || 0,
+          masa1peso2: item.masa1peso2 || 0,
+          masa2peso1: item.masa2peso1 || 0,
+          masa2peso2: item.masa2peso2 || 0,
+          masa3peso1: item.masa3peso1 || 0,
+          masa3peso2: item.masa3peso2 || 0,
+          masa4peso1: item.masa4peso1 || 0,
+          masa4peso2: item.masa4peso2 || 0,
+          masa5peso1: item.masa5peso1 || 0,
+          masa5peso2: item.masa5peso2 || 0,
+          intervaloAceptacion: item.intervaloAceptacion || '',
+          estado: item.estado || ''
+        });
+
+        // Formatear números
+        const numericColumns = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28];
+        numericColumns.forEach(col => {
+          if (row.getCell(col).value !== null && row.getCell(col).value !== undefined) {
+            row.getCell(col).numFmt = '#,##0.00';
+          }
+        });
+      });
+
+      // Agregar resumen estadístico
+      const summaryRow = worksheet.addRow([]);
+      summaryRow.getCell(1).value = 'RESUMEN ESTADÍSTICO';
+      summaryRow.getCell(1).font = { bold: true, size: 14 };
+      summaryRow.getCell(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE699' }
+      };
+
+      const statsRow = worksheet.addRow([
+        'Total Registros:',
+        this.balanzaData.length,
+        // 'Registros Activos:',
+        // this.balanzaData.filter((item: any) => item.estado === 'Activo').length,
+        // 'Registros Inactivos:',
+        // this.balanzaData.filter((item: any) => item.estado === 'Inactivo').length,
+        'Fecha Generación:',
+        new Date().toLocaleDateString()
+      ]);
+      statsRow.eachCell((cell: any) => {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D9E1F2' }
+        };
+      });
+
+      // Auto-filtros
+      worksheet.autoFilter = {
+        from: 'A1',
+        to: `Z${this.balanzaData.length + 1}`
+      };
+
+      // Ajustar ancho de columnas
+      worksheet.columns.forEach((column: any) => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell: any) => {
+          const cellLength = cell.value ? cell.value.toString().length : 0;
+          if (cellLength > maxLength) {
+            maxLength = cellLength;
+          }
+        });
+        column.width = Math.max(column.width || 12, maxLength + 2);
+      });
+
+      // Generar archivo
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reporte_Calibracion_Balanza_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        Notiflix.Notify.success('Reporte de calibración de balanza descargado exitosamente');
+      }).catch((error: any) => {
+        console.error('Error al generar el reporte:', error);
+        Notiflix.Notify.failure('Error al generar el reporte de calibración de balanza');
+      });
+
+    } catch (error) {
+      console.error('Error en descargarReporte:', error);
+      Notiflix.Notify.failure('Error al generar el reporte');
+    }
+  }
+
+  pesometro() {
+    if (this.pesometroForm.valid) {
+      const formData = this.pesometroForm.value;
+
+      // Asegura que la fecha esté en formato YYYY-MM-DD
+      const data = {
+        ...formData,
+        fechaCalibracion: this.formatFecha(formData.fechaCalibracion),
+      };
+
+      if (this.idPesometro) {
+        // Actualiza
+        this.pesometroService.actualizarPesometro(this.idPesometro, data).subscribe({
+          next: (res) => {
+            console.log('Pesómetro actualizado:', res);
+          },
+          error: (err) => {
+            console.error('Error al actualizar pesómetro:', err);
+          }
+        });
+      } else {
+        // Crea
+        this.pesometroService.crearPesometro(data).subscribe({
+          next: (res) => {
+            console.log('Pesómetro creado:', res);
+            this.idPesometro = res.id;
+          },
+          error: (err) => {
+            console.error('Error al crear pesómetro:', err);
+          }
+        });
+      }
+    } else {
+      this.pesometroForm.markAllAsTouched();
+    }
+  }
+
+  // Utilidad para formatear fecha
+  formatFecha(fecha: Date | string): string {
+    const d = new Date(fecha);
+    const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dia = d.getDate().toString().padStart(2, '0');
+    return `${d.getFullYear()}-${mes}-${dia}`;
+  }
+
+  obtenerPesometro() {
+    this.pesometroService.obtenerPesometro().subscribe({
+      next: (datos) => {
+        this.idPesometro = datos.id; // guarda ID para luego hacer PUT
+        this.pesometroForm.patchValue({
+          marca: datos.marca,
+          capacidad: datos.capacidad,
+          codigo: datos.codigo,
+          fechaCalibracion: new Date(datos.fechaCalibracion),
+        });
+      },
+      error: (error) => {
+        if (error.status === 404) {
+          // No existe pesómetro, se podrá crear luego con POST
+          console.log('No se encontró pesómetro, se creará uno nuevo.');
+          this.idPesometro = null;
+        } else {
+          console.error('Error al obtener pesómetro:', error);
+        }
+      }
+    });
+  }
+
+    dilogEdit(Num: any) {
+      const dialogRef = this.dialog.open(EditComponent, {
+        data: {
+          opcion: Num,
+        },
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+  
+      });
+    }
+
 }

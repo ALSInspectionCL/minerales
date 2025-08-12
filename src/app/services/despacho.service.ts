@@ -48,6 +48,10 @@ export class DespachoTransporteService {
     return this.http.put(`${this.apiLotes}${lote.id}/`, lote);
   }
 
+  getDespachoEmbarque(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiLotes);
+  }
+
 
 //   actualizarValoresLote(nLote : number): void {
 //     this.getRecepcionTransporteBynLote(nLote).subscribe(

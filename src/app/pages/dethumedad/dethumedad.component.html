@@ -1,42 +1,42 @@
 <div class="container">
-<mat-card class="cardWithShadow">
-  <mat-card-header class="d-flex">
-    <div class="row">
-      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-          >Servicio</mat-label
-        >
-        <mat-select
-          matInput
-          placeholder="Seleccione un servicio"
-          [(ngModel)]="idServicio"
-          (ngModelChange)="filtrarSolicitudes($event)"
-        >
-          <mat-option
-            *ngFor="let servicio of servicios"
-            [value]="servicio.id"
-            >{{ servicio.nServ }}</mat-option
+  <mat-card class="cardWithShadow">
+    <mat-card-header class="d-flex">
+      <div class="row">
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Servicio</mat-label
           >
-        </mat-select>
-      </mat-form-field>
+          <mat-select
+            matInput
+            placeholder="Seleccione un servicio"
+            [(ngModel)]="idServicio"
+            (ngModelChange)="filtrarSolicitudes($event)"
+          >
+            <mat-option
+              *ngFor="let servicio of servicios"
+              [value]="servicio.id"
+              >{{ servicio.nServ }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-        <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-          >Solicitud</mat-label
-        >
-        <mat-select
-          matInput
-          placeholder="Seleccione una solicitud"
-          [(ngModel)]="idSolicitud"
-        >
-          <mat-option
-            *ngFor="let solicitud of solicitudesFiltradas"
-            [value]="solicitud.id"
-            >{{ solicitud.nSoli }}</mat-option
+        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
+            >Solicitud</mat-label
           >
-        </mat-select>
-      </mat-form-field>
-      <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <mat-select
+            matInput
+            placeholder="Seleccione una solicitud"
+            [(ngModel)]="idSolicitud"
+          >
+            <mat-option
+              *ngFor="let solicitud of solicitudesFiltradas"
+              [value]="solicitud.id"
+              >{{ solicitud.nSoli }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+        <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
               <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
               >Lote</mat-label
             >
@@ -54,15 +54,15 @@
                 </mat-option>
               </mat-select>
             </mat-form-field> -->
-      <button
-        mat-flat-button
-        (click)="cargarLotes()"
-        color="primary"
-        class="m-t-20"
-      >
-        Buscar Lotes
-      </button>
-      <!-- <button
+        <button
+          mat-flat-button
+          (click)="cargarLotes()"
+          color="primary"
+          class="m-t-20"
+        >
+          Buscar Lotes
+        </button>
+        <!-- <button
         *ngIf="idServicio && idSolicitud && (admin || operator || encargado)"
         mat-flat-button
         (click)="crearLote()"
@@ -71,74 +71,188 @@
       >
         Crear nuevo lote
       </button> -->
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <table
+        *ngIf="idServicio && idSolicitud && mostrarTabla"
+        mat-table
+        [dataSource]="dataSource2"
+        class="mat-elevation-z8"
+      >
+        <!-- Columna NLote -->
+        <ng-container matColumnDef="nLote">
+          <th mat-header-cell *matHeaderCellDef>N° Lote</th>
+          <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
 
-    </div>
-  </mat-card-header>
-  <mat-card-content>
-    <table
-      *ngIf="idServicio && idSolicitud && mostrarTabla"
-      mat-table
-      [dataSource]="dataSource2"
-      class="mat-elevation-z8"
-    >
-      <!-- Columna NLote -->
-      <ng-container matColumnDef="nLote">
-        <th mat-header-cell *matHeaderCellDef>N° Lote</th>
-        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
-      </ng-container>
+        <!-- Columna NLote -->
+        <ng-container matColumnDef="observacion">
+          <th mat-header-cell *matHeaderCellDef>Observación</th>
+          <td mat-cell *matCellDef="let element">{{ element.observacion }}</td>
+        </ng-container>
 
-      <!-- Columna NLote -->
-      <ng-container matColumnDef="observacion">
-        <th mat-header-cell *matHeaderCellDef>Observación</th>
-        <td mat-cell *matCellDef="let element">{{ element.observacion }}</td>
-      </ng-container>
+        <!-- Columna FLote -->
+        <ng-container matColumnDef="fLote">
+          <th mat-header-cell *matHeaderCellDef>Fecha Lote</th>
+          <td mat-cell *matCellDef="let element">{{ element.fLote }}</td>
+        </ng-container>
 
-      <!-- Columna FLote -->
-      <ng-container matColumnDef="fLote">
-        <th mat-header-cell *matHeaderCellDef>Fecha Lote</th>
-        <td mat-cell *matCellDef="let element">{{ element.fLote }}</td>
-      </ng-container>
+        <!-- Columna TipoTransporte -->
+        <ng-container matColumnDef="tipoTransporte">
+          <th mat-header-cell *matHeaderCellDef>Tipo Transporte</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.tipoTransporte }}
+          </td>
+        </ng-container>
 
-      <!-- Columna TipoTransporte -->
-      <ng-container matColumnDef="tipoTransporte">
-        <th mat-header-cell *matHeaderCellDef>Tipo Transporte</th>
-        <td mat-cell *matCellDef="let element">{{ element.tipoTransporte }}</td>
-      </ng-container>
+        <!-- Columna CantCamiones -->
+        <ng-container matColumnDef="cantCamiones">
+          <th mat-header-cell *matHeaderCellDef>Cantidad Camiones</th>
+          <td mat-cell *matCellDef="let element">{{ element.cantCamiones }}</td>
+        </ng-container>
 
-      <!-- Columna CantCamiones -->
-      <ng-container matColumnDef="cantCamiones">
-        <th mat-header-cell *matHeaderCellDef>Cantidad Camiones</th>
-        <td mat-cell *matCellDef="let element">{{ element.cantCamiones }}</td>
-      </ng-container>
+        <!-- Columna CantVagones -->
+        <ng-container matColumnDef="cantVagones">
+          <th mat-header-cell *matHeaderCellDef>Cantidad Vagones</th>
+          <td mat-cell *matCellDef="let element">{{ element.cantVagones }}</td>
+        </ng-container>
 
-      <!-- Columna CantVagones -->
-      <ng-container matColumnDef="cantVagones">
-        <th mat-header-cell *matHeaderCellDef>Cantidad Vagones</th>
-        <td mat-cell *matCellDef="let element">{{ element.cantVagones }}</td>
-      </ng-container>
+        <!-- Columna PorcHumedad -->
+        <ng-container matColumnDef="porcHumedad">
+          <th mat-header-cell *matHeaderCellDef>% Humedad</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.porcHumedad }} %
+          </td>
+        </ng-container>
 
-      <!-- Columna PorcHumedad -->
-      <ng-container matColumnDef="porcHumedad">
-        <th mat-header-cell *matHeaderCellDef>% Humedad</th>
-        <td mat-cell *matCellDef="let element">{{ element.porcHumedad }} %</td>
-      </ng-container>
+        <!-- Columna Detalle -->
+        <ng-container matColumnDef="detalle">
+          <th mat-header-cell *matHeaderCellDef>Detalle</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
+              <mat-icon>
+                <i-tabler
+                  name="adjustments-alt"
+                  class="icon-20 m-r-8"
+                ></i-tabler>
+              </mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-      <!-- Columna Detalle -->
-      <ng-container matColumnDef="detalle">
-        <th mat-header-cell *matHeaderCellDef>Detalle</th>
-        <td mat-cell *matCellDef="let element; let i = index">
-          <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
-            <mat-icon>
-              <i-tabler name="adjustments-alt" class="icon-20 m-r-8"></i-tabler>
-            </mat-icon>
-          </button>
-        </td>
-      </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns1"></tr>
+      </table>
+      <table
+        *ngIf="idServicio && idSolicitud && mostrarTablaEmbarques"
+        mat-table
+        [dataSource]="dataSource2"
+        class="mat-elevation-z8"
+      >
+        <!-- Columna NLote -->
+        <ng-container matColumnDef="nLote">
+          <th mat-header-cell *matHeaderCellDef>N° Lote</th>
+          <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns1"></tr>
-    </table>
-    <!-- <mat-paginator [length]="dataSource2.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" (page)="onPageEvent($event)"></mat-paginator> -->
-  </mat-card-content>
-</mat-card>
+        <!-- Columna NLote -->
+        <ng-container matColumnDef="observacion">
+          <th mat-header-cell *matHeaderCellDef>Observación</th>
+          <td mat-cell *matCellDef="let element">{{ element.observacion }}</td>
+        </ng-container>
+
+        <!-- Columna FLote -->
+        <ng-container matColumnDef="fLote">
+          <th mat-header-cell *matHeaderCellDef>Fecha Lote</th>
+          <td mat-cell *matCellDef="let element">{{ element.fLote }}</td>
+        </ng-container>
+
+        <!-- Columna TipoTransporte -->
+        <ng-container matColumnDef="tipoTransporte">
+          <th mat-header-cell *matHeaderCellDef>Tipo Transporte</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.tipoTransporte }}
+          </td>
+        </ng-container>
+
+        <!-- Columna CantCamiones -->
+        <ng-container matColumnDef="cantCamiones">
+          <th mat-header-cell *matHeaderCellDef>Cantidad Camiones</th>
+          <td mat-cell *matCellDef="let element">{{ element.cantCamiones }}</td>
+        </ng-container>
+
+        <!-- Columna CantVagones -->
+        <ng-container matColumnDef="cantVagones">
+          <th mat-header-cell *matHeaderCellDef>Cantidad Vagones</th>
+          <td mat-cell *matCellDef="let element">{{ element.cantVagones }}</td>
+        </ng-container>
+
+        <!-- Columna PorcHumedad -->
+        <ng-container matColumnDef="porcHumedad">
+          <th mat-header-cell *matHeaderCellDef>% Humedad</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.porcHumedad }} %
+          </td>
+        </ng-container>
+
+        <!-- Columna Detalle -->
+        <ng-container matColumnDef="detalle">
+          <th mat-header-cell *matHeaderCellDef>Detalle</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button (click)="verSubLotes(element.nLote, i + 1)">
+              <mat-icon>
+                <i-tabler
+                  name="adjustments-alt"
+                  class="icon-20 m-r-8"
+                ></i-tabler>
+              </mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns1"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns1"></tr>
+      </table>
+      <mat-card>
+        <mat-card-content
+          *ngIf="!mostrarTabla && !mostrarTablaEmbarques"
+          class="d-flex justify-content-center"
+        >
+          <div class="container">
+            <h2>Criterios de Aceptación</h2>
+            <form [formGroup]="criteriosAceptacionForm" (ngSubmit)="guardarCriteriosAceptacion()">
+              <mat-form-field appearance="fill" class="w-100 m-16">
+                <mat-label>Porcentaje de humedad entre bandejas (%)</mat-label>
+                <input
+                  matInput
+                  formControlName="porcentajeHumedad"
+                  type="number"
+                />
+                <mat-error
+                  *ngIf="
+                    criteriosAceptacionForm.get('porcentajeHumedad')?.invalid
+                  "
+                >
+                  Por favor, ingresa un valor
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="fill" class="w-100 m-16">
+                <mat-label>Variación de peso (gramos)</mat-label>
+                <input matInput formControlName="variacionPeso" type="number" />
+                <mat-error
+                  *ngIf="criteriosAceptacionForm.get('variacionPeso')?.invalid"
+                >
+                  Por favor, ingresa un valor
+                </mat-error>
+              </mat-form-field>
+              <button type="submit" class="m-r-8" mat-raised-button color="primary" class="btn btn-primary">Guardar</button>
+            </form>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <button class="m-l-16" mat-raised-button color="primary" (click)="abrirVerificacionBalanza()" class="btn btn-primary">Verificación de Balanza</button>
+      <!-- <mat-paginator [length]="dataSource2.data.length" [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" (page)="onPageEvent($event)"></mat-paginator> -->
+    </mat-card-content>
+  </mat-card>
 </div>

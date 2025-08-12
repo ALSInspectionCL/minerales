@@ -1,0 +1,135 @@
+<mat-card class="cardWithShadow">
+    <div class="mb-3">
+        <!-- Fila con los selects -->
+        <div class="d-flex flex-wrap gap-2">
+            <!-- Select Servicio -->
+            <mat-form-field appearance="outline" class="m-0">
+                <mat-label>Seleccionar Servicio</mat-label>
+                <mat-select (selectionChange)="onSelectServicio($event.value)">
+                    <mat-option *ngFor="let s of serviciosDisponibles" [value]="s.id">
+                        {{ s.nServ }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Select Solicitud (solo si opción 2) -->
+            <mat-form-field *ngIf="formularioActivo === 2" appearance="outline" class="m-0">
+                <mat-label>Seleccionar Solicitud</mat-label>
+                <mat-select [disabled]="solicitudesDisponibles.length === 0"
+                    (selectionChange)="onSelectSolicitud($event.value)">
+                    <mat-option *ngFor="let sol of solicitudesDisponibles" [value]="sol.id">
+                        {{ sol.nSoli }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Botones abajo a la derecha -->
+        <div *ngIf="formularioActivo === 2" class="d-flex justify-content-end gap-2 mt-2">
+            <button mat-raised-button color="primary" (click)="guardarCambios()" [disabled]="solicitudForm.invalid">
+                Guardar Cambios
+            </button>
+            <button mat-raised-button color="warn" (click)="cancelar()">
+                Cancelar
+            </button>
+        </div>
+
+        <!-- Botones para opción 1 -->
+        <div *ngIf="formularioActivo === 1" class="d-flex justify-content-end gap-2 mt-2">
+            <button mat-raised-button color="primary" (click)="guardarCambios()" [disabled]="servicioForm.invalid">
+                Guardar Cambios
+            </button>
+            <button mat-raised-button color="warn" (click)="cancelar()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <mat-card-content>
+        <!-- Formulario Editar Servicio -->
+        <div *ngIf="formularioActivo === 1">
+            <form [formGroup]="servicioForm" class="form-grid">
+                <!-- Campos del servicio -->
+                <input type="hidden" formControlName="id" />
+
+                <div class="form-col-left">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Referencia ALS</mat-label>
+                        <input matInput formControlName="refAls" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Nombre Servicio</mat-label>
+                        <input matInput formControlName="nServ" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Fecha Servicio</mat-label>
+                        <input matInput formControlName="fServ" type="date" />
+                    </mat-form-field>
+                </div>
+
+                <div class="form-col-right">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Lugar Servicio</mat-label>
+                        <input matInput formControlName="lServ" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Región</mat-label>
+                        <input matInput formControlName="rServ" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Tipo Servicio</mat-label>
+                        <mat-select formControlName="tServ">
+                            <mat-option value="Recepcion">Recepción</mat-option>
+                            <mat-option value="Despacho">Despacho</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </form>
+        </div>
+
+        <!-- Formulario Solicitud -->
+        <div *ngIf="formularioActivo === 2">
+            <form [formGroup]="solicitudForm" class="form-grid">
+                <input type="hidden" formControlName="id" />
+
+                <div class="form-col-left">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Número Solicitud</mat-label>
+                        <input matInput formControlName="nSoli" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Fecha Inicio</mat-label>
+                        <input matInput formControlName="fiSoli" type="date" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Fecha Término</mat-label>
+                        <input matInput formControlName="ftSoli" type="date" />
+                    </mat-form-field>
+                </div>
+
+                <div class="form-col-right">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Lugar</mat-label>
+                        <input matInput formControlName="lSoli" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Estado</mat-label>
+                        <input matInput formControlName="eSoli" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Región</mat-label>
+                        <input matInput formControlName="rSoli" />
+                    </mat-form-field>
+                </div>
+            </form>
+        </div>
+    </mat-card-content>
+</mat-card>

@@ -11,6 +11,7 @@ import { guardLogin, RoleGuard } from '../guards/rol.guard';
 import { ReportesComponent } from './reportes/reportes.component';
 import { TrazabilidadComponent } from './trazabilidad/trazabilidad.component';
 import { DethumedadComponent } from './dethumedad/dethumedad.component';
+import { ImoComponent } from './imo/imo.component';
 
 export const PagesRoutes: Routes = [
   {
@@ -91,6 +92,14 @@ export const PagesRoutes: Routes = [
     component: BalanceComponent,
     data: {
       title: 'Gestión de Balance',
+    },
+  },
+    {
+    path: 'imo',
+    canActivate: [guardLogin],
+    component: ImoComponent,
+    data: {
+      title: 'Pruebas IMO',
     },
   },
   {

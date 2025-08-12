@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import * as QRCode from 'qrcode';
-import Notiflix from 'notiflix';
+import Notiflix, { Notify } from 'notiflix';
 import ExcelJS from 'exceljs';
 
 @Injectable()
@@ -110,18 +110,123 @@ export class DetalleQrComponent {
   }
 
   obtenerLotes() {
-    const apiUrl =
-      'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-    console.log('consultando ' + apiUrl);
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
+    const apiUrl2 = `https://control.als-inspection.cl/api_min/api/lote-despacho/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
+    // Verifica si hay solicitud y servicio seleccionados
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
         this.lotes = data; // Asigna los lotes obtenidos a la variable
+        if (this.lotes.length > 0) {
+          this.http.get<any[]>(apiUrl2).subscribe((data2) => {
+            this.lotes = data2;
+          });
+        }
       },
       (error) => {
         console.error('Error al obtener lotes', error);
       }
     );
   }
+
+  cargarLotes() {
+    console.log(this.idServicio);
+    console.log(this.idSolicitud);
+    if (
+      this.idServicio == null ||
+      this.idServicio == '' ||
+      this.idServicio == undefined
+    ) {
+      Notify.failure('Por favor, seleccione un servicio');
+      return;
+    }
+    if (
+      this.idSolicitud == null ||
+      this.idSolicitud == '' ||
+      this.idSolicitud == undefined
+    ) {
+      Notify.failure('Por favor, seleccione una solicitud');
+      this.lotes = []; // Limpiar lotes si no hay solicitud
+      return;
+    } else {
+      const apiUrl = `https://control.als-inspection.cl/api_min/api/lote-recepcion/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
+      const apiUrl2 = `https://control.als-inspection.cl/api_min/api/lote-despacho/?solicitud=${this.idSolicitud}&servicio=${this.idServicio}/`;
+      // Hacer la solicitud HTTP para obtener los lotes
+      console.log('consultando ' + apiUrl);
+
+      this.http.get<any[]>(apiUrl).subscribe(
+        (data) => {
+          // Inicializar LOTE_FILTRADO como un array vacío
+          const LOTE_FILTRADO: any[] = [];
+          console.log('Datos obtenidos de la API:', data);
+          if (data && data.length > 0) {
+            let sumaPesos = 0;
+            for (let i = 0; i < data.length; i++) {
+              // Filtrar lotes por idServicio e idSolicitud
+              if (
+                data[i].servicio === this.idServicio &&
+                data[i].solicitud === this.idSolicitud
+              ) {
+                // Agregar a lote filtrado
+                LOTE_FILTRADO.push(data[i]);
+                sumaPesos += Number(data[i].pesoNetoHumedo);
+              }
+            }
+
+            // Asignar el lote filtrado a dataSource1
+            this.lotesFiltrados = LOTE_FILTRADO;
+            console.log(this.lotesFiltrados);
+
+            // Verificar si LOTE_FILTRADO está vacío
+            if (LOTE_FILTRADO.length === 0) {
+              console.log(
+                'No se encontraron lotes de recepción, buscando lotes de despacho'
+              );
+              this.http.get<any[]>(apiUrl2).subscribe((data) => {
+                if (data && data.length > 0) {
+                  let sumaPesos = 0;
+                  for (let i = 0; i < data.length; i++) {
+                    // Filtrar lotes por idServicio e idSolicitud
+                    if (
+                      data[i].servicio === this.idServicio &&
+                      data[i].solicitud === this.idSolicitud
+                    ) {
+                      // Agregar a lote filtrado
+                      LOTE_FILTRADO.push(data[i]);
+                      sumaPesos += Number(data[i].pesoNetoHumedo);
+                    }
+                  }
+
+                  // Asignar el lote filtrado a dataSource1
+                  this.lotesFiltrados = LOTE_FILTRADO;
+                  console.log(this.lotesFiltrados);
+
+                  // Verificar si LOTE_FILTRADO está vacío
+                  if (LOTE_FILTRADO.length === 0) {
+                    this.lotesFiltrados = []; // Cargar datos por defecto si no hay coincidencias
+                  }
+                } else {
+                  // Si no hay lotes de despacho, mostrar mensaje de error y cargar datos por defecto
+                  Notiflix.Notify.failure(
+                    'No se encontraron lotes para la combinación de servicio y solicitud'
+                  );
+                  this.lotesFiltrados = []; // Cargar datos por defecto si no hay coinc
+                }
+              });
+              this.lotesFiltrados = []; // Cargar datos por defecto si no hay coincidencias
+            }
+          }
+        },
+        (error) => {
+          console.error('Error al obtener lotes', error);
+          Notify.failure('Error al cargar los lotes: ' + error.message);
+          this.lotes = []; // Cargar datos por defecto en caso de error
+        }
+      );
+    }
+  }
+
+  subLotes: any[] = [];
+  cargarSubLotes() {}
 
   obtenerCamiones() {
     const apiUrl =
@@ -147,6 +252,7 @@ export class DetalleQrComponent {
       (lote: any) =>
         lote.servicio === this.idServicio && lote.solicitud === solicitudId
     );
+    this.cargarLotes();
   }
 
   filtrarCamiones(lote: any) {
@@ -170,6 +276,8 @@ export class DetalleQrComponent {
       Notiflix.Notify.failure('Faltan datos para generar el QR');
       return;
     }
+    console.log('Lote seleccionado:');
+    console.log(this.lote);
 
     //Verificar si existe el ingreso de Trazabilidad. Si existe, solo genera QR. Si no existe, la agrega a la api https://control.als-inspection.cl/api_min/api/trazabilidad/
     const apiUrl =
@@ -179,7 +287,7 @@ export class DetalleQrComponent {
       cliente: 'Anglo American',
       idTransporte: null,
       horaControl: this.getHoraActual(),
-      fechaControl: this.formatDate(new Date()),
+      fechaControl: this.lote.fLote,
       horaLab: null,
       fechaLab: null,
       horaIngresoHorno: null,
@@ -196,8 +304,8 @@ export class DetalleQrComponent {
     // datos.idTransporte = camion.id;
     // datos.horaControl = camion.hDestino;
     // datos.fechaControl = camion.fDestino;
-    (datos.horaControl = this.getHoraActual()),
-      (datos.fechaControl = this.formatDate(new Date()));
+    datos.horaControl = this.getHoraActual();
+    datos.fechaControl = this.lote.fLote;
     datos.observacion = this.lote.observacion;
     datos.cantidadTransporte =
       this.lotes.find((lote: any) => lote.nLote === this.lote.nLote)

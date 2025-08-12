@@ -1,0 +1,102 @@
+<div class="row">
+  <!-- TABLA DE CAMIONES -->
+  <mat-card>
+    <mat-card-header class="m-8">
+      <mat-card-title>Lista de Sublotes registrados</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="dataSource1" class="mat-elevation-z8">
+        <!-- Columna N° Lote -->
+        <ng-container matColumnDef="nLote">
+          <th mat-header-cell *matHeaderCellDef>N° Sublote</th>
+          <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+
+        <!-- Columna Fecha Inicial -->
+        <ng-container matColumnDef="fechaInicial">
+          <th mat-header-cell *matHeaderCellDef>Fecha Inicial</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.fechaInicial | date }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Hora Inicial -->
+        <ng-container matColumnDef="horaInicial">
+          <th mat-header-cell *matHeaderCellDef>Hora Inicial</th>
+          <td mat-cell *matCellDef="let element">{{ element.horaInicial }}</td>
+        </ng-container>
+
+        <!-- Columna Fecha Final -->
+        <ng-container matColumnDef="fechaFinal">
+          <th mat-header-cell *matHeaderCellDef>Fecha Final</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.fechaFinal | date }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Hora Final -->
+        <ng-container matColumnDef="horaFinal">
+          <th mat-header-cell *matHeaderCellDef>Hora Final</th>
+          <td mat-cell *matCellDef="let element">{{ element.horaFinal }}</td>
+        </ng-container>
+
+        <!-- Columna Peso Lote -->
+        <ng-container matColumnDef="pesoLote">
+          <th mat-header-cell *matHeaderCellDef>Peso Lote</th>
+          <td mat-cell *matCellDef="let element">{{ element.pesoLote }}</td>
+        </ng-container>
+
+        <!-- Columna Porcentaje Humedad -->
+        <ng-container matColumnDef="porcHumedad">
+          <th mat-header-cell *matHeaderCellDef>Porcentaje Humedad</th>
+          <td mat-cell *matCellDef="let element">{{ element.porcHumedad }}</td>
+        </ng-container>
+
+        <!-- Columna Detalle -->
+        <ng-container matColumnDef="detalle">
+          <th mat-header-cell *matHeaderCellDef>Detalle</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
+              <mat-icon>
+                <i-tabler
+                  name="adjustments-alt"
+                  class="icon-20 m-r-8"
+                ></i-tabler>
+              </mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="[
+                  'nLote',
+                  'fechaInicial',
+                  'horaInicial',
+                  'fechaFinal',
+                  'horaFinal',
+                  'pesoLote',
+                  'porcHumedad',
+                  'detalle'
+                ]"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="
+                  let row;
+                  columns: [
+                    'nLote',
+                    'fechaInicial',
+                    'horaInicial',
+                    'fechaFinal',
+                    'horaFinal',
+                    'pesoLote',
+                    'porcHumedad',
+                    'detalle'
+                  ]
+                "
+        ></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

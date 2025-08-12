@@ -30,6 +30,7 @@ import Notiflix from 'notiflix';
 import { HttpClient } from '@angular/common/http';
 import { OtmComponent } from './otm/otm.component';
 import { RolService } from 'src/app/services/rol.service';
+import { forkJoin } from 'rxjs';
 
 export interface loteRecepcion {
   id: number;
@@ -83,11 +84,12 @@ export class TrazabilidadComponent {
     Object.create(null);
   searchText: any;
   displayedColumns: string[] = [
-    '#',
+    'servicio',
+    'solicitud',
     'name',
     'email',
     'mobile',
-    'date of joining',
+    'estado',
     'action',
   ];
   displayedColumns2: string[] = [
@@ -102,9 +104,9 @@ export class TrazabilidadComponent {
     'Almacenamiento Muestra Natural',
     'estado',
   ];
-  
+
   lote: any | null = null;
-  cliente:boolean = false; // Variable para mostrar el mensaje de error
+  cliente: boolean = false; // Variable para mostrar el mensaje de error
   dataSource = new MatTableDataSource<any>();
   muestra: boolean = false; // Variable para mostrar el mensaje de error
   trazabilidades: any; // Almacena las trazabilidades obtenidas de la API
@@ -112,12 +114,12 @@ export class TrazabilidadComponent {
     Object.create(null);
 
   constructor(
-    public rolService : RolService,
+    public rolService: RolService,
     public dialog: MatDialog,
     public http: HttpClient,
     public datePipe: DatePipe,
     private loteService: LoteService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.rolService.hasRole(localStorage.getItem('email') || '', 'Cliente').subscribe((hasRole) => {
       if (hasRole) {
@@ -140,25 +142,40 @@ export class TrazabilidadComponent {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  cargarLote(): any {
-    let lotebuscado: loteRecepcion;
-    this.loteService.getLotesTrazabilidad().subscribe(
-      (response: loteRecepcion[]) => {
-        console.log('Respuesta del servicio:', response);
-        this.dataSource.data = response;
-        // Invertir el orden de los elementos
-        this.dataSource.data = this.dataSource.data.reverse();
-        if (response.length > 0) {
-          this.lote = response[0];
-          lotebuscado = response[0];
-        } else {
-          this.lote = null;
-        }
-        console.log('Lote cargado:', this.lote);
-        return lotebuscado;
+  cargarLote(): void {
+    const apiLote = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    const apiSolicitudes = 'https://control.als-inspection.cl/api_min/api/solicitud/';
+    const apiServicio = 'https://control.als-inspection.cl/api_min/api/servicio/';
+
+    forkJoin({
+      lotes: this.http.get<loteRecepcion[]>(apiLote),
+      solicitudes: this.http.get<any[]>(apiSolicitudes),
+      servicios: this.http.get<any[]>(apiServicio)
+    }).subscribe(
+      ({ lotes, solicitudes, servicios }) => {
+        // Ordenar lotes por fecha
+        lotes.sort((a, b) => new Date(b.fLote).getTime() - new Date(a.fLote).getTime());
+
+        // Relacionar cada lote con su solicitud y servicio
+        const lotesConNombres = lotes.map(lote => {
+          const solicitudEncontrada = solicitudes.find(s => s.id === lote.solicitud);
+          const servicioEncontrado = servicios.find(s => s.id === lote.servicio);
+
+          return {
+            ...lote,
+            nombresolicitud: solicitudEncontrada ? solicitudEncontrada.nSoli : 'Desconocido',
+            nombreservicio: servicioEncontrado && servicioEncontrado.refAls ? servicioEncontrado.refAls : 'Desconocido'
+          };
+        });
+
+        this.dataSource.data = lotesConNombres;
+
+        this.lote = lotesConNombres.length > 0 ? lotesConNombres[0] : null;
+
+        console.log('Lotes con nombres:', this.lote);
       },
-      (error) => {
-        console.error('Error al cargar el lote:', error);
+      error => {
+        console.error('Error al cargar lotes, solicitudes o servicios:', error);
         this.lote = null;
       }
     );
@@ -191,14 +208,14 @@ export class TrazabilidadComponent {
   detalleTraza(Num: any) {
     const dialogRef = this.dialog.open(DetalleTrazaComponent, {
       width: '80%', // Ajusta el ancho del diálogo
-      // height: '30%',
+      height: '80%', // Ajusta la altura del diálogo
       data: {
         numLote: Num,
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log('El diálogo se cerró con el resultado: ', result);
+    dialogRef.afterClosed().subscribe(result => {
+
     });
   }
 
@@ -213,7 +230,7 @@ export class TrazabilidadComponent {
 
     Notiflix.Confirm.show(
       'Eliminar Trazabilidad',
-      '¿Está seguro de que desea eliminar la trazabilidad '+obs+'?',
+      '¿Está seguro de que desea eliminar la trazabilidad ' + obs + '?',
       'Eliminar',
       'Cancelar',
       () => {
@@ -253,17 +270,17 @@ export class TrazabilidadComponent {
         // Si ya existe, eliminar el registro
         existingData.forEach((item) => {
           this.http.delete(`${url}${item.id}/`).subscribe(() => {
-            Notiflix.Notify.success('Trazabilidad mecánica numero '+ item.nSubLote +' eliminado correctamente');
+            Notiflix.Notify.success('Trazabilidad mecánica numero ' + item.nSubLote + ' eliminado correctamente');
           });
         });
-      }else{
+      } else {
         Notiflix.Notify.failure('No se encontró el registro para eliminar');
       }
     },
-    (error) => {
-      console.error('Error al obtener los datos:', error);
-      Notiflix.Notify.failure('Error al obtener los datos');
-    }
+      (error) => {
+        console.error('Error al obtener los datos:', error);
+        Notiflix.Notify.failure('Error al obtener los datos');
+      }
     )
   };
 
@@ -282,13 +299,13 @@ export class TrazabilidadComponent {
         codigo = codigo.substring(1, codigo.length - 1);
         this.actualizarEstado(codigo);
         this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
-      }else if (codigo.includes('G')) {
+      } else if (codigo.includes('G')) {
         // Si el primer elemento es una G, entonces el boolean 'muestra' es false
         this.muestra = false;
         codigo = codigo.substring(1, codigo.length - 1);
         this.actualizarEstado(codigo);
         this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
-      }else if (codigo.includes('E')) {
+      } else if (codigo.includes('E')) {
 
         // Si el primer elemento es una E, entonces el boolean 'muestra' es false
         this.muestra = false;
@@ -301,7 +318,7 @@ export class TrazabilidadComponent {
         //Quitar el punto y los caracteres que siguen
         nSubLote = nSubLote.split('.')[0];
         console.log(nSubLote);
-        
+
         this.abrirOtm(nLote, nSubLote);
       }
       this.cargarTrazabilidades();
@@ -320,8 +337,8 @@ export class TrazabilidadComponent {
       Notiflix.Confirm.show(
         'Actualizar Estado',
         'El lote ' +
-          trazabilidad.observacion +
-          ' ha sido escaneado con éxito. Almacenando en Testigoteca.',
+        trazabilidad.observacion +
+        ' ha sido escaneado con éxito. Almacenando en Testigoteca.',
         'Confirmar',
         'Cancelar',
         () => {
@@ -338,10 +355,10 @@ export class TrazabilidadComponent {
       Notiflix.Confirm.show(
         'Actualizar Estado',
         'El lote ' +
-          trazabilidad.observacion +
-          ' ha sido escaneado con éxito. Estado : ' +
-          trazabilidad.estado +
-          '.',
+        trazabilidad.observacion +
+        ' ha sido escaneado con éxito. Estado : ' +
+        trazabilidad.estado +
+        '.',
         'Siguiente Etapa',
         'Cancelar',
         () => {
@@ -396,7 +413,7 @@ export class TrazabilidadComponent {
           };
 
           if (this.muestra) {
-            if(data.horaTestigoteca !== null){
+            if (data.horaTestigoteca !== null) {
               Notiflix.Notify.failure('La trazabilidad ya ha sido actualizada');
               this.ngAfterViewInit(); // Recargar los lotes después de actualizar la trazabilidad
               return;
@@ -408,7 +425,7 @@ export class TrazabilidadComponent {
             });
             body.fechaTestigoteca = this.formatDate(new Date());
             body.horaTestigoteca = `${horaTestigoteca}`;
-          }else{
+          } else {
             switch (estado) {
               case 'Iniciado':
                 nuevoEstado = 'Recep. Laboratorio';
@@ -507,7 +524,7 @@ export class TrazabilidadComponent {
         console.log('Trazabilidades:');
         console.log(this.trazabilidades);
       });
-      
+
   }
 
   formatDate(date: Date): string {

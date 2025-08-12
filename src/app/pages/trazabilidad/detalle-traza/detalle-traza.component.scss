@@ -1,0 +1,42 @@
+.scrollable-table {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.scrollable-table table {
+  width: 100%;
+}
+
+.scrollable-table::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scrollable-table::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollable-table::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Asegurar que las celdas de la tabla se mantengan alineadas */
+.scrollable-table th,
+.scrollable-table td {
+  white-space: nowrap;
+  padding: 8px 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .scrollable-table {
+    max-height: 300px;
+  }
+}

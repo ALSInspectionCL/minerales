@@ -1,0 +1,126 @@
+<div class="container">
+  <mat-card class="cardWithShadow">
+    <mat-card-header class="cardHeader m-b-8">
+      <mat-card-title>Verificación de Balanza</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="formVerificacionBalanza" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Código de Balanza</mat-label>
+            <input matInput required formControlName="codigoBalanza">
+          </mat-form-field>
+        <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Sello de Calibración</mat-label>
+            <input matInput required formControlName="selloCalibracion">
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Fecha de Validación</mat-label>
+            <input matInput required formControlName="fechaCalibracion" type="date">
+          </mat-form-field>  
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Hora de Validación</mat-label>
+            <input matInput required formControlName="horaCalibracion" type="text" readonly>
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Nombre del Técnico</mat-label>
+            <input matInput required formControlName="nombreTecnico" readonly>
+          </mat-form-field>
+         <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Correo Electrónico del Técnico</mat-label>
+            <input matInput required formControlName="mailTecnico" readonly>
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Código de Masa Patrón 1</mat-label>
+            <input matInput required formControlName="codigoMasaPatron1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Código de Masa Patrón 2</mat-label>
+            <input matInput required formControlName="codigoMasaPatron2">
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Peso Teórico de Masa Patrón 1</mat-label>
+            <input matInput formControlName="pesoTeoricoMasaPatron1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Peso Teórico de Masa Patrón 2</mat-label>
+            <input matInput formControlName="pesoTeoricoMasaPatron2">
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Intervalo de Aceptación 1</mat-label>
+            <input matInput formControlName="intervaloAceptacion">
+          </mat-form-field>
+            <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Intervalo de Aceptación 2</mat-label>
+            <input matInput formControlName="intervaloAceptacion">
+          </mat-form-field>
+          <p>Certificado de Balanza n° XX próxima calibración XX/XX/XXXX</p>
+        </div>
+        <mat-divider></mat-divider>
+        <h2>Masa 1</h2>
+        <div class="form-group m-t-8">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 1 - Peso 1</mat-label>
+            <input matInput required formControlName="masa1peso1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 1 - Peso 2</mat-label>
+            <input matInput required formControlName="masa2peso1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 1 - Peso 3</mat-label>
+            <input matInput required formControlName="masa3peso1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 1 - Peso 4</mat-label>
+            <input matInput required formControlName="masa4peso1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 1 - Peso 5</mat-label>
+            <input matInput required formControlName="masa5peso1">
+          </mat-form-field>
+        </div>
+        <h2>Masa 2</h2>
+        <div class="form-group m-t-8">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 2 - Peso 1</mat-label>
+            <input matInput required formControlName="masa2peso1">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 2 - Peso 2</mat-label>
+            <input matInput required formControlName="masa2peso2">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 2 - Peso 3</mat-label>
+            <input matInput required formControlName="masa3peso2">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 2 - Peso 4</mat-label>
+            <input matInput required formControlName="masa4peso2">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Masa 2 - Peso 5</mat-label>
+            <input matInput required formControlName="masa5peso2">
+          </mat-form-field>
+        </div>
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Estado</mat-label>
+            <input matInput required formControlName="estado">
+          </mat-form-field>
+        </div>
+        <button mat-raised-button color="primary" type="submit">Enviar</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

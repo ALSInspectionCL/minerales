@@ -1,3 +1,4 @@
+import { TrazabilidadService } from './../../../services/trazabilidad.service';
 import { bodega } from './../../../services/bodega.service';
 import { Data } from '@angular/router';
 import { CommonModule, AsyncPipe } from '@angular/common';
@@ -43,6 +44,9 @@ import { RolService } from 'src/app/services/rol.service';
 import { map, Observable } from 'rxjs';
 import moment from 'moment';
 import { Bodega } from 'src/app/services/bodega.service';
+import { ExcelsService } from 'src/app/services/excels.service';
+import { PesometroService } from 'src/app/services/pesometro.service';
+import * as ExcelJS from 'exceljs';
 
 export interface loteDespachoEmbarque {
   id: number;
@@ -66,6 +70,7 @@ export interface loteDespachoEmbarque {
   CuDestino: number;
   servicio: number;
   solicitud: number;
+  DUS: string;
 }
 
 @Component({
@@ -122,6 +127,9 @@ export class DetalleEmbarqueComponent {
   fechaUltimoRegistro = null;
   horaPrimerRegistro = null;
   horaUltimoRegistro = null;
+  sublote: any;
+  pesometro: any;
+  lotesDespacho: any;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -132,6 +140,9 @@ export class DetalleEmbarqueComponent {
       numero: number;
     },
     private loteService: LoteService,
+    private pesometroService: PesometroService,
+    private TrazabilidadService: TrazabilidadService,
+    private ExcelService: ExcelsService,  
     private http: HttpClient,
     private dialog: MatDialog,
     private rolService: RolService,
@@ -151,26 +162,29 @@ export class DetalleEmbarqueComponent {
     this.nLote = this.data.lote.nLote;
     this.cargarDespachosEmbarque(this.nLote);
     this.admin = RolService.isTokenValid();
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          console.log('El usuario tiene el rol de operator');
-          this.operator = true;
-        } else {
-          console.log('El usuario no tiene el rol de operator');
+    this.getPesometro();
+    this.rolService.getRoles(localStorage.getItem('email') || '')
+      .subscribe(roles => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
-        }
-      });
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Encargado')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.encargado = true;
-          console.log('El usuario tiene el rol de Encargado');
-        } else {
           this.encargado = false;
-          console.log('El usuario no tiene el rol de Encargado');
+          return;
+        }else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        }
+        else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+          } else {
+            this.admin = false;
+            this.operator = false;
+            this.encargado = false;
         }
       });
   }
@@ -191,6 +205,7 @@ export class DetalleEmbarqueComponent {
   cargarDespachosEmbarque(Nlote: string): void {
     this.despachoTransporteService.getEmbarqueBynLote(Nlote).subscribe(
       (data: any[]) => {
+        this.sublote = data;
         this.dataSource1 = data;
         this.cantRegistros = this.dataSource1.length;
 
@@ -266,6 +281,10 @@ export class DetalleEmbarqueComponent {
   actualizarPorcentajeHumedad(event: Event): void {
     const input = event.target as HTMLInputElement; // Aserción de tipo
     this.lote.porcHumedad = input.value; // Actualiza el valor de porcHumedad
+  }
+  actualizarFechaDUS(event: Event): void {
+    const input = event.target as HTMLInputElement; // Aserción de tipo
+    this.lote.fechaDUS = input.value; // Actualiza el valor de DUS
   }
 
   actualizarCuOrigen(event: Event): void {
@@ -359,6 +378,7 @@ export class DetalleEmbarqueComponent {
     this.lote.CuFino = Number(
       this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
     );
+    console.log('Lote actualizado:', loteActualizado);
 
     this.despachoTransporteService
       .actualizarLoteEmbarque(loteActualizado)
@@ -422,6 +442,984 @@ export class DetalleEmbarqueComponent {
   wip() {
     console.log('wip');
     Notiflix.Notify.warning('Funcionalidad en desarrollo');
+  }
+
+  descargarEtiquetasEmbarques() {
+    const lote = this.data.lote || {};
+
+    // Paso 1: Verificar que el DUS no sea null o vacío
+    if (!lote.DUS) {
+      Notiflix.Notify.failure('El campo DUS no puede estar vacío.');
+      return;
+    }
+
+    // Paso 2: Obtener todas las trazabilidades
+    this.TrazabilidadService.getTrazabilidad().subscribe(
+      (trazabilidades) => {
+        // Paso 2.1: Filtrar por nLote
+        const trazabilidadesFiltradas = trazabilidades.filter(
+          (t: any) =>
+            t.nLote?.trim().toLowerCase() === lote.nLote?.trim().toLowerCase()
+        );
+
+        if (trazabilidadesFiltradas.length > 0) {
+          // Paso 3: Calcular cantidadSobres y agregarlo a cada registro
+          const cantidadSobres = trazabilidadesFiltradas.length;
+
+          const trazabilidadesConCantidad = trazabilidadesFiltradas.map((item : any) => ({
+            ...item,
+            cantidadSobres,
+          }));
+
+          // Paso 4: Enviar el array modificado al servicio Excel
+          this.ExcelService.generarExcelQR(trazabilidadesConCantidad);
+        } else {
+          // Paso 5: No hay trazabilidad → solicitar cantidad de sobres manual
+          Notiflix.Confirm.prompt(
+            'Cantidad de sobres',
+            'No se encontraron trazabilidades para este lote. Ingrese la cantidad de sobres que desea crear:',
+            '',
+            'Aceptar',
+            'Cancelar',
+            (valor) => {
+              const cantidadSobres = parseInt(valor, 10);
+
+              if (isNaN(cantidadSobres) || cantidadSobres <= 0) {
+                Notiflix.Notify.failure(
+                  'Cantidad inválida. Debe ser un número mayor a 0.'
+                );
+                return;
+              }
+
+              this.ExcelService.generarExcelQRConDatos({
+                nLote: lote.nLote,
+                nDUS: lote.DUS,
+                motonave: lote.nombreNave,
+                observacion: lote.observacion,
+                bodega: lote.bodegaNave,
+                fechaLote: new Date(lote.fLote),
+                cantidadSobres: cantidadSobres,
+                fLote: lote.fLote,
+                estado: 'Iniciado',
+              });
+            },
+            () => {
+              Notiflix.Notify.info('Operación cancelada.');
+            }
+          );
+        }
+      },
+      (error) => {
+        console.error('Error al consultar trazabilidad:', error);
+        Notiflix.Notify.failure('Error al verificar trazabilidad.');
+      }
+    );
+  }
+
+  // GENERADOR DE PDFS
+
+//esto va al final
+
+  getPesometro() {
+    this.pesometroService.obtenerPesometro().subscribe((data) => {
+      this.pesometro = data;
+    })
+  }
+
+  getallLotesDespacho() {
+    this.despachoTransporteService.getDespachoEmbarque().subscribe((data) => {
+      this.lotesDespacho = data;
+      console.log(this.lotesDespacho);
+    })
+  }
+
+  generarCertificados() {
+    Notiflix.Loading.standard('Generando certificados, espere un momento...');
+
+    // Ejecutar las funciones inmediatamente
+    this.descargarExcelResumenLote2();
+    this.descargarExcelInformePesos();
+
+    // Ocultar el loader después de 5 segundos
+    setTimeout(() => {
+      Notiflix.Loading.remove();
+    }, 5000);
+  }
+
+  async descargarExcelResumenLote2() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Resumen Lote');
+
+    const imagePath = '/assets/images/logos/als_logo_1.png';
+    const response = await fetch(imagePath);
+    const imageBuffer = await response.arrayBuffer();
+    const imageId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
+
+    worksheet.addImage(imageId, { tl: { col: 1, row: 3 }, ext: { width: 80, height: 80 } });
+
+    worksheet.getColumn('B').width = 30;
+    worksheet.getColumn('C').width = 5;
+    worksheet.getColumn('D').width = 30;
+    worksheet.getColumn('E').width = 30;
+    worksheet.getColumn('F').width = 20;
+    worksheet.getColumn('G').width = 30;
+
+    worksheet.getCell('G2').value = 'ALS Inspection Chile Spa';
+    worksheet.getCell('G3').value = 'Calle Limache 3405, Office 61';
+    worksheet.getCell('G4').value = 'Viña del Mar, CHILE';
+    worksheet.getCell('G5').value = 'T +56 32 254 5500';
+
+    worksheet.mergeCells('B6:G6');
+    worksheet.getCell('B6').value = 'ALS INPECTION CHILE SPA';
+    worksheet.getCell('B6').font = { bold: true, size: 14 };
+    worksheet.getCell('B6').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    worksheet.mergeCells('B7:G7');
+    worksheet.getCell('B7').value = 'INFORME FINAL DE EMBARQUE';
+    worksheet.getCell('B7').font = { size: 10 };
+    worksheet.getCell('B7').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const detalleColumna1 = [
+      { label: 'Referencia ALS', key: 'refFocus' },
+      { label: 'N° Resolución vigente SNA', key: 'numResolucionSNA' },
+      { label: 'DUS / Fecha', key: 'fechaDUS' },
+      { label: 'EXPORTADOR', key: 'exportador' },
+      { label: 'CONTRATO COCHILCO / CUOTA', key: 'contratoCochilco' },
+      { label: 'PUERTO EMBARQUE', key: 'lugarDescarga' },
+      { label: 'CONSIGNATARIO', key: 'cliente' },
+      { label: 'PROCEDIMIENTO CERTIFICADO', key: 'listaVerificacion' },
+      { label: 'NOMBRE LABORATORIO DE ENSAYO', key: 'nombreLaboratorioEnsayo' },
+      { label: 'FECHA DE EMBARQUE', key: 'fLote' },
+    ];
+
+    const detalleColumna2 = [
+      { label: 'ADUANA', key: 'aduana' },
+      { label: 'N° REGISTRO INN', key: 'registroINN' },
+      { label: 'CANTIDAD DE ITEM DEL DUS', key: 'cantSubLotes' },
+      { label: 'RUT EXPORTADOR', key: 'rutExportador' },
+      { label: 'N° CONTRATO', key: 'contratoAnglo' },
+      { label: 'NOMBRE DE LA MOTO NAVE', key: 'nombreNave' },
+      { label: 'CALIDAD', key: 'calidad' },
+      { label: 'MUESTREADO POR', key: 'muestreadoPor' },
+      { label: 'RUT EMPRESA MUESTREADORA', key: 'rutEmpresaMuestreadora' },
+      { label: 'DESTINO', key: 'paisDescarga' },
+    ];
+
+    const lote = this.data.lote || {};
+    let fila = 10;
+
+    detalleColumna1.forEach(({ label, key }) => {
+      worksheet.getCell(`B${fila}`).value = label;
+      worksheet.getCell(`C${fila}`).value = ':';
+      worksheet.getCell(`D${fila}`).value = label === 'DUS / Fecha'
+        ? `${lote.DUS ?? 'No DUS'} / ${lote.fechaDUS ?? 'No Fecha'}`
+        : lote[key] ?? 'No aplica';
+      fila++;
+    });
+
+    fila = 10;
+    detalleColumna2.forEach(({ label, key }) => {
+      worksheet.getCell(`E${fila}`).value = label;
+      worksheet.getCell(`F${fila}`).value = ':';
+      worksheet.getCell(`G${fila}`).value = lote[key] ?? 'No aplica';
+      fila++;
+    });
+
+    const startRowTabla = 10 + Math.max(detalleColumna1.length, detalleColumna2.length) + 1;
+
+    worksheet.mergeCells(`B${startRowTabla}:C${startRowTabla}`);
+    worksheet.getCell(`B${startRowTabla}`).value = 'Lote';
+    worksheet.getCell(`B${startRowTabla}`).font = { bold: true };
+    worksheet.getCell(`B${startRowTabla}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getCell(`B${startRowTabla}`).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+
+    worksheet.getCell(`D${startRowTabla}`).value = 'Bodega';
+    worksheet.getCell(`E${startRowTabla}`).value = 'T.M.H';
+    worksheet.getCell(`F${startRowTabla}`).value = '% Humedad';
+    worksheet.getCell(`G${startRowTabla}`).value = 'TMS (KG)';
+
+    ['D', 'E', 'F', 'G'].forEach((col) => {
+      const cell = worksheet.getCell(`${col}${startRowTabla}`);
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+    });
+
+    const sublotes = this.sublote || [];
+    let contador = 1;
+    let currentRow = startRowTabla + 1;
+
+    sublotes.forEach((sublote: any) => {
+      const row = worksheet.getRow(currentRow++);
+      worksheet.mergeCells(`B${row.number}:C${row.number}`);
+      row.getCell(2).value = contador++;
+      row.getCell(4).value = sublote.bodega || 'No aplica';
+
+      const odometroInicial = Number(sublote.odometroInicial) || 0;
+      const odometroFinal = Number(sublote.odometroFinal) || 0;
+      const humedad = Number(sublote.porcHumedad) || 0;
+
+      const tmh = odometroFinal - odometroInicial;
+      const tms = tmh * (1 - humedad / 100);
+
+      row.getCell(5).value = tmh > 0 ? tmh : 'No aplica';
+      row.getCell(6).value = humedad || 'No aplica';
+      row.getCell(7).value = tms > 0 ? tms.toFixed(2) : '';
+
+      sublote.pesoBruto = Number(tmh.toFixed(3));
+      sublote.pesoNetoSeco = Number(tms.toFixed(3));
+
+      [2, 4, 5, 6, 7].forEach(col => {
+        const cell = row.getCell(col);
+        cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    const filaTituloTabla = 51;
+    worksheet.mergeCells(`D${filaTituloTabla}:G${filaTituloTabla}`);
+    worksheet.getCell(`D${filaTituloTabla}`).value = 'PESOS DE EMBARQUE POR BODEGAS';
+    worksheet.getCell(`D${filaTituloTabla}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`D${filaTituloTabla}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`D${filaTituloTabla}`).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+
+    const filaEncabezados = filaTituloTabla + 1;
+    worksheet.getCell(`D${filaEncabezados}`).value = 'BODEGA';
+    worksheet.getCell(`E${filaEncabezados}`).value = 'T.M.H';
+    worksheet.getCell(`F${filaEncabezados}`).value = '% HUMEDAD';
+    worksheet.getCell(`G${filaEncabezados}`).value = 'T.M.S';
+
+    ['D', 'E', 'F', 'G'].forEach(col => {
+      const cell = worksheet.getCell(`${col}${filaEncabezados}`);
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+    });
+
+    const resumenBodegas: Record<string, { tmh: number, humedad: number[], tms: number }> = {};
+    sublotes.forEach((sublote: any) => {
+      const bodega = sublote.bodega || 'No aplica';
+      const tmh = Number(sublote.pesoBruto) || 0;
+      const humedad = Number(sublote.porcHumedad) || 0;
+      const tms = Number(sublote.pesoNetoSeco) || 0;
+
+      if (!resumenBodegas[bodega]) resumenBodegas[bodega] = { tmh: 0, humedad: [], tms: 0 };
+
+      resumenBodegas[bodega].tmh += tmh;
+      resumenBodegas[bodega].humedad.push(humedad);
+      resumenBodegas[bodega].tms += tms;
+    });
+
+    let filaActual = filaEncabezados + 1;
+    let totalTMH = 0;
+    let totalTMS = 0;
+
+    Object.entries(resumenBodegas).forEach(([bodega, valores]) => {
+      const promedioHumedad = valores.humedad.length
+        ? valores.humedad.reduce((a, b) => a + b, 0) / valores.humedad.length
+        : 0;
+
+      worksheet.getCell(`D${filaActual}`).value = bodega;
+      worksheet.getCell(`E${filaActual}`).value = valores.tmh;
+      worksheet.getCell(`F${filaActual}`).value = promedioHumedad.toFixed(2) + '%';
+      worksheet.getCell(`G${filaActual}`).value = valores.tms;
+
+      ['D', 'E', 'F', 'G'].forEach(col => {
+        worksheet.getCell(`${col}${filaActual}`).border = {
+          top: { style: 'thin' }, bottom: { style: 'thin' },
+          left: { style: 'thin' }, right: { style: 'thin' },
+        };
+      });
+
+      totalTMH += valores.tmh;
+      totalTMS += valores.tms;
+      filaActual++;
+    });
+
+    worksheet.getCell(`D${filaActual}`).value = 'PESO TOTAL EMBARCADO';
+    worksheet.getCell(`E${filaActual}`).value = totalTMH;
+    worksheet.getCell(`F${filaActual}`).value = '';
+    worksheet.getCell(`G${filaActual}`).value = totalTMS;
+
+    ['D', 'E', 'F', 'G'].forEach(col => {
+      worksheet.getCell(`${col}${filaActual}`).font = { bold: true };
+      worksheet.getCell(`${col}${filaActual}`).border = {
+        top: { style: 'thin' }, bottom: { style: 'thin' },
+        left: { style: 'thin' }, right: { style: 'thin' },
+      };
+    });
+
+    worksheet.getCell('G62').value = 'BRUNO ACEVEDO';
+    worksheet.getCell('G63').value = 'SUPERVISOR TECNICO';
+    worksheet.getCell('G62').alignment = { horizontal: 'center' };
+    worksheet.getCell('G63').alignment = { horizontal: 'center' };
+    worksheet.getCell('G62').font = { italic: true };
+    worksheet.getCell('G63').font = { italic: true };
+
+    for (let i = 1; i <= 100; i++) {
+      const row = worksheet.getRow(i);
+      for (let j = 1; j <= 26; j++) {
+        row.getCell(j).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } };
+      }
+    }
+
+    worksheet.pageSetup = {
+      orientation: 'landscape',
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 1,
+      horizontalCentered: true,
+      verticalCentered: true,
+      margins: {
+        top: 0.1, bottom: 0.1, left: 0.1, right: 0.1, header: 0.0, footer: 0.0
+      }
+    };
+
+    worksheet.pageSetup.printArea = `B1:G${filaActual + 5}`;
+
+    worksheet.eachRow({ includeEmpty: false }, (row) => {
+      row.font = { size: 9 };
+    });
+
+    const bordeExterior: Partial<ExcelJS.Borders> = {
+      top: { style: 'medium' },
+      left: { style: 'medium' },
+      bottom: { style: 'medium' },
+      right: { style: 'medium' }
+    };
+
+    const filaInicio = 1;
+    const filaFin = filaActual + 5;
+    const colInicio = 2;
+    const colFin = 7;
+
+    for (let fila = filaInicio; fila <= filaFin; fila++) {
+      for (let col = colInicio; col <= colFin; col++) {
+        const cell = worksheet.getCell(fila, col);
+        const borde: Partial<ExcelJS.Borders> = {};
+
+        if (fila === filaInicio) borde.top = bordeExterior.top;
+        if (fila === filaFin) borde.bottom = bordeExterior.bottom;
+        if (col === colInicio) borde.left = bordeExterior.left;
+        if (col === colFin) borde.right = bordeExterior.right;
+
+        cell.border = { ...cell.border, ...borde };
+      }
+    }
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const formData = new FormData();
+      const archivoExcel = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      formData.append('file', archivoExcel, 'Informe_Final_Embarques.xlsx');
+
+      this.http.post('https://control.als-inspection.cl/api_min/api/convertirexcelpdf/', formData, {
+        responseType: 'blob'
+      }).subscribe((pdfBlob: Blob) => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = 'Informe_Final_Embarques.pdf';
+        link.click();
+      }, error => {
+        console.error('Error al convertir a PDF:', error);
+      });
+    });
+  }
+
+  // INFORME DE PESOS
+
+  async descargarExcelInformePesos() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Informe de Pesos');
+
+    const imagePath = '/assets/images/logos/als_logo_1.png'; // o el logo que necesites
+    const response = await fetch(imagePath);
+    const imageBuffer = await response.arrayBuffer();
+    const imageId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
+
+    // Insertar logo en hoja
+    worksheet.addImage(imageId, {
+      tl: { col: 2, row: 4 },
+      ext: { width: 80, height: 80 }
+    });
+
+    // Insertar logo en hoja
+    worksheet.addImage(imageId, {
+      tl: { col: 56, row: 4 },
+      ext: { width: 80, height: 80 }
+    });
+
+    // Insertar logo en segunda sección (segunda hoja visualmente)
+    worksheet.addImage(imageId, {
+      tl: { col: 2, row: 54 }, // Puedes ajustar la fila/columna si deseas moverlo
+      ext: { width: 80, height: 80 }
+    });
+
+    worksheet.addImage(imageId, {
+      tl: { col: 56, row: 54 }, // Segundo logo al extremo derecho
+      ext: { width: 80, height: 80 }
+    });
+
+    // ----------- DEFINIR ANCHO DE COLUMNAS A a O ----------------
+    worksheet.getColumn('A').width = 2;   // puedes ajustar según necesidad
+    worksheet.getColumn('B').width = 2;
+    worksheet.getColumn('C').width = 30;
+    worksheet.getColumn('D').width = 8;
+    worksheet.getColumn('E').width = 15;
+    worksheet.getColumn('F').width = 15;
+    worksheet.getColumn('G').width = 10;
+    worksheet.getColumn('H').width = 18;
+    worksheet.getColumn('I').width = 10;
+    worksheet.getColumn('J').width = 5;
+    worksheet.getColumn('K').width = 15;
+    worksheet.getColumn('L').width = 15;
+    worksheet.getColumn('M').width = 15;
+    worksheet.getColumn('N').width = 15;
+    worksheet.getColumn('O').width = 5;
+
+    worksheet.getCell('N3').value = 'ALS Inspection Chile Spa';
+    worksheet.getCell('N4').value = 'Calle Limache 3405, Office 61';
+    worksheet.getCell('N5').value = 'Viña del Mar, CHILE';
+    worksheet.getCell('N6').value = 'T +56 32 254 5500';
+
+    ['N3', 'N4', 'N5', 'N6'].forEach(cell => {
+      worksheet.getCell(cell).alignment = { horizontal: 'right' };
+      worksheet.getCell(cell).font = { size: 10 }; // Puedes ajustar tamaño
+    });
+
+    // ----------- APLICAR FONDO BLANCO A TODA LA HOJA ----------------
+    for (let i = 1; i <= 200; i++) {
+      const row = worksheet.getRow(i);
+      for (let j = 1; j <= 26; j++) {
+        row.getCell(j).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF' },
+        };
+      }
+    }
+
+    // ----------- DATOS GENERALES ----------------
+    const lote = this.data.lote || {};
+    const cantidadDUS = this.sublote?.length || 0;
+    const bodegasUnicasString = [...new Set(this.sublote?.map((s: any) => s.bodega))].sort().join(' - ');
+
+    // ----------- TÍTULOS ----------------
+    worksheet.mergeCells('D6:H6');
+    worksheet.getCell('D6').value = 'INFORME DE PESO';
+    worksheet.getCell('D6').font = { bold: true, size: 14 };
+    worksheet.getCell('D6').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    worksheet.mergeCells('D7:H7');
+    worksheet.getCell('D7').value = 'CONCENTRADO DE COBRE QUE AMPARA EL DUS N° DUS';
+    worksheet.getCell('D7').font = { bold: true, size: 12 };
+    worksheet.getCell('D7').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    worksheet.mergeCells('D8:H8');
+    worksheet.getCell('D8').value = 'ALS INSPECTION CHILE SpA';
+    worksheet.getCell('D8').font = { bold: true, size: 12 };
+    worksheet.getCell('D8').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // ----------- INFORMACIÓN GENERAL ----------------
+    let filaInfo = 9;
+    worksheet.mergeCells(`C${filaInfo}:E${filaInfo}`);
+    worksheet.getCell(`C${filaInfo}`).value = 'I INFORMACIÓN GENERAL';
+    worksheet.getCell(`C${filaInfo}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaInfo}`).alignment = { horizontal: 'left', vertical: 'middle' };
+    filaInfo++;
+
+    const datosCol1 = [
+      { label: 'Referencia ALS', value: lote.refFocus },
+      { label: 'N° Resolución Vigente S.N.A', value: lote.numResolucionSNA },
+      { label: 'DUS / Fecha', value: `${lote.DUS ?? 'No DUS'} / ${lote.fechaDUS ?? 'No Fecha'}` },
+      { label: 'Exportador', value: lote.exportador },
+      { label: 'Contrato COCHILCO y cuota', value: lote.contratoCochilco },
+      { label: 'Puerto embarque', value: 'Puerto Ventanas' },
+      { label: 'Consignatario', value: lote.cliente },
+      { label: 'Procedimiento Certificado', value: lote.certificado },
+      { label: 'Nombre laboratorio de ensayo', value: 'ALS INSPECTION' },
+    ];
+
+    datosCol1.forEach(({ label, value }) => {
+      worksheet.getCell(`C${filaInfo}`).value = label;
+      worksheet.getCell(`D${filaInfo}`).value = ':';
+      worksheet.getCell(`E${filaInfo}`).value = value ?? 'No aplica';
+      filaInfo++;
+    });
+
+    let filaCol2 = 10;
+    const datosCol2 = [
+      { label: 'Aduana', value: lote.aduana },
+      { label: 'N° de registro INN', value: lote.registroINN },
+      { label: 'Cantidad item del DUS', value: cantidadDUS },
+      { label: 'Rut del Exportador', value: lote.rutExportador },
+      { label: 'N° de Contrato', value: lote.contratoAnglo },
+      { label: 'Nombre de la Motonave', value: lote.nombreNave },
+    ];
+
+    datosCol2.forEach(({ label, value }) => {
+      worksheet.mergeCells(`H${filaCol2}:I${filaCol2}`);
+      worksheet.getCell(`H${filaCol2}`).value = label;
+      worksheet.getCell(`J${filaCol2}`).value = ':';
+      worksheet.getCell(`K${filaCol2}`).value = value ?? 'No aplica';
+      filaCol2++;
+    });
+
+    // ----------- PESO EMBARCADO POR ITEM DEL DUS ----------------
+    let filaPeso = Math.max(filaInfo, filaCol2) + 1;
+    worksheet.mergeCells(`C${filaPeso}:K${filaPeso}`);
+    worksheet.getCell(`C${filaPeso}`).value = 'II PESO EMBARCADO POR ITEM DEL DUS';
+    worksheet.getCell(`C${filaPeso}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaPeso}`).alignment = { horizontal: 'left', vertical: 'middle' };
+    filaPeso++;
+
+    const formatPeso = (valor: number | string | null | undefined): string => {
+      const num = Number(valor);
+      if (isNaN(num)) return '';
+      return (num * 1000).toLocaleString('es-CL'); // Formato chileno: punto como separador de miles
+    };
+
+    const datosPesoCol1 = [
+      { label: 'N° de item del DUS', value: '' },
+      { label: 'Fecha de inicio muestreo', value: lote.fLote },
+      { label: 'Fecha inicio embarque', value: lote.fLote },
+      { label: 'Cantidad de contenedores', value: '' },
+      { label: 'Peso bruto húmedo (kg)', value: formatPeso(lote.pesoBrutoHumedo) + ' kg' },
+      { label: 'Peso neto húmedo (kg)', value: formatPeso(lote.pesoNetoHumedo) + ' kg' },
+      { label: 'Peso neto seco (kg)', value: formatPeso(lote.pesoNetoSeco) + ' kg' },
+      { label: 'Identificación bodega', value: bodegasUnicasString },
+    ];
+
+    let filaCol3 = filaPeso;
+    datosPesoCol1.forEach(({ label, value }) => {
+      worksheet.getCell(`C${filaCol3}`).value = label;
+      worksheet.getCell(`D${filaCol3}`).value = ':';
+      worksheet.getCell(`E${filaCol3}`).value = value ?? 'No aplica';
+      filaCol3++;
+    });
+
+    let filaCol4 = filaPeso;
+    const datosPesoCol2 = [
+      { label: 'Término muestreo', value: lote.fechaTermino },
+      { label: 'Término embarque', value: lote.fechaTermino },
+      { label: 'Cantidad de sacos', value: '' },
+      { label: 'Peso tara (kg)', value: formatPeso(lote.pesoTara) + ' kg' },
+      { label: 'Humedad', value: lote.porcHumedad },
+    ];
+
+    datosPesoCol2.forEach(({ label, value }) => {
+      worksheet.mergeCells(`H${filaCol4}:I${filaCol4}`);
+      worksheet.getCell(`H${filaCol4}`).value = label;
+      worksheet.getCell(`J${filaCol4}`).value = ':';
+      worksheet.getCell(`K${filaCol4}`).value = value ?? 'No aplica';
+      filaCol4++;
+    });
+
+    // ----------- PESOS EMBARCADOS DEL DUS ----------------
+    let filaPesosDUS = Math.max(filaCol3, filaCol4) + 1;
+    worksheet.mergeCells(`C${filaPesosDUS}:K${filaPesosDUS}`);
+    worksheet.getCell(`C${filaPesosDUS}`).value = 'III PESOS EMBARCADOS DEL DUS';
+    worksheet.getCell(`C${filaPesosDUS}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaPesosDUS}`).alignment = { horizontal: 'left', vertical: 'middle' };
+    filaPesosDUS++;
+
+    worksheet.getCell(`C${filaPesosDUS}`).value = 'Peso Neto Húmedo (kg)';
+    worksheet.getCell(`D${filaPesosDUS}`).value = ':';
+    // Obtener el valor original (puede venir como string o número)
+    let pesoNetoHumedo = lote.pesoNetoHumedo ?? null;
+
+    if (pesoNetoHumedo !== null && !isNaN(Number(pesoNetoHumedo))) {
+      const valor = Number(pesoNetoHumedo) * 1000;
+
+      // Formatear como string con punto como separador
+      const valorConPuntos = valor.toLocaleString('de-DE'); // Ej: 10.000.000
+
+      worksheet.getCell(`E${filaPesosDUS}`).value = `${valorConPuntos} kg`;
+    } else {
+      worksheet.getCell(`E${filaPesosDUS}`).value = 'No aplica';
+    }
+    filaPesosDUS++;
+
+    worksheet.getCell(`C${filaPesosDUS}`).value = 'Determinación de peso realizada por';
+    worksheet.getCell(`D${filaPesosDUS}`).value = ':';
+    worksheet.getCell(`E${filaPesosDUS}`).value = 'Pesómetro';
+
+    let filaCasilla = filaPesosDUS + 1;
+
+    const metodosPeso = [
+      { nombre: 'Pesómetro', nota: false },
+      { nombre: 'Báscula', nota: false },
+      { nombre: 'Draft Survey*', nota: true },
+    ];
+
+    metodosPeso.forEach(({ nombre, nota }) => {
+      worksheet.getCell(`F${filaCasilla}`).value = nombre;
+
+      // Agregar bordes negros a la casilla en G
+      worksheet.getCell(`G${filaCasilla}`).border = {
+        top: { style: 'thin', color: { argb: '000000' } },
+        bottom: { style: 'thin', color: { argb: '000000' } },
+        left: { style: 'thin', color: { argb: '000000' } },
+        right: { style: 'thin', color: { argb: '000000' } },
+      };
+
+      // Marcar con "X" si es Pesómetro
+      if (nombre === 'Pesómetro') {
+        worksheet.getCell(`G${filaCasilla}`).value = 'X';
+        worksheet.getCell(`G${filaCasilla}`).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getCell(`G${filaCasilla}`).font = { bold: true };
+      }
+
+      if (nota) {
+        worksheet.getCell(`H${filaCasilla}`).value = '(*Solo cuando está autorizado por el servicio)';
+        worksheet.getCell(`H${filaCasilla}`).font = { italic: true, size: 9 };
+        worksheet.getCell(`H${filaCasilla}`).alignment = { horizontal: 'left' };
+      }
+
+      filaCasilla++;
+    });
+
+    // ----------- INFORMACIÓN DE EQUIPO CONTROL ----------------
+    let filaEquipoControl = filaCasilla + 1;
+    worksheet.mergeCells(`C${filaEquipoControl}:K${filaEquipoControl}`);
+    worksheet.getCell(`C${filaEquipoControl}`).value = 'IV INFORMACIÓN DE EQUIPO CONTROL';
+    worksheet.getCell(`C${filaEquipoControl}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaEquipoControl}`).alignment = { horizontal: 'left', vertical: 'middle' };
+    filaEquipoControl++;
+
+    const datosEquipo = [
+      { label: 'Marca del equipo de control de peso', value: this.pesometro.marca },
+      { label: 'Capacidad del equipo de control de peso', value: this.pesometro.capacidad + ' tmh/hr' },
+      { label: 'Código y fecha de última calibración', value: this.pesometro.codigo + ' / ' + this.pesometro.fechaCalibracion },
+    ];
+    datosEquipo.forEach(({ label, value }) => {
+      worksheet.getCell(`C${filaEquipoControl}:D${filaEquipoControl}`).value = label;
+      worksheet.getCell(`E${filaEquipoControl}`).value = ':';
+      worksheet.getCell(`F${filaEquipoControl}`).value = value;
+      filaEquipoControl++;
+    });
+
+    // ----------- NOTAS ----------------
+    filaEquipoControl++;
+    const notasPie = [
+      '1: Indicar el nombre del laboratorio a quien entrega la muestra y emitirá el informe de calidad',
+      '2: Este dato solo se completa cuando se trate de embarques de concentrado acondicionado en contenedores',
+      '3: Este dato solo se completa cuando el concentrado se embarca en maxisacos',
+      '4: El peso bruto húmedo y peso tara solo se indica cuando el concentrado se embarca en contenedores. ' +
+      'Adicionalmente en la siguiente página, se deberá identificar cada contenedor, señalando peso bruto, ' +
+      'peso neto húmedo y porcentaje de humedad',
+      '5: En embarque de concentrado a granel y si la bodega es compartida por más de un DUS, indicar la bodega y el DUS que la comparte',
+      '   Ej: BODEGA 1 (N° DUS (1), cantidad kg; N° DUS (2), cantidad Kg); BODEGA 2 (N° DUS(1), cantidad kg)',
+    ];
+    notasPie.forEach((nota) => {
+      worksheet.mergeCells(`C${filaEquipoControl}:N${filaEquipoControl}`);
+      worksheet.getCell(`C${filaEquipoControl}`).value = nota;
+      worksheet.getCell(`C${filaEquipoControl}`).font = { size: 8, italic: true };
+      worksheet.getCell(`C${filaEquipoControl}`).alignment = { horizontal: 'left', wrapText: true };
+      filaEquipoControl++;
+    });
+
+    // ----------- ESPACIO MANUAL PARA SEPARAR LAS PARTES ----------------
+    const filaInicioSegundaParte = 58;
+
+    // ----------- SEGUNDA PARTE (CONTENEDORES) ----------------
+    let filaCont = filaInicioSegundaParte;
+
+    worksheet.getCell(`N55`).value = 'ALS Inspection Chile Spa';
+    worksheet.getCell(`N56`).value = 'Calle Limache 3405, Office 61';
+    worksheet.getCell(`N57`).value = 'Viña del Mar, CHILE';
+    worksheet.getCell(`N58`).value = 'T +56 32 254 5500';
+
+    ['N55', 'N56', 'N57', 'N58'].forEach(cell => {
+      worksheet.getCell(cell).alignment = { horizontal: 'right' };
+      worksheet.getCell(cell).font = { size: 10 }; // Puedes ajustar tamaño
+    });
+
+    worksheet.mergeCells(`D${filaCont}:H${filaCont}`);
+    worksheet.getCell(`D${filaCont}`).value = 'INFORME DE PESO';
+    worksheet.getCell(`D${filaCont}`).font = { bold: true, size: 14 };
+    worksheet.getCell(`D${filaCont}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    filaCont++;
+
+    worksheet.mergeCells(`D${filaCont}:H${filaCont}`);
+    worksheet.getCell(`D${filaCont}`).value = 'CONCENTRADO DE COBRE QUE AMPARA EL DUS N° DUS';
+    worksheet.getCell(`D${filaCont}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`D${filaCont}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    filaCont++;
+
+    worksheet.mergeCells(`D${filaCont}:H${filaCont}`);
+    worksheet.getCell(`D${filaCont}`).value = 'ALS INSPECTION CHILE SpA';
+    worksheet.getCell(`D${filaCont}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`D${filaCont}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    filaCont++;
+
+    // ----------- PRIMERA TABLA ----------------
+    filaCont += 1;
+    // Encabezado principal
+    worksheet.mergeCells(`C${filaCont}:H${filaCont}`);
+    worksheet.getCell(`C${filaCont}`).value = 'V INFORMACIÓN GENERAL PARA EMBARQUES EN CONTENEDORES';
+    worksheet.getCell(`C${filaCont}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaCont}`).alignment = { horizontal: 'left' };
+    filaCont++;
+
+    // Subencabezado
+    worksheet.mergeCells(`C${filaCont}:C${filaCont + 1}`);
+    worksheet.getCell(`C${filaCont}`).value = 'Lote';
+    worksheet.getCell(`C${filaCont}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getCell(`C${filaCont}`).font = { bold: true };
+
+    worksheet.mergeCells(`D${filaCont}:E${filaCont}`);
+    worksheet.getCell(`D${filaCont}`).value = 'Fecha de consolidación';
+    worksheet.getCell(`D${filaCont}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`D${filaCont}`).font = { bold: true };
+
+    worksheet.mergeCells(`F${filaCont}:H${filaCont}`);
+    worksheet.getCell(`F${filaCont}`).value = 'Peso húmedo (kg)';
+    worksheet.getCell(`F${filaCont}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`F${filaCont}`).font = { bold: true };
+
+    worksheet.mergeCells(`I${filaCont}:J${filaCont}`); // Fusión horizontal
+    worksheet.getCell(`I${filaCont}`).value = 'Humedad';
+    worksheet.getCell(`I${filaCont}`).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getCell(`I${filaCont}`).font = { bold: true };
+
+    worksheet.mergeCells(`K${filaCont + 1}`);
+    worksheet.getCell(`K${filaCont}`).value = 'Peso seco neto';
+    worksheet.getCell(`K${filaCont}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`K${filaCont}`).font = { bold: true };
+
+    filaCont += 1;
+
+    // Segunda fila (inicio/término/tara/etc.)
+    worksheet.getCell(`D${filaCont}`).value = 'Inicio';
+    worksheet.getCell(`E${filaCont}`).value = 'Término';
+    worksheet.getCell(`F${filaCont}`).value = 'Tara';
+    worksheet.getCell(`G${filaCont}`).value = 'Bruto';
+    worksheet.getCell(`H${filaCont}`).value = 'Neto';
+
+    // Aplicar bordes delgados (encabezado y subencabezado: C a K)
+    for (let col = 3; col <= 11; col++) {
+      for (let row = filaCont - 1; row <= filaCont; row++) {
+        const cell = worksheet.getRow(row).getCell(col);
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+          bottom: { style: 'thin', color: { argb: '000000' } },
+          left: { style: 'thin', color: { argb: '000000' } },
+          right: { style: 'thin', color: { argb: '000000' } },
+        };
+      }
+    }
+
+    filaCont++;
+
+    // Celdas vacías para ingresar datos
+    for (let i = 0; i < 5; i++) {
+      for (let col = 3; col <= 11; col++) {
+        const cell = worksheet.getRow(filaCont + i).getCell(col);
+        cell.value = '';
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+          bottom: { style: 'thin', color: { argb: '000000' } },
+          left: { style: 'thin', color: { argb: '000000' } },
+          right: { style: 'thin', color: { argb: '000000' } },
+        };
+      }
+    }
+    filaCont += 5 + 2;
+
+    // ----------- SEGUNDA TABLA ----------------
+
+    worksheet.mergeCells(`C${filaCont}:O${filaCont}`);
+    worksheet.getCell(`C${filaCont}`).value = 'VI DETALLE PESO EMBARCADO POR LOTE PARA EMBARQUES EN CONTENEDORES';
+    worksheet.getCell(`C${filaCont}`).font = { bold: true, size: 12 };
+    worksheet.getCell(`C${filaCont}`).alignment = { horizontal: 'left' };
+    filaCont++;
+
+    worksheet.mergeCells(`C${filaCont}:O${filaCont}`);
+    worksheet.getCell(`C${filaCont}`).value = '(Si se embarca en contenedores, se debe completar este cuadro y se debe replicar para cada lote)';
+    worksheet.getCell(`C${filaCont}`).font = { italic: true, size: 10 };
+    worksheet.getCell(`C${filaCont}`).alignment = { horizontal: 'left' };
+    filaCont += 2;
+
+    // Fusión vertical de encabezados principales
+    worksheet.mergeCells(`C${filaCont}:C${filaCont + 1}`);
+    worksheet.getCell(`C${filaCont}`).value = 'Lote';
+
+    worksheet.mergeCells(`D${filaCont}:D${filaCont + 1}`);
+    worksheet.getCell(`D${filaCont}`).value = 'Fecha';
+
+    worksheet.mergeCells(`E${filaCont}:E${filaCont + 1}`);
+    worksheet.getCell(`E${filaCont}`).value = 'Contenedor';
+
+    worksheet.mergeCells(`F${filaCont}:F${filaCont + 1}`);
+    worksheet.getCell(`F${filaCont}`).value = 'Sello O.I.';
+
+    worksheet.getCell(`G${filaCont}`).value = 'Sacos';
+    worksheet.getCell(`G${filaCont + 1}`).value = 'Cantidad';
+
+    // Peso húmedo general (título principal)
+    worksheet.mergeCells(`H${filaCont}:L${filaCont}`);
+    worksheet.getCell(`H${filaCont}`).value = 'Peso húmedo (kg)';
+
+    // Subcolumnas de peso húmedo
+    worksheet.getCell(`H${filaCont + 1}`).value = 'Tara';
+    worksheet.mergeCells(`I${filaCont + 1}:J${filaCont + 1}`);
+    worksheet.getCell(`I${filaCont + 1}`).value = 'Bruto';
+    worksheet.mergeCells(`K${filaCont + 1}:L${filaCont + 1}`);
+    worksheet.getCell(`K${filaCont + 1}`).value = 'Neto';
+
+    // Humedad y peso seco
+    worksheet.mergeCells(`M${filaCont}:M${filaCont + 1}`);
+    worksheet.getCell(`M${filaCont}`).value = 'Humedad';
+
+    worksheet.mergeCells(`N${filaCont}:N${filaCont + 1}`);
+    worksheet.getCell(`N${filaCont}`).value = 'Peso seco neto';
+
+    // Bordes para encabezado (2 filas desde C hasta N)
+    for (let rowOffset = 0; rowOffset <= 1; rowOffset++) {
+      const row = worksheet.getRow(filaCont + rowOffset);
+      for (let col = 3; col <= 14; col++) { // C=3 ... N=14
+        const cell = row.getCell(col);
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+          bottom: { style: 'thin', color: { argb: '000000' } },
+          left: { style: 'thin', color: { argb: '000000' } },
+          right: { style: 'thin', color: { argb: '000000' } },
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      }
+    }
+    filaCont += 2;
+
+    // 6 filas en blanco con bordes gruesos para ingreso manual
+    for (let i = 0; i < 6; i++) {
+      for (let col = 3; col <= 14; col++) {
+        const cell = worksheet.getRow(filaCont + i).getCell(col);
+        cell.value = '';
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+          bottom: { style: 'thin', color: { argb: '000000' } },
+          left: { style: 'thin', color: { argb: '000000' } },
+          right: { style: 'thin', color: { argb: '000000' } },
+        };
+      }
+    }
+    filaCont += 6 + 1;
+
+    // ----------- MODULO DE ORGANISMO ----------------
+
+    worksheet.mergeCells(`C${filaCont}:H${filaCont}`);
+    worksheet.getCell(`C${filaCont}`).value = 'VII DATOS ORGANISMO DE INSPECCION';
+    worksheet.getCell(`C${filaCont}`).font = { bold: true };
+    filaCont++;
+
+    worksheet.getCell(`C${filaCont}`).value = 'RUT ALS INSPECTION CHILE SPA';
+    filaCont++;
+
+    worksheet.getCell(`C${filaCont}`).value = 'NOMBRE REPRESENTANTE LEGAL: HUMBERTO ARROYO';
+    filaCont++;
+
+    worksheet.getCell(`C${filaCont}`).value = 'RUT REPRESENTANTE LEGAL: 9.271.486-1';
+    filaCont += 3;
+
+    const datosPie = [
+      'BRUNO ACEVEDO',
+      'ALSINSPECTION CHILE SPA',
+      '(AREA MINERALES)'
+    ];
+
+    datosPie.forEach((texto, i) => {
+      worksheet.mergeCells(`J${filaCont + i}:N${filaCont + i}`);
+      worksheet.getCell(`J${filaCont + i}`).value = texto;
+      worksheet.getCell(`J${filaCont + i}`).alignment = { horizontal: 'right' };
+    });
+
+    // ----------- BORDES EXTERNOS PRIMERA PÁGINA ----------------
+    // Página 1: de B2 a O48
+    for (let row = 2; row <= 48; row++) {
+      for (let col = 2; col <= 15; col++) { // B (2) hasta O (15)
+        const cell = worksheet.getRow(row).getCell(col);
+
+        // Borde superior
+        if (row === 2) {
+          cell.border = { ...cell.border, top: { style: 'thick', color: { argb: '000000' } } };
+        }
+
+        // Borde inferior
+        if (row === 48) {
+          cell.border = { ...cell.border, bottom: { style: 'thick', color: { argb: '000000' } } };
+        }
+
+        // Borde izquierdo
+        if (col === 2) {
+          cell.border = { ...cell.border, left: { style: 'thick', color: { argb: '000000' } } };
+        }
+
+        // Borde derecho
+        if (col === 15) {
+          cell.border = { ...cell.border, right: { style: 'thick', color: { argb: '000000' } } };
+        }
+      }
+    }
+
+    // ----------- BORDES EXTERNOS SEGUNDA PÁGINA ----------------
+    for (let row = 54; row <= 100; row++) {
+      for (let col = 2; col <= 15; col++) {
+        const cell = worksheet.getRow(row).getCell(col);
+        if (row === 54) {
+          cell.border = { ...cell.border, top: { style: 'thick', color: { argb: '000000' } } };
+        }
+        if (row === 100) {
+          cell.border = { ...cell.border, bottom: { style: 'thick', color: { argb: '000000' } } };
+        }
+        if (col === 2) {
+          cell.border = { ...cell.border, left: { style: 'thick', color: { argb: '000000' } } };
+        }
+        if (col === 15) {
+          cell.border = { ...cell.border, right: { style: 'thick', color: { argb: '000000' } } };
+        }
+      }
+    }
+
+    worksheet.pageSetup.margins = {
+      top: 0.5,
+      bottom: 0.5,
+      left: 0.4,
+      right: 0.4,
+      header: 0.5,
+      footer: 0.5
+    };
+
+    worksheet.pageSetup.orientation = 'landscape';
+    worksheet.pageSetup.fitToPage = false;    // ← Desactiva para usar scale
+    worksheet.pageSetup.scale = 70;          // ← Aumenta tamaño del contenido
+
+    worksheet.pageSetup.printArea = 'A1:O100';
+    worksheet.pageSetup.horizontalCentered = true;
+    worksheet.pageSetup.verticalCentered = true;
+
+    // ----------- EXPORTAR EXCEL Y CONVERTIR A PDF ----------------
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const formData = new FormData();
+      const archivoExcel = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      formData.append('file', archivoExcel, 'Informe_Pesos.xlsx');
+
+      this.http.post('https://control.als-inspection.cl/api_min/api/convertirexcelpdf/', formData, {
+        responseType: 'blob'
+      }).subscribe((pdfBlob: Blob) => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = 'Informe_Pesos.pdf';
+        link.click();
+      }, error => {
+        console.error('Error al convertir a PDF:', error);
+      });
+    });
   }
 }
 
@@ -495,27 +1493,28 @@ export class CrearRegistroDialog {
   // }
 
   ngOnInit(): void {
-    this.admin = RolService.isTokenValid();
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Operador')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.operator = true;
-          console.log('El usuario tiene el rol de Operador');
-        } else {
+    this.rolService.getRoles(localStorage.getItem('email') || '')
+      .subscribe(roles => {
+        if (roles.includes('Admin')) {
+          this.admin = true;
           this.operator = false;
-          console.log('El usuario no tiene el rol de Operador');
-        }
-      });
-    this.rolService
-      .hasRole(localStorage.getItem('email') || '', 'Encargado')
-      .subscribe((hasRole) => {
-        if (hasRole) {
-          this.encargado = true;
-          console.log('El usuario tiene el rol de Encargado');
-        } else {
           this.encargado = false;
-          console.log('El usuario no tiene el rol de Encargado');
+          return;
+        }else if (roles.includes('Operador')) {
+          this.operator = true;
+          this.admin = false;
+          this.encargado = false;
+          return;
+        }
+        else if (roles.includes('Encargado')) {
+          this.encargado = true;
+          this.admin = false;
+          this.operator = false;
+          return;
+          } else {
+            this.admin = false;
+            this.operator = false;
+            this.encargado = false;
         }
       });
   }
@@ -541,6 +1540,7 @@ export class CrearRegistroDialog {
       pesoLote: [this.data.pesoLote],
       porcHumedad: [this.data.porcHumedad],
       estado: [this.data.estado],
+      bodega: [this.data.bodega],
     });
     this.embarqueTransporteForm = this.fb.group({
       id: [this.data.id],
@@ -554,6 +1554,7 @@ export class CrearRegistroDialog {
       pesoLote: [this.data.pesoLote],
       porcHumedad: [this.data.porcHumedad],
       estado: [this.data.estado],
+      bodega: [this.data.bodega],
     });
   }
 
@@ -603,49 +1604,6 @@ export class CrearRegistroDialog {
       Notiflix.Notify.failure('El formulario no es válido');
     }
   }
-
-  // guardar() {
-  //   const formData = this.embarqueTransporteForm.value;
-  //   const fechaFormateada = this.formatDate(formData.fechaInicial);
-  //   const fechaFormateada2 = this.formatDate(formData.fechaFinal);
-
-  //   formData.fechaInicial = fechaFormateada;
-  //   formData.fechaFinal = fechaFormateada2;
-
-  //   const pesoLote = formData.pesoLote;
-
-  //   if (
-  //     pesoLote &&
-  //     pesoLote.toString().split('.')[1] &&
-  //     pesoLote.toString().split('.')[1].length > 2
-  //   ) {
-  //     Notiflix.Notify.failure(
-  //       'El campo "Peso Lote" debe tener máximo 2 decimales'
-  //     );
-  //     return;
-  //   }
-  //   Notiflix.Confirm.show(
-  //     'Guardar cambios',
-  //     '¿Estás seguro de guardar los cambios?',
-  //     'Sí',
-  //     'No',
-  //     () => {
-  //       // Enviar el formulario a la API
-  //       this.embarqueTransporteForm.controls['pesoLote'].setValue(pesoLote);
-  //       this.embarqueTransporteForm.controls['fechaInicial'].setValue(
-  //         fechaFormateada
-  //       );
-  //       this.embarqueTransporteForm.controls['fechaFinal'].setValue(
-  //         fechaFormateada2
-  //       );
-  //       this.onSubmit();
-  //     },
-  //     () => {
-  //       Notiflix.Notify.failure('No se guardaron los cambios');
-  //     },
-  //     {}
-  //   );
-  // }
 
   guardar() {
     this.embarqueTransporteForm.patchValue({

@@ -82,7 +82,7 @@ export class DetallePrepComponent {
         material: ['Concentrado de Cobre', Validators.required],
         numLote: [this.data.nLote, Validators.required],
         muestreado: ['ALS INSPECTION', Validators.required],
-        exportador: ['Ocean Partners', Validators.required],
+        exportador: ['Anglo American', Validators.required],
         puertoDes: ['', Validators.required],
         contrato: ['', Validators.required],
         cliente: ['TO ORDER'],
@@ -103,7 +103,7 @@ export class DetallePrepComponent {
         material: ['Concentrado de Cobre', Validators.required],
         numLote: [this.data.nLote, Validators.required],
         muestreado: ['ALS INSPECTION', Validators.required],
-        exportador: ['Ocean Partners', Validators.required],
+        exportador: ['Anglo American', Validators.required],
         puertoDes: ['', Validators.required],
         contrato: ['', Validators.required],
         cliente: ['TO ORDER'],
@@ -145,12 +145,12 @@ export class DetallePrepComponent {
           numLote: this.lote.nLote,
           material: 'Concentrado de Cobre',
           muestreado: 'ALS INSPECTION',
-          exportador: 'Ocean Partners',
+          exportador: 'Anglo American',
           pesoNetoHumedo: this.lote.pesoNetoHumedo,
           humedad: parseFloat(this.lote.porcHumedad).toFixed(4),
           referenciaAls: this.lote.observacion,
           pesoNetoSeco: this.lote.pesoNetoSeco,
-          responsable: 'Carlos Soto',
+          responsable: this.lote.responsable,
         });
         console.log('Lote encontrado:');
         console.log(this.lote);
