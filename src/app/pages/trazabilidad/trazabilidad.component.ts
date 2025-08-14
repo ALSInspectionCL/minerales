@@ -87,7 +87,7 @@ export class TrazabilidadComponent {
     'servicio',
     'solicitud',
     'name',
-    'email',
+    // 'email',
     'mobile',
     'estado',
     'action',
@@ -170,6 +170,8 @@ export class TrazabilidadComponent {
 
         this.dataSource.data = lotesConNombres;
 
+        console.log('Lotes cargados:', this.dataSource.data);
+
         this.lote = lotesConNombres.length > 0 ? lotesConNombres[0] : null;
 
         console.log('Lotes con nombres:', this.lote);
@@ -181,7 +183,7 @@ export class TrazabilidadComponent {
     );
   }
 
-  detalleQr() {
+  nuevaTrazabilidad() {
     const dialogRef = this.dialog.open(DetalleQrComponent, {
       width: '40%', // Ajusta el ancho del diálogo
       height: '50%', // Ajusta la altura del diálogo
@@ -189,7 +191,7 @@ export class TrazabilidadComponent {
 
     dialogRef.afterClosed().subscribe((result) => {
       console.log('El diálogo se cerró con el resultado: ', result);
-      this.cargarLote(); // Recargar los lotes después de cerrar el diálogo
+      this.ngAfterViewInit(); // Recargar los lotes después de cerrar el diálogo
     });
   }
 
@@ -201,7 +203,7 @@ export class TrazabilidadComponent {
 
     dialogRef.afterClosed().subscribe((result) => {
       console.log('El diálogo se cerró con el resultado: ', result);
-      this.cargarLote(); // Recargar los lotes después de cerrar el diálogo
+      this.ngAfterViewInit(); // Recargar los lotes después de cerrar el diálogo
     });
   }
 
@@ -212,10 +214,6 @@ export class TrazabilidadComponent {
       data: {
         numLote: Num,
       },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-
     });
   }
 
@@ -523,8 +521,19 @@ export class TrazabilidadComponent {
         this.trazabilidades = response;
         console.log('Trazabilidades:');
         console.log(this.trazabilidades);
-      });
+        // Para cada dato en dataSource, agregar el estado correspondiente
+        this.dataSource.data.forEach((element: any) => {
+          const trazabilidad = this.trazabilidades.find((t: any) => t.nLote === element.nLote);
+          if (trazabilidad) {
+            element.estado = trazabilidad.estado;
+            element.esta = trazabilidad.estado; // Agregar el estado al elemento
+          }else{
+            element.estado = 'No existe'; // Si no existe la trazabilidad, agregar el estado
+          }
+        }
+        );
 
+      });
   }
 
   formatDate(date: Date): string {
@@ -547,6 +556,16 @@ export class TrazabilidadComponent {
       console.log('El diálogo se cerró con el resultado: ', result);
       this.cargarLote(); // Recargar los lotes después de cerrar el diálogo
     });
+  }
+
+  calcularMasaRecargo(pesoNetoSeco:number, sumaPesosNetosSecos:number): number {
+    let masaRecargo = 0;
+    if (sumaPesosNetosSecos === 0) {
+      return 0;
+    }else{
+      masaRecargo = ((pesoNetoSeco / sumaPesosNetosSecos)* 2500)/2 ;
+      return masaRecargo;
+    }
   }
 }
 

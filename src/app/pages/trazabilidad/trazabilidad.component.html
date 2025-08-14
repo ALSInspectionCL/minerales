@@ -17,7 +17,7 @@
           </mat-form-field>
         </div>
         <div class="col-lg-4 d-flex justify-content-end gap-2">
-          <button *ngIf="!cliente" mat-flat-button color="primary" (click)="detalleQr()" class="center-content m-t-8">
+          <button *ngIf="!cliente" mat-flat-button color="primary" (click)="nuevaTrazabilidad()" class="center-content m-t-8">
             Nueva Trazabilidad
           </button>
         </div>
@@ -65,12 +65,12 @@
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="email">
+            <!-- <ng-container matColumnDef="email">
               <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
                 N° Camiones
               </th>
               <td mat-cell *matCellDef="let element" class="f-s-14">{{ element.cantidadTransporte }}</td>
-            </ng-container>
+            </ng-container> -->
 
             <ng-container matColumnDef="mobile">
               <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">

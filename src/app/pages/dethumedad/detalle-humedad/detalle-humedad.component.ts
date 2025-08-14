@@ -616,7 +616,7 @@ this.humedadForm.patchValue({
 this.dataSource[0].porcHumedad2 = parseFloat(porcHumedad2.toFixed(2));
 const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
 
-// Redondeo positivo a dos decimales
+// Redondeo positivo a dos decimales (DESACTIVADO POR PRUEBAS)
 function redondeoPositivo(num: number): number {
   const entero = Math.floor(num);
   const decimal = num - entero;
@@ -630,9 +630,9 @@ function redondeoPositivo(num: number): number {
 const porcHumedadFinalRedondeado = redondeoPositivo(porcHumedadFinal);
 
 this.humedadForm.patchValue({
-  porcHumedadFinal: porcHumedadFinalRedondeado,
+  porcHumedadFinal: porcHumedadFinal,
 });
-this.dataSource[0].porcHumedadFinal = porcHumedadFinalRedondeado;
+this.dataSource[0].porcHumedadFinal = porcHumedadFinal.toFixed(2);
     }
     if (pSalidaHorno3Lata1 <= 0 && pSalidaHorno3Lata2 <= 0) {
       return;
