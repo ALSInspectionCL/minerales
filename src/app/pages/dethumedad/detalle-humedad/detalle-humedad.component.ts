@@ -494,7 +494,7 @@ export class DetalleHumedadComponent {
       pSalidaHorno3Lata2: parseFloat(this.humedadForm.value.pSalidaHorno3Lata2),
       porcHumedad1: parseFloat(this.humedadForm.value.porcHumedad1),
       porcHumedad2: parseFloat(this.humedadForm.value.porcHumedad2),
-      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal),
+      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal.toFixed(2)),
     };
     // Aquí se actualizan los datos en la API
     // Primero se busca el id del nLote

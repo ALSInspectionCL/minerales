@@ -119,23 +119,26 @@ export class TrazabilidadComponent {
     public http: HttpClient,
     public datePipe: DatePipe,
     private loteService: LoteService
-  ) { }
+  ) {}
   ngOnInit(): void {
-    this.rolService.hasRole(localStorage.getItem('email') || '', 'Cliente').subscribe((hasRole) => {
-      if (hasRole) {
-        this.cliente = true;
-        console.log('El usuario tiene el rol de cliente');
-      } else {
-        this.cliente = false;
-        console.log('El usuario no tiene el rol de cliente');
-      }
-    });
+    this.rolService
+      .hasRole(localStorage.getItem('email') || '', 'Cliente')
+      .subscribe((hasRole) => {
+        if (hasRole) {
+          this.cliente = true;
+          console.log('El usuario tiene el rol de cliente');
+        } else {
+          this.cliente = false;
+          console.log('El usuario no tiene el rol de cliente');
+        }
+      });
   }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.cargarLote();
     this.cargarTrazabilidades();
+    this.cargarLotes();
   }
 
   applyFilter(filterValue: string): void {
@@ -143,28 +146,42 @@ export class TrazabilidadComponent {
   }
 
   cargarLote(): void {
-    const apiLote = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-    const apiSolicitudes = 'https://control.als-inspection.cl/api_min/api/solicitud/';
-    const apiServicio = 'https://control.als-inspection.cl/api_min/api/servicio/';
+    const apiLote =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    const apiSolicitudes =
+      'https://control.als-inspection.cl/api_min/api/solicitud/';
+    const apiServicio =
+      'https://control.als-inspection.cl/api_min/api/servicio/';
 
     forkJoin({
       lotes: this.http.get<loteRecepcion[]>(apiLote),
       solicitudes: this.http.get<any[]>(apiSolicitudes),
-      servicios: this.http.get<any[]>(apiServicio)
+      servicios: this.http.get<any[]>(apiServicio),
     }).subscribe(
       ({ lotes, solicitudes, servicios }) => {
         // Ordenar lotes por fecha
-        lotes.sort((a, b) => new Date(b.fLote).getTime() - new Date(a.fLote).getTime());
+        lotes.sort(
+          (a, b) => new Date(b.fLote).getTime() - new Date(a.fLote).getTime()
+        );
 
         // Relacionar cada lote con su solicitud y servicio
-        const lotesConNombres = lotes.map(lote => {
-          const solicitudEncontrada = solicitudes.find(s => s.id === lote.solicitud);
-          const servicioEncontrado = servicios.find(s => s.id === lote.servicio);
+        const lotesConNombres = lotes.map((lote) => {
+          const solicitudEncontrada = solicitudes.find(
+            (s) => s.id === lote.solicitud
+          );
+          const servicioEncontrado = servicios.find(
+            (s) => s.id === lote.servicio
+          );
 
           return {
             ...lote,
-            nombresolicitud: solicitudEncontrada ? solicitudEncontrada.nSoli : 'Desconocido',
-            nombreservicio: servicioEncontrado && servicioEncontrado.refAls ? servicioEncontrado.refAls : 'Desconocido'
+            nombresolicitud: solicitudEncontrada
+              ? solicitudEncontrada.nSoli
+              : 'Desconocido',
+            nombreservicio:
+              servicioEncontrado && servicioEncontrado.refAls
+                ? servicioEncontrado.refAls
+                : 'Desconocido',
           };
         });
 
@@ -176,11 +193,62 @@ export class TrazabilidadComponent {
 
         console.log('Lotes con nombres:', this.lote);
       },
-      error => {
+      (error) => {
         console.error('Error al cargar lotes, solicitudes o servicios:', error);
         this.lote = null;
       }
     );
+  }
+
+  cargarLotes(): void {
+    const apiLote =
+      'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    const apiSolicitudes =
+      'https://control.als-inspection.cl/api_min/api/solicitud/';
+    const apiServicio =
+      'https://control.als-inspection.cl/api_min/api/servicio/';
+    const apiTrazabilidad =
+      'https://control.als-inspection.cl/api_min/api/trazabilidad/';
+
+    forkJoin({
+      lotes: this.http.get<loteRecepcion[]>(apiLote),
+      solicitudes: this.http.get<any[]>(apiSolicitudes),
+      servicios: this.http.get<any[]>(apiServicio),
+      trazabilidad: this.http.get<any[]>(apiTrazabilidad),
+    }).subscribe(({ lotes, solicitudes, servicios, trazabilidad }) => {
+      // Relacionar cada trazabilidad con su lote ,su solicitud y servicio
+      // Agregar a las trazabilidades el estado, el nombre de la solicitud, el nombre del servicio y la referencia ALS
+      const trazabilidades = trazabilidad.map((t: any) => {
+        const loteEncontrado = lotes.find((l) => l.nLote === t.nLote);
+        const solicitudEncontrada = solicitudes.find(
+          (s) => s.id === loteEncontrado?.solicitud
+        );
+        const servicioEncontrado = servicios.find(
+          (s) => s.id === loteEncontrado?.servicio
+        );
+        return {
+          ...t,
+          ...loteEncontrado,
+          fLote: loteEncontrado ? loteEncontrado.fLote : t.fActual,
+          nombresolicitud: solicitudEncontrada
+            ? solicitudEncontrada.nSoli
+            : 'Desconocido',
+          nombreservicio:
+            servicioEncontrado && servicioEncontrado.refAls
+              ? servicioEncontrado.refAls
+              : 'Desconocido',
+          estado: t.estado, // Agregar el estado de la trazabilidad
+        };
+      });
+      // Ordenar trazabilidades por fecha de lote desde la más reciente a la más antigua
+      trazabilidades.sort(
+        (a, b) => new Date(b.fLote).getTime() - new Date(a.fLote).getTime()
+      );
+      this.dataSource.data = trazabilidades;
+      console.log('Lotes cargados:', this.dataSource.data);
+      this.lote = trazabilidades.length > 0 ? trazabilidades[0] : null;
+      console.log('Lotes con nombres:', this.lote);
+    });
   }
 
   nuevaTrazabilidad() {
@@ -225,7 +293,6 @@ export class TrazabilidadComponent {
   }
 
   eliminarTrazabilidad(id: number, obs: string) {
-
     Notiflix.Confirm.show(
       'Eliminar Trazabilidad',
       '¿Está seguro de que desea eliminar la trazabilidad ' + obs + '?',
@@ -259,36 +326,49 @@ export class TrazabilidadComponent {
 
   eliminarTrazabilidadesMecanicas(nLote: string) {
     // Buscar todas las trazabilidades-mecanica por nLote y las elimina
-    const url = 'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
-    this.http.get<any[]>(url).subscribe((response) => {
-      console.log(response);
-      const existingData = response.filter(item => item.nLote === nLote);
-      console.log(existingData);
-      if (existingData.length > 0) {
-        // Si ya existe, eliminar el registro
-        existingData.forEach((item) => {
-          this.http.delete(`${url}${item.id}/`).subscribe(() => {
-            Notiflix.Notify.success('Trazabilidad mecánica numero ' + item.nSubLote + ' eliminado correctamente');
+    const url =
+      'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
+    this.http.get<any[]>(url).subscribe(
+      (response) => {
+        console.log(response);
+        const existingData = response.filter((item) => item.nLote === nLote);
+        console.log(existingData);
+        if (existingData.length > 0) {
+          // Si ya existe, eliminar el registro
+          existingData.forEach((item) => {
+            this.http.delete(`${url}${item.id}/`).subscribe(() => {
+              Notiflix.Notify.success(
+                'Trazabilidad mecánica numero ' +
+                  item.nSubLote +
+                  ' eliminado correctamente'
+              );
+            });
           });
-        });
-      } else {
-        Notiflix.Notify.failure('No se encontró el registro para eliminar');
-      }
-    },
+        } else {
+          Notiflix.Notify.failure('No se encontró el registro para eliminar');
+        }
+      },
       (error) => {
         console.error('Error al obtener los datos:', error);
         Notiflix.Notify.failure('Error al obtener los datos');
       }
-    )
-  };
+    );
+  }
 
   onInput(event: any) {
-    const inputValue = event.target.value;
+    let inputValue = event.target.value;
     let codigo: string = inputValue;
+    if (!codigo.includes('-')) {
+      inputValue = codigo
+        .replace(/[_:;,.'\s]/g, '-') // Reemplaza los caracteres por un guión
+        .replace(/-+/g, '-') // Reemplaza múltiples guiones por uno solo
+        .trim(); // Elimina espacios en blanco al inicio y al final
+      console.log('Código corregido:', codigo);
+    }
     // Verificar si el código está completo (por ejemplo, si tiene un largo específico y un guión)
     if (codigo.includes('.')) {
-      this.muestra = false; // Si el código no contiene un punto, significa que no está completo
-      // Si el código contiene un punto, significa que está completo
+      this.muestra = false;
+      // Revisar si el código contiene un guión, si no lo contiene, debe reemplazar cualquiera de los siguientes por un guión: ' ', '_', ':', ';', ',', '.',''',
       let codigo = inputValue.split('-')[0]; // Almacena solo la parte antes del guión
       console.log('Código:', codigo);
       if (codigo.includes('M')) {
@@ -304,7 +384,6 @@ export class TrazabilidadComponent {
         this.actualizarEstado(codigo);
         this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
       } else if (codigo.includes('E')) {
-
         // Si el primer elemento es una E, entonces el boolean 'muestra' es false
         this.muestra = false;
         let nLote = codigo.substring(1, codigo.length);
@@ -318,15 +397,38 @@ export class TrazabilidadComponent {
         console.log(nSubLote);
 
         this.abrirOtm(nLote, nSubLote);
+      } else if (codigo.includes('D')) {
+        // Si el primer elemento es una D, entonces el boolean 'muestra' es false
+        this.muestra = false;
+        let nLote = codigo.substring(1, codigo.length);
+        // nSubLote son todos los caracteres desde el guión hasta el final
+        // Si el código contiene un punto, significa que está completo
+        console.log('nLote:', nLote);
+        let arreglo = inputValue.split('-');
+        let nSubLote = arreglo[1];
+        //Quitar el punto y los caracteres que siguen
+        nSubLote = nSubLote.split('.')[0];
+        console.log(nSubLote);
+        this.actualizarEstado(nLote, nSubLote);
+        this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
       }
       this.cargarTrazabilidades();
     }
   }
 
-  actualizarEstado(codigo: string) {
+  actualizarEstado(codigo: string, nSobre?: string): void {
     //Verificar si el codigo existe en trazabilidades
+    console.log('Código a buscar:', codigo);
+    console.log('Número de sobre a buscar:', nSobre);
+    console.log('Trazabilidades disponibles:');
+    console.log(this.trazabilidades);
+    if (nSobre) {
+      //Eliminar 0 si nSobre tiene un 0 al inicio
+      nSobre = nSobre.replace(/^0+/, '');
+      nSobre = nSobre.trim(); // Eliminar espacios en blanco
+    }
     const trazabilidad = this.trazabilidades.find(
-      (element: any) => element.nLote === codigo
+      (t: any) => t.nLote === codigo && (nSobre ? t.nSobre === nSobre : true)
     );
     console.log('Trazabilidad:');
     console.log(trazabilidad);
@@ -335,8 +437,8 @@ export class TrazabilidadComponent {
       Notiflix.Confirm.show(
         'Actualizar Estado',
         'El lote ' +
-        trazabilidad.observacion +
-        ' ha sido escaneado con éxito. Almacenando en Testigoteca.',
+          trazabilidad.observacion +
+          ' ha sido escaneado con éxito. Almacenando en Testigoteca.',
         'Confirmar',
         'Cancelar',
         () => {
@@ -348,15 +450,14 @@ export class TrazabilidadComponent {
           console.log('No continuar con la información escaneada');
         }
       );
-    }
-    else if (trazabilidad && !this.muestra) {
+    } else if (trazabilidad && !this.muestra) {
       Notiflix.Confirm.show(
         'Actualizar Estado',
         'El lote ' +
-        trazabilidad.observacion +
-        ' ha sido escaneado con éxito. Estado : ' +
-        trazabilidad.estado +
-        '.',
+          trazabilidad.observacion +
+          ' ha sido escaneado con éxito. Estado : ' +
+          trazabilidad.estado +
+          '.',
         'Siguiente Etapa',
         'Cancelar',
         () => {
@@ -416,7 +517,7 @@ export class TrazabilidadComponent {
               this.ngAfterViewInit(); // Recargar los lotes después de actualizar la trazabilidad
               return;
             }
-            // Si el boolean 'muestra' es true, mantener todos los valores de la trazabilidad, agregar 
+            // Si el boolean 'muestra' es true, mantener todos los valores de la trazabilidad, agregar
             const horaTestigoteca = new Date().toLocaleTimeString('es-ES', {
               hour: '2-digit',
               minute: '2-digit',
@@ -447,10 +548,13 @@ export class TrazabilidadComponent {
                 break;
               case 'Ingreso Laboratorio':
                 nuevoEstado = 'Ingreso Horno';
-                const horaIngresoHorno = new Date().toLocaleTimeString('es-ES', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                });
+                const horaIngresoHorno = new Date().toLocaleTimeString(
+                  'es-ES',
+                  {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }
+                );
                 body.estado = nuevoEstado;
                 body.fechaIngresoHorno = this.formatDate(new Date());
                 body.horaIngresoHorno = `${horaIngresoHorno}`;
@@ -484,7 +588,9 @@ export class TrazabilidadComponent {
                 body.estado = nuevoEstado;
                 break;
               default:
-                Notiflix.Notify.failure('No se ha actualizado correctamente...');
+                Notiflix.Notify.failure(
+                  'No se ha actualizado correctamente...'
+                );
                 break;
             }
           }
@@ -504,7 +610,7 @@ export class TrazabilidadComponent {
         } else {
           Notiflix.Notify.info('La trazabilidad de este Lote no existe');
         }
-        this.ngAfterViewInit() // Recargar los lotes después de actualizar la trazabilidad
+        this.ngAfterViewInit(); // Recargar los lotes después de actualizar la trazabilidad
       },
       (error) => {
         console.error('Error al obtener trazabilidad', error);
@@ -513,7 +619,7 @@ export class TrazabilidadComponent {
   }
 
   cargarTrazabilidades() {
-    this.trazabilidades = null; // Inicializar trazabilidades a null antes de la llamada  
+    this.trazabilidades = null; // Inicializar trazabilidades a null antes de la llamada
     this.http
       .get('https://control.als-inspection.cl/api_min/api/trazabilidad/')
       .subscribe((response) => {
@@ -523,16 +629,16 @@ export class TrazabilidadComponent {
         console.log(this.trazabilidades);
         // Para cada dato en dataSource, agregar el estado correspondiente
         this.dataSource.data.forEach((element: any) => {
-          const trazabilidad = this.trazabilidades.find((t: any) => t.nLote === element.nLote);
+          const trazabilidad = this.trazabilidades.find(
+            (t: any) => t.nLote === element.nLote
+          );
           if (trazabilidad) {
             element.estado = trazabilidad.estado;
             element.esta = trazabilidad.estado; // Agregar el estado al elemento
-          }else{
+          } else {
             element.estado = 'No existe'; // Si no existe la trazabilidad, agregar el estado
           }
-        }
-        );
-
+        });
       });
   }
 
@@ -558,12 +664,15 @@ export class TrazabilidadComponent {
     });
   }
 
-  calcularMasaRecargo(pesoNetoSeco:number, sumaPesosNetosSecos:number): number {
+  calcularMasaRecargo(
+    pesoNetoSeco: number,
+    sumaPesosNetosSecos: number
+  ): number {
     let masaRecargo = 0;
     if (sumaPesosNetosSecos === 0) {
       return 0;
-    }else{
-      masaRecargo = ((pesoNetoSeco / sumaPesosNetosSecos)* 2500)/2 ;
+    } else {
+      masaRecargo = ((pesoNetoSeco / sumaPesosNetosSecos) * 2500) / 2;
       return masaRecargo;
     }
   }
