@@ -392,7 +392,7 @@
                   placeholder="Ingrese hora"
                 />
               </mat-form-field>
-              <button *ngIf="!cliente" mat-raised-button color="primary" class="w-50">
+              <button *ngIf="!cliente" (click)="guardarDatos()" mat-raised-button color="primary" class="w-50">
                 Enviar Datos
               </button>
             </div>

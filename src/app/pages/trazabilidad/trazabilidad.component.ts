@@ -358,13 +358,11 @@ export class TrazabilidadComponent {
   onInput(event: any) {
     let inputValue = event.target.value;
     let codigo: string = inputValue;
-    if (!codigo.includes('-')) {
-      inputValue = codigo
-        .replace(/[_:;,.'\s]/g, '-') // Reemplaza los caracteres por un guión
-        .replace(/-+/g, '-') // Reemplaza múltiples guiones por uno solo
-        .trim(); // Elimina espacios en blanco al inicio y al final
-      console.log('Código corregido:', codigo);
-    }
+    // Si el codigo contiene cualquiera de estos elementos: _:;,.' se reemplaza por un guión
+    inputValue = inputValue
+    .replace(/[_;.,']/g, '-')
+    // Cambiar los valores de codigo para que esten en mayusculas
+    .toUpperCase()
     // Verificar si el código está completo (por ejemplo, si tiene un largo específico y un guión)
     if (codigo.includes('.')) {
       this.muestra = false;

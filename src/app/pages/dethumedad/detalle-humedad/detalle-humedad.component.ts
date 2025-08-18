@@ -127,6 +127,7 @@ export class DetalleHumedadComponent {
   }
   private apiUrl = 'https://control.als-inspection.cl/api_min/api/criterios-aceptacion/';
   campoSeleccionado: string | null = null;
+  humedad : any = null;
   nLote = '';
   nSublote = '';
   cliente = false;
@@ -240,6 +241,7 @@ export class DetalleHumedadComponent {
                 this.nLote,
                 encontrado
               );
+              this.humedad = encontrado;
               // this.cargarCamposConDatos(encontrado);
               this.humedadForm.patchValue(encontrado);
               this.dataSource = [encontrado];
@@ -396,7 +398,7 @@ export class DetalleHumedadComponent {
     this.http.get<Humedad[]>(url).subscribe(
       (data) => {
         const existe = data.some((item) => item.nLote === nLote && (!nSublote || item.nSublote === nSublote));
-        if (existe) {
+        if (existe || this.humedad) {
           // Si existe, se actualiza el registro
           this.actualizarPesoMaterial();
           this.actualizarPorcentajeHumedad();
@@ -438,9 +440,9 @@ export class DetalleHumedadComponent {
       pSalidaHorno2Lata2: parseFloat(this.humedadForm.value.pSalidaHorno2Lata2),
       pSalidaHorno3Lata1: parseFloat(this.humedadForm.value.pSalidaHorno3Lata1),
       pSalidaHorno3Lata2: parseFloat(this.humedadForm.value.pSalidaHorno3Lata2),
-      porcHumedad1: parseFloat(this.humedadForm.value.porcHumedad1),
-      porcHumedad2: parseFloat(this.humedadForm.value.porcHumedad2),
-      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal),
+      porcHumedad1: parseFloat(Number(this.humedadForm.value.porcHumedad1).toFixed(2)),
+      porcHumedad2: parseFloat(Number(this.humedadForm.value.porcHumedad2).toFixed(2)),
+      porcHumedadFinal: parseFloat(Number(this.humedadForm.value.porcHumedadFinal).toFixed(2))
     };
     // Aquí se guardan los datos en la API
     this.http
@@ -492,20 +494,17 @@ export class DetalleHumedadComponent {
       pSalidaHorno2Lata2: parseFloat(this.humedadForm.value.pSalidaHorno2Lata2),
       pSalidaHorno3Lata1: parseFloat(this.humedadForm.value.pSalidaHorno3Lata1),
       pSalidaHorno3Lata2: parseFloat(this.humedadForm.value.pSalidaHorno3Lata2),
-      porcHumedad1: parseFloat(this.humedadForm.value.porcHumedad1),
-      porcHumedad2: parseFloat(this.humedadForm.value.porcHumedad2),
-      porcHumedadFinal: parseFloat(this.humedadForm.value.porcHumedadFinal.toFixed(2)),
+      porcHumedad1: parseFloat(Number(this.humedadForm.value.porcHumedad1).toFixed(2)),
+      porcHumedad2: parseFloat(Number(this.humedadForm.value.porcHumedad2).toFixed(2)),
+      porcHumedadFinal: parseFloat(Number(this.humedadForm.value.porcHumedadFinal).toFixed(2)),
     };
-    // Aquí se actualizan los datos en la API
-    // Primero se busca el id del nLote
-    const nLote = this.humedadForm.value.nLote;
     if (!datosHumedad.id) {
       console.error('El id no está definido en los datos de humedad');
       // Notiflix.Notify.failure('Error de ID');
       this.crearDatos();
       this.ngOnInit();
       return;
-    }
+    }else{
     console.log('Actualizando datos')
     console.log('Datos a actualizar:', datosHumedad);
     const url = `https://control.als-inspection.cl/api_min/api/humedades/${datosHumedad.id}/`;
@@ -519,6 +518,7 @@ export class DetalleHumedadComponent {
         Notiflix.Notify.failure('Error al verificar si el nLote existe');
       }
     );
+    }
   }
 
   cargarDatos() {
