@@ -61,9 +61,8 @@ import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
-  implements MatDateRangeSelectionStrategy<D>
-{
-  constructor(private _dateAdapter: DateAdapter<D>) {}
+  implements MatDateRangeSelectionStrategy<D> {
+  constructor(private _dateAdapter: DateAdapter<D>) { }
 
   selectionFinished(date: D | null): DateRange<D> {
     return this._createFiveDayRange(date);
@@ -94,6 +93,8 @@ interface Servicio {
   eServ: string;
   fServ: string;
   lServ: string;
+  rServ: string;
+  refAls: string;
 }
 interface Solicitud {
   id: number;
@@ -159,8 +160,11 @@ export class FormulariosComponent {
   dataSource = new MatTableDataSource<any>();
   @ViewChild(MatPaginator) paginator: MatPaginator;
   myControl = new FormControl('');
+  myControl2 = new FormControl('');
   options: string[] = ['Ventanas', 'San Antonio', 'Chagres', 'Otro'];
+  options2: string[] = ['Recepcion', 'Despacho'];
   filteredOptions: Observable<string[]>;
+  filteredOptions2: Observable<string[]>;
   estadoServ: string = 'Iniciado';
   estadoSoli: string = 'Iniciado';
   nServ: number;
@@ -185,11 +189,11 @@ export class FormulariosComponent {
     total: number;
     imagen: any;
   } = {
-    nombreBodega: '',
-    idBodega: 0,
-    total: 0,
-    imagen: null,
-  };
+      nombreBodega: '',
+      idBodega: 0,
+      total: 0,
+      imagen: null,
+    };
   horas: string[] = [];
   idServicio: any;
   idSolicitud: any;
@@ -204,10 +208,12 @@ export class FormulariosComponent {
   ]);
   usuarios: any[];
   servicio = {
+    refAls: '',
     nServ: '',
     fServ: '',
     lServ: '',
     eServ: '',
+    tServ: '',
   };
 
   solicitud = {
@@ -223,13 +229,13 @@ export class FormulariosComponent {
   rolSeleccionado: string;
   userSeleccionado: string;
   lotes: any[];
-  idPesometro : any;
+  idPesometro: any;
   despachoSeleccionado: boolean;
   recepcionSeleccionado: boolean;
   displayedColumns: string[] = ['email', 'fecha', 'hora'];
   constructor(
     private RolService: RolService,
-    private dialog : MatDialog,
+    private dialog: MatDialog,
     private pesometroService: PesometroService,
     private formBuilder: FormBuilder,
     private loteService: LoteService,
@@ -280,6 +286,12 @@ export class FormulariosComponent {
       startWith(''),
       map((value) => this._filter(value || ''))
     );
+
+    this.filteredOptions2 = this.myControl2.valueChanges.pipe(
+      startWith(''),
+      map((value) => this._filter2(value || ''))
+    );
+
   }
 
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
@@ -670,16 +682,19 @@ export class FormulariosComponent {
     const dateFServ = new Date(this.servicio.fServ);
     const formattedFServ = this.formatDate(dateFServ);
     const servicio = {
+      refAls: this.servicio.refAls,
       nServ: this.servicio.nServ,
       fServ: formattedFServ,
       lServ: this.servicio.lServ,
       eServ: 'pendiente',
+      tServ: this.servicio.tServ,
     };
     console.log(servicio);
     this.http.post(apiUrl, servicio).subscribe(
       (respuesta) => {
         console.log(respuesta);
         Notiflix.Notify.success('Servicio creado');
+        this.resetFormulario();
         this.ngOnInit();
         // Aquí puedes mostrar un mensaje de éxito o realizar otras acciones
       },
@@ -691,6 +706,19 @@ export class FormulariosComponent {
       }
     );
   }
+
+    resetFormulario() {
+    this.servicio = {
+      refAls: '',
+      nServ: '',
+      fServ: '',
+      lServ: '',
+      eServ: '',
+      tServ: '',
+    };
+  }
+
+
   onBodegaChange(event: MatSelectChange) {
     const bodegaSeleccionada = event.value; // Esto ahora es el objeto bodega completo
     console.log('Bodega seleccionada:', bodegaSeleccionada);
@@ -1008,6 +1036,14 @@ export class FormulariosComponent {
     const filterValue = value.toLowerCase();
 
     return this.options.filter((option) =>
+      option.toLowerCase().includes(filterValue)
+    );
+  }
+
+  private _filter2(value: string): string[] {
+    const filterValue = value.toLowerCase();
+
+    return this.options2.filter((option) =>
       option.toLowerCase().includes(filterValue)
     );
   }
@@ -1369,7 +1405,7 @@ export class FormulariosComponent {
         this.calcularPromedioHumedades(),
         this.calcularPesoNetoSecoTotal(),
         this.calcularPesoNetoRecepcionTotal() -
-          this.calcularPesoNetoDespachoTotal(),
+        this.calcularPesoNetoDespachoTotal(),
         this.calcularDiferenciaSecaTotal(),
       ])
       .eachCell((cell) => {
@@ -1640,7 +1676,7 @@ export class FormulariosComponent {
         this.calcularPromedioHumedades(),
         this.calcularPesoNetoSecoTotal(),
         this.calcularPesoNetoRecepcionTotal() -
-          this.calcularPesoNetoDespachoTotal(),
+        this.calcularPesoNetoDespachoTotal(),
         this.calcularDiferenciaSecaTotal(),
       ])
       .eachCell((cell) => {
@@ -2249,7 +2285,7 @@ export class FormulariosComponent {
         const blob = new Blob([buffer], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
-        
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2339,16 +2375,35 @@ export class FormulariosComponent {
     });
   }
 
-    dilogEdit(Num: any) {
-      const dialogRef = this.dialog.open(EditComponent, {
-        data: {
-          opcion: Num,
-        },
-      });
-  
-      dialogRef.afterClosed().subscribe(result => {
-  
-      });
-    }
+  dilogEdit(Num: any) {
+    const dialogRef = this.dialog.open(EditComponent, {
+      data: {
+        opcion: Num,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+
+    });
+  }
+
+  formatearReferencia() {
+    if (!this.servicio.refAls) return;
+
+    // Eliminar todo lo que no sea letra o número
+    const clean = this.servicio.refAls.replace(/[^a-zA-Z0-9]/g, '');
+
+    // Extraer partes
+    const letras = clean.substring(0, 3).toUpperCase();
+    const numeros1 = clean.substring(3, 7);
+    const numeros2 = clean.substring(7, 10);
+
+    // Construir con guiones si hay datos suficientes
+    let formateado = letras;
+    if (numeros1) formateado += '-' + numeros1;
+    if (numeros2) formateado += '-' + numeros2;
+
+    this.servicio.refAls = formateado;
+  }
 
 }

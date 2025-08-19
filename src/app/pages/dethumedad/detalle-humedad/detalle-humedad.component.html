@@ -1,6 +1,10 @@
-<div class="mat-card-header m-l-20">
-  <h2>Determinación de Humedad Lote</h2>
-</div>
+<div class="mat-card-header m-l-20 row">
+  <div class="col-md-6">
+    <h2>Detalle de Humedad</h2>
+  </div>
+  <div class="col-md-6 text-right m-t-12">
+    <h3 *ngIf="fInicio" class="mat-subtitle-1">Fecha de creación: {{fInicio || "Pendiente"}}</h3>
+  </div>
 <mat-card>
   <form [formGroup]="humedadForm">
     <mat-card-content>
@@ -571,6 +575,18 @@
               *matRowDef="let row; columns: displayedColumnsResultados"
             ></tr>
           </table>
+          <mat-divider class="m-8"></mat-divider>
+          <div class="text-center">
+            <button
+              *ngIf="!cliente"
+              mat-raised-button
+              color="primary"
+              (click)="preFinalizarProceso()"
+              class="w-50"
+            >
+              Finalizar Proceso
+            </button>
+          </div>
         </mat-step>
       </mat-stepper>
     </mat-card-content>

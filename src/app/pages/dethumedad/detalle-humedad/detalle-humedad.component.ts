@@ -29,6 +29,8 @@ import { RolService } from 'src/app/services/rol.service';
 interface Humedad {
   id?: number;
   nLote: string;
+  fInicio?: string;
+  fFin?:any;
   nSublote?: string;
   observacion: string;
   nLata1: string;
@@ -101,6 +103,8 @@ export class DetalleHumedadComponent {
       id: new FormControl(0), // Este campo se actualizará después de verificar si el nLote existe
       nLote: new FormControl(this.data.nLote),
       nSublote: new FormControl(this.data.nSublote || ''),
+      fInicio: new FormControl(''), // Fecha de inicio actual
+      fFin: new FormControl(''),
       observacion: new FormControl('Iniciado'),
       nLata1: new FormControl(0),
       nLata2: new FormControl(0),
@@ -130,6 +134,8 @@ export class DetalleHumedadComponent {
   humedad : any = null;
   nLote = '';
   nSublote = '';
+  fInicio = '';
+  fFin = '';
   cliente = false;
   pesoLata1 = document.getElementById('pesoLata1');
   pesoLata2 = document.getElementById('pesoLata2');
@@ -143,6 +149,8 @@ export class DetalleHumedadComponent {
   dataDefault: Humedad = {
     nLote: '0',
     nSublote: '0',
+    fInicio :'',
+    fFin : '',
     observacion: 'Iniciado',
     nLata1: '1',
     nLata2: '2',
@@ -244,6 +252,8 @@ export class DetalleHumedadComponent {
               this.humedad = encontrado;
               // this.cargarCamposConDatos(encontrado);
               this.humedadForm.patchValue(encontrado);
+              this.fInicio = encontrado.fInicio || '';
+              this.fFin = encontrado.fFin || '';
               this.dataSource = [encontrado];
               this.actualizarPesoMaterial();
               this.CalcularResultado();
@@ -421,6 +431,8 @@ export class DetalleHumedadComponent {
       //Dejar que django asigne el id
       nLote: this.humedadForm.value.nLote,
       nSublote : this.humedadForm.value.nSublote || '',
+      fInicio : new Date().toISOString().split('T')[0], // Fecha de inicio actual, 
+      fFin : null , // Fecha de fin se asignará al finalizar el proceso
       observacion: this.humedadForm.value.observacion,
       nLata1: this.humedadForm.value.nLata1,
       nLata2: this.humedadForm.value.nLata2,
@@ -445,6 +457,7 @@ export class DetalleHumedadComponent {
       porcHumedadFinal: parseFloat(Number(this.humedadForm.value.porcHumedadFinal).toFixed(2))
     };
     // Aquí se guardan los datos en la API
+    console.log('Datos a guardar:', datosHumedad);
     this.http
       .post(
         'https://control.als-inspection.cl/api_min/api/humedades/',
@@ -675,6 +688,33 @@ this.dataSource[0].porcHumedadFinal = parseFloat(
     this.dataSource[0].horaSalidaHorno1 = horaSalidaHorno1;
     this.dataSource[0].horaSalidaHorno2 = horaSalidaHorno2;
     this.dataSource[0].horaSalidaHorno3 = horaSalidaHorno3;
+  }
+
+  preFinalizarProceso() {
+    Notiflix.Confirm.show(
+      'Finalizar Proceso de Humedad',
+      '¿Está seguro de que desea finalizar el proceso de humedad?',
+      'Sí',
+      'No',
+      () => {
+        // Acción al confirmar
+        this.finalizarProceso();
+      },
+      () => {
+        // Acción al cancelar
+        Notiflix.Notify.info('Proceso no finalizado');
+      }
+    );
+  }
+
+  finalizarProceso() {
+    // Finalizar el proceso de humedad
+    this.humedadForm.patchValue({
+      fFin: new Date().toISOString().split('T')[0], // Fecha de fin actual
+      observacion: 'Finalizado',
+    });
+    this.actualizarDatos();
+    Notiflix.Notify.success('Proceso finalizado correctamente');
   }
 
   displayedColumnsResultados: string[] = [

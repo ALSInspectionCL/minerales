@@ -294,6 +294,8 @@ class Humedades(models.Model):
     nLote = models.CharField(max_length=50)
     nSublote = models.CharField(max_length=30, blank=True, null=True)
     observacion = models.CharField(max_length=200)
+    fInicio = models.DateField(blank=True, null=True)
+    fFin = models.DateField(blank=True, null=True)
     nLata1 = models.CharField(max_length=50,blank=True, null=True)
     nLata2 = models.CharField(max_length=50,blank=True, null=True)
     pLata1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)

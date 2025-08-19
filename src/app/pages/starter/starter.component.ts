@@ -21,7 +21,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { DateAdapter } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { OnInit } from '@angular/core';
@@ -123,7 +123,7 @@ export type ChartOptions2 = {
 export class StarterComponent {
   idServicio: any;
   idSolicitud: any;
-  fechaSeleccionadaI: Date | null = new Date();
+  fechaSeleccionadaI: Date | null = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   fechaSeleccionadaF: Date | null = new Date();
   bodegas: any[] = [];
   fechaHoy: any = new Date();
@@ -134,8 +134,11 @@ export class StarterComponent {
     private loteService: LoteService,
     private solicitudService: SolicitudService,
     private servicioService: ServicioService,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private dateAdapter: DateAdapter<Date>,
+  ) {
+    this.dateAdapter.setLocale('es-ES');
+   }
   servicios: any;
   solicitudes: any;
   lotesRecepcion: any;
@@ -224,444 +227,575 @@ export class StarterComponent {
   despSeco = 0;
 
   cargarData() {
-    this.recepLotes = 0;
-    this.recepCamiones = 0;
-    this.recepVagones = 0;
-    this.recepBruto = 0;
-    this.recepTara = 0;
-    this.recepHumedo = 0;
-    this.recepPorc = 0;
-    this.recepSeco = 0;
+    this.resetData();
 
-    this.despLotes = 0;
-    this.despCamiones = 0;
-    this.despEmbarque = 0;
-    this.despBruto = 0;
-    this.despTara = 0;
-    this.despHumedo = 0;
-    this.despPorc = 0;
-    this.despSeco = 0;
+    const fechaI = this.fechaSeleccionadaI ? this.formatDate(this.fechaSeleccionadaI) : null;
+    const fechaF = this.fechaSeleccionadaF ? this.formatDate(this.fechaSeleccionadaF) : null;
 
-    console.log(this.fechaSeleccionadaI);
-    console.log(this.fechaSeleccionadaF);
-
-    if (this.fechaSeleccionadaI != null && this.fechaSeleccionadaF == null) {
-      const fechaFormateada = this.formatDate(this.fechaSeleccionadaI);
-      const apiUrl =
-        'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-      this.http.get<any[]>(apiUrl).subscribe((data) => {
-        this.lotesRecepcion = data;
-        console.log(data);
-        for (let i = 0; i < this.lotesRecepcion.length; i++) {
-          if (this.lotesRecepcion[i].fLote >= fechaFormateada) {
-            this.recepLotes = this.recepLotes + 1;
-            this.recepCamiones =
-              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
-            this.recepVagones =
-              this.recepVagones + this.lotesRecepcion[i].cantVagones;
-            this.recepBruto =
-              this.recepBruto +
-              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
-            this.recepTara =
-              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
-            this.recepHumedo =
-              this.recepHumedo +
-              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
-            this.recepPorc =
-              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
-            this.recepSeco =
-              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
-          }
-        }
-        if (this.recepPorc > 0) {
-          this.recepPorc = Number(
-            (this.recepPorc / this.recepLotes).toFixed(2)
-          );
-          this.recepSeco = Number(parseFloat(String(this.recepSeco)));
-        } else {
-          this.recepPorc = 0;
-        }
-        this.cargarDonut(this.recepCamiones, this.recepVagones);
-      });
-
-      const apiDes =
-        'https://control.als-inspection.cl/api_min/api/lote-despacho/';
-      this.http.get<any[]>(apiDes).subscribe((data) => {
-        this.lotesDespacho = data;
-        console.log(data);
-        for (let i = 0; i < this.lotesDespacho.length; i++) {
-          if (this.lotesDespacho[i].fLote >= fechaFormateada) {
-            this.despLotes = this.despLotes + 1;
-            this.despCamiones =
-              this.despCamiones + this.lotesDespacho[i].cantCamiones;
-            if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
-              this.despEmbarque = this.despEmbarque + 1;
-            }
-            this.despBruto =
-              this.despBruto +
-              parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
-            this.despTara =
-              this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
-            this.despHumedo =
-              this.despHumedo +
-              parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
-            this.despPorc =
-              this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
-            this.despSeco =
-              this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
-          }
-        }
-        if (this.despPorc > 0) {
-          this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
-          this.despSeco = Number(parseFloat(String(this.despSeco)));
-        } else {
-          this.despPorc = 0;
-        }
-      });
-
-      if (this.recepLotes == 0 && this.despLotes == 0) {
-        Notiflix.Notify.warning('No se han encontrado datos');
-      } else {
-        Notiflix.Notify.success('Se han encontrado datos');
-      }
-    } else if (
-      this.fechaSeleccionadaI == null &&
-      this.fechaSeleccionadaF != null
-    ) {
-      const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
-      const apiUrl =
-        'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-      this.http.get<any[]>(apiUrl).subscribe((data) => {
-        this.lotesRecepcion = data;
-        console.log(data);
-        for (let i = 0; i < this.lotesRecepcion.length; i++) {
-          if (this.lotesRecepcion[i].fLote <= fechaFormateadaF) {
-            this.recepLotes = this.recepLotes + 1;
-            this.recepCamiones =
-              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
-            this.recepVagones =
-              this.recepVagones + this.lotesRecepcion[i].cantVagones;
-            this.recepBruto =
-              this.recepBruto +
-              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
-            this.recepTara =
-              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
-            this.recepHumedo =
-              this.recepHumedo +
-              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
-            this.recepPorc =
-              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
-            this.recepSeco =
-              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
-          }
-        }
-        if (this.recepPorc > 0) {
-          this.recepPorc = Number(
-            (this.recepPorc / this.recepLotes).toFixed(2)
-          );
-          this.recepSeco = Number(parseFloat(String(this.recepSeco)));
-        } else {
-          this.recepPorc = 0;
-        }
-
-        if (this.recepLotes == 0) {
-          Notiflix.Notify.warning('No se han encontrado datos');
-        } else {
-          Notiflix.Notify.success('Se han encontrado datos');
-        }
-        this.cargarDonut(this.recepCamiones, this.recepVagones);
-      });
-
-      const apiDes =
-        'https://control.als-inspection.cl/api_min/api/lote-despacho/';
-      this.http.get<any[]>(apiDes).subscribe((data) => {
-        this.lotesDespacho = data;
-        console.log(data);
-        for (let i = 0; i < this.lotesDespacho.length; i++) {
-          if (this.lotesDespacho[i].fLote <= fechaFormateadaF) {
-            this.despLotes = this.despLotes + 1;
-            this.despCamiones =
-              this.despCamiones + this.lotesDespacho[i].cantCamiones;
-            if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
-              this.despEmbarque = this.despEmbarque + 1;
-            }
-            this.despBruto =
-              this.despBruto +
-              parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
-            this.despTara =
-              this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
-            this.despHumedo =
-              this.despHumedo +
-              parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
-            this.despPorc =
-              this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
-            this.despSeco =
-              this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
-          }
-        }
-        if (this.despPorc > 0) {
-          this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
-          this.despSeco = Number(parseFloat(String(this.despSeco)));
-        } else {
-          this.despPorc = 0;
-        }
-      });
-
-      if (this.recepLotes == 0 && this.despLotes == 0) {
-        Notiflix.Notify.warning('No se han encontrado datos');
-      } else {
-        Notiflix.Notify.success('Se han encontrado datos');
-      }
-    } else if (
-      this.fechaSeleccionadaI != null &&
-      this.fechaSeleccionadaF != null
-    ) {
-      const fechaFormateadaI = this.formatDate(this.fechaSeleccionadaI);
-      const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
-      const apiUrl =
-        'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-      this.http.get<any[]>(apiUrl).subscribe((data) => {
-        this.lotesRecepcion = data;
-        console.log(data);
-        for (let i = 0; i < this.lotesRecepcion.length; i++) {
-          if (
-            fechaFormateadaI <= this.lotesRecepcion[i].fLote &&
-            this.lotesRecepcion[i].fLote <= fechaFormateadaF
-          ) {
-            this.recepLotes = this.recepLotes + 1;
-            this.recepCamiones =
-              this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
-            this.recepVagones =
-              this.recepVagones + this.lotesRecepcion[i].cantVagones;
-            this.recepBruto =
-              this.recepBruto +
-              parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
-            this.recepTara =
-              this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
-            this.recepHumedo =
-              this.recepHumedo +
-              parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
-            this.recepPorc =
-              this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
-            this.recepSeco =
-              this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
-          }
-        }
-        if (this.recepPorc > 0) {
-          this.recepPorc = Number(
-            (this.recepPorc / this.recepLotes).toFixed(2)
-          );
-          this.recepSeco = Number(parseFloat(String(this.recepSeco)));
-        } else {
-          this.recepPorc = 0;
-        }
-
-        this.cargarDonut(this.recepCamiones, this.recepVagones);
-
-        const apiDes =
-          'https://control.als-inspection.cl/api_min/api/lote-despacho/';
-        this.http.get<any[]>(apiDes).subscribe((data) => {
-          this.lotesDespacho = data;
-          console.log(data);
-          for (let i = 0; i < this.lotesDespacho.length; i++) {
-            if (
-              fechaFormateadaI <= this.lotesDespacho[i].fLote &&
-              this.lotesDespacho[i].fLote <= fechaFormateadaF
-            ) {
-              this.despLotes = this.despLotes + 1;
-              this.despCamiones =
-                this.despCamiones + this.lotesDespacho[i].cantCamiones;
-              if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
-                this.despEmbarque = this.despEmbarque + 1;
-              }
-              this.despBruto =
-                this.despBruto +
-                parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
-              this.despTara =
-                this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
-              this.despHumedo =
-                this.despHumedo +
-                parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
-              this.despPorc =
-                this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
-              this.despSeco =
-                this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
-            }
-          }
-          if (this.despPorc > 0) {
-            this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
-            this.despSeco = Number(parseFloat(String(this.despSeco)));
-          } else {
-            this.despPorc = 0;
-          }
-        });
-        if (this.recepLotes == 0 && this.despLotes == 0) {
-          Notiflix.Notify.warning('No se han encontrado datos', {
-            timeout: 1500,
-          });
-        } else {
-          Notiflix.Notify.success('Se han encontrado datos', {
-            timeout: 1500,
-          });
-        }
-      });
+    if (fechaI && !fechaF) {
+      this.obtenerDatos(fechaI, null);
+    } else if (!fechaI && fechaF) {
+      this.obtenerDatos(null, fechaF);
+    } else if (fechaI && fechaF) {
+      this.obtenerDatos(fechaI, fechaF);
     } else {
-      if (
-        this.idServicio == null ||
-        this.idServicio == undefined ||
-        this.idServicio == 0 ||
-        this.idServicio == ''
-      ) {
-        Notiflix.Notify.failure('Por favor, seleccione un servicio');
-        this.recepLotes = 0;
-        this.recepCamiones = 0;
-        this.recepVagones = 0;
-        this.recepBruto = 0;
-        this.recepTara = 0;
-        this.recepHumedo = 0;
-        this.recepPorc = 0;
-        this.recepSeco = 0;
-        return;
-      }
-      if (
-        this.idSolicitud == null ||
-        this.idSolicitud == undefined ||
-        this.idSolicitud == 0 ||
-        this.idSolicitud == ''
-      ) {
-        Notiflix.Notify.failure('Por favor, seleccione una solicitud');
-        this.recepLotes = 0;
-        this.recepCamiones = 0;
-        this.recepVagones = 0;
-        this.recepBruto = 0;
-        this.recepTara = 0;
-        this.recepHumedo = 0;
-        this.recepPorc = 0;
-        this.recepSeco = 0;
-        return;
-      }
+      // ✅ Nuevo bloque: buscar solo por servicio y solicitud si no hay fechas
       if (this.idServicio && this.idSolicitud) {
-        const apiUrl =
-          'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
-        this.http.get<any[]>(apiUrl).subscribe((data) => {
-          this.lotesRecepcion = data;
-          console.log(data);
-          for (let i = 0; i < this.lotesRecepcion.length; i++) {
-            if (
-              this.lotesRecepcion[i].servicio == this.idServicio &&
-              this.lotesRecepcion[i].solicitud == this.idSolicitud
-            ) {
-              this.recepLotes = this.recepLotes + 1;
-              this.recepCamiones =
-                this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
-              this.recepVagones =
-                this.recepVagones + this.lotesRecepcion[i].cantVagones;
-              this.recepBruto =
-                this.recepBruto +
-                parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
-              this.recepTara =
-                this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
-              this.recepHumedo =
-                this.recepHumedo +
-                parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
-              this.recepPorc =
-                this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
-              this.recepSeco =
-                this.recepSeco +
-                parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
-            }
-          }
-          if (this.recepPorc > 0) {
-            this.recepPorc = Number(
-              (this.recepPorc / this.recepLotes).toFixed(2)
-            );
-            this.recepSeco = Number(parseFloat(String(this.recepSeco)));
-          } else {
-            this.recepPorc = 0;
-          }
-
-          if (this.recepLotes == 0 && this.despLotes == 0) {
-            Notiflix.Notify.warning('No se han encontrado datos', {
-              timeout: 1500,
-            });
-          } else {
-            Notiflix.Notify.success('Se han encontrado datos', {
-              timeout: 1500,
-            });
-          }
-          this.cargarDonut(this.recepCamiones, this.recepVagones);
-        });
-
-        const apiDes =
-          'https://control.als-inspection.cl/api_min/api/lote-despacho/';
-        this.http.get<any[]>(apiDes).subscribe((data) => {
-          this.lotesDespacho = data;
-          console.log(data);
-          for (let i = 0; i < this.lotesDespacho.length; i++) {
-            if (
-              this.lotesDespacho[i].servicio == this.idServicio &&
-              this.lotesDespacho[i].solicitud == this.idSolicitud
-            ) {
-              this.despLotes = this.despLotes + 1;
-              this.despCamiones =
-                this.despCamiones + this.lotesDespacho[i].cantCamiones;
-              if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
-                this.despEmbarque = this.despEmbarque + 1;
-              }
-              this.despBruto =
-                this.despBruto +
-                parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
-              this.despTara =
-                this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
-              this.despHumedo =
-                this.despHumedo +
-                parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
-              this.despPorc =
-                this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
-              this.despSeco =
-                this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
-            }
-          }
-          if (this.despPorc > 0) {
-            this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
-            this.despSeco = Number(parseFloat(String(this.despSeco)));
-          } else {
-            this.despPorc = 0;
-          }
-        });
-        if (this.recepLotes == 0 && this.despLotes == 0) {
-          Notiflix.Notify.warning('No se han encontrado datos', {
-            timeout: 1500,
-          });
-        } else {
-          Notiflix.Notify.success('Se han encontrado datos', {
-            timeout: 1500,
-          });
-        }
+        this.obtenerDatos(null, null); // Pasamos null para las fechas, pero en obtenerDatos se filtrará por solicitud
       } else {
-        Notiflix.Notify.warning('No se han encontrado datos', {
-          timeout: 1500,
-        });
-        this.recepLotes = 0;
-        this.recepCamiones = 0;
-        this.recepVagones = 0;
-        this.recepBruto = 0;
-        this.recepTara = 0;
-        this.recepHumedo = 0;
-        this.recepPorc = 0;
-        this.recepSeco = 0;
-
-        this.despLotes = 0;
-        this.despCamiones = 0;
-        this.despEmbarque = 0;
-        this.despBruto = 0;
-        this.despTara = 0;
-        this.despHumedo = 0;
-        this.despPorc = 0;
-        this.despSeco = 0;
+        if (!this.idServicio) {
+          Notiflix.Notify.failure('Por favor, seleccione un servicio');
+        } else if (!this.idSolicitud) {
+          Notiflix.Notify.failure('Por favor, seleccione una solicitud');
+        }
+        this.resetData();
       }
     }
   }
+
+  resetData() {
+    this.recepLotes = this.recepCamiones = this.recepVagones = 0;
+    this.recepBruto = this.recepTara = this.recepHumedo = 0;
+    this.recepPorc = this.recepSeco = 0;
+
+    this.despLotes = this.despCamiones = this.despEmbarque = 0;
+    this.despBruto = this.despTara = this.despHumedo = 0;
+    this.despPorc = this.despSeco = 0;
+  }
+
+  obtenerDatos(fechaI: string | null, fechaF: string | null) {
+    const apiRecep = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    const apiDesp = 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+
+    forkJoin({
+      recepcion: this.http.get<any[]>(apiRecep),
+      despacho: this.http.get<any[]>(apiDesp)
+    }).subscribe(({ recepcion, despacho }) => {
+      this.lotesRecepcion = [];
+      this.lotesDespacho = [];
+
+      for (const lote of recepcion) {
+        const coincideSolicitud = this.idSolicitud ? String(lote.solicitud) === String(this.idSolicitud) : true;
+        const coincideFecha = this.filtrarFecha(lote.fLote, fechaI, fechaF);
+
+        if (coincideSolicitud && coincideFecha) {
+          this.lotesRecepcion.push(lote);
+          this.recepLotes++;
+          this.recepCamiones += lote.cantCamiones;
+          this.recepVagones += lote.cantVagones;
+          this.recepBruto += parseFloat(lote.pesoBrutoHumedo);
+          this.recepTara += parseFloat(lote.pesoTara);
+          this.recepHumedo += parseFloat(lote.pesoNetoHumedo);
+          this.recepPorc += parseFloat(lote.porcHumedad);
+          this.recepSeco += parseFloat(lote.pesoNetoSeco);
+        }
+      }
+
+      this.recepPorc = this.recepLotes > 0 ? Number((this.recepPorc / this.recepLotes).toFixed(2)) : 0;
+      this.recepSeco = Number(this.recepSeco);
+      this.cargarDonut(this.recepCamiones, this.recepVagones);
+
+      for (const lote of despacho) {
+        const coincideSolicitud = this.idSolicitud ? String(lote.solicitud) === String(this.idSolicitud) : true;
+        const coincideFecha = this.filtrarFecha(lote.fLote, fechaI, fechaF);
+
+        if (coincideSolicitud && coincideFecha) {
+          this.lotesDespacho.push(lote);
+          this.despLotes++;
+          this.despCamiones += lote.cantCamiones;
+          if (lote.tipoTransporte === 'Embarque') this.despEmbarque++;
+          this.despBruto += parseFloat(lote.pesoBrutoHumedo);
+          this.despTara += parseFloat(lote.pesoTara);
+          this.despHumedo += parseFloat(lote.pesoNetoHumedo);
+          this.despPorc += parseFloat(lote.porcHumedad);
+          this.despSeco += parseFloat(lote.pesoNetoSeco);
+        }
+      }
+
+      this.despPorc = this.despLotes > 0 ? Number((this.despPorc / this.despLotes).toFixed(2)) : 0;
+      this.despSeco = Number(this.despSeco);
+
+      // ✅ Ahora sí: mostrar mensaje cuando ambos han terminado
+      if (this.recepLotes === 0 && this.despLotes === 0) {
+        Notiflix.Notify.warning('No se han encontrado datos', { timeout: 1500 });
+      } else {
+        Notiflix.Notify.success('Se han encontrado datos', { timeout: 1500 });
+      }
+    });
+  }
+
+  filtrarFecha(fecha: string, inicio: string | null, fin: string | null): boolean {
+    if (!fecha) return false;
+
+    const fechaLote = new Date(fecha);
+    if (isNaN(fechaLote.getTime())) return false;
+
+    const fechaLoteSimple = new Date(fechaLote.getFullYear(), fechaLote.getMonth(), fechaLote.getDate());
+
+    if (inicio && !fin) {
+      const inicioDate = new Date(inicio);
+      const inicioSimple = new Date(inicioDate.getFullYear(), inicioDate.getMonth(), inicioDate.getDate());
+      return fechaLoteSimple >= inicioSimple;
+    }
+
+    if (!inicio && fin) {
+      const finDate = new Date(fin);
+      const finSimple = new Date(finDate.getFullYear(), finDate.getMonth(), finDate.getDate());
+      return fechaLoteSimple <= finSimple;
+    }
+
+    if (inicio && fin) {
+      const inicioDate = new Date(inicio);
+      const finDate = new Date(fin);
+      const inicioSimple = new Date(inicioDate.getFullYear(), inicioDate.getMonth(), inicioDate.getDate());
+      const finSimple = new Date(finDate.getFullYear(), finDate.getMonth(), finDate.getDate());
+      return fechaLoteSimple >= inicioSimple && fechaLoteSimple <= finSimple;
+    }
+
+    // ✅ Sin fechas: aceptar todos los registros
+    return true;
+  }
+
+
+  // cargarData() {
+  //   this.recepLotes = 0;
+  //   this.recepCamiones = 0;
+  //   this.recepVagones = 0;
+  //   this.recepBruto = 0;
+  //   this.recepTara = 0;
+  //   this.recepHumedo = 0;
+  //   this.recepPorc = 0;
+  //   this.recepSeco = 0;
+
+  //   this.despLotes = 0;
+  //   this.despCamiones = 0;
+  //   this.despEmbarque = 0;
+  //   this.despBruto = 0;
+  //   this.despTara = 0;
+  //   this.despHumedo = 0;
+  //   this.despPorc = 0;
+  //   this.despSeco = 0;
+
+  //   console.log(this.fechaSeleccionadaI);
+  //   console.log(this.fechaSeleccionadaF);
+
+  //   if (this.fechaSeleccionadaI != null && this.fechaSeleccionadaF == null) {
+  //     const fechaFormateada = this.formatDate(this.fechaSeleccionadaI);
+  //     const apiUrl =
+  //       'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+  //     this.http.get<any[]>(apiUrl).subscribe((data) => {
+  //       this.lotesRecepcion = data;
+  //       console.log(data);
+  //       for (let i = 0; i < this.lotesRecepcion.length; i++) {
+  //         if (this.lotesRecepcion[i].fLote >= fechaFormateada) {
+  //           this.recepLotes = this.recepLotes + 1;
+  //           this.recepCamiones =
+  //             this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+  //           this.recepVagones =
+  //             this.recepVagones + this.lotesRecepcion[i].cantVagones;
+  //           this.recepBruto =
+  //             this.recepBruto +
+  //             parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+  //           this.recepTara =
+  //             this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+  //           this.recepHumedo =
+  //             this.recepHumedo +
+  //             parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+  //           this.recepPorc =
+  //             this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+  //           this.recepSeco =
+  //             this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+  //         }
+  //       }
+  //       if (this.recepPorc > 0) {
+  //         this.recepPorc = Number(
+  //           (this.recepPorc / this.recepLotes).toFixed(2)
+  //         );
+  //         this.recepSeco = Number(parseFloat(String(this.recepSeco)));
+  //       } else {
+  //         this.recepPorc = 0;
+  //       }
+  //       this.cargarDonut(this.recepCamiones, this.recepVagones);
+  //     });
+
+  //     const apiDes =
+  //       'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+  //     this.http.get<any[]>(apiDes).subscribe((data) => {
+  //       this.lotesDespacho = data;
+  //       console.log(data);
+  //       for (let i = 0; i < this.lotesDespacho.length; i++) {
+  //         if (this.lotesDespacho[i].fLote >= fechaFormateada) {
+  //           this.despLotes = this.despLotes + 1;
+  //           this.despCamiones =
+  //             this.despCamiones + this.lotesDespacho[i].cantCamiones;
+  //           if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
+  //             this.despEmbarque = this.despEmbarque + 1;
+  //           }
+  //           this.despBruto =
+  //             this.despBruto +
+  //             parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
+  //           this.despTara =
+  //             this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
+  //           this.despHumedo =
+  //             this.despHumedo +
+  //             parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
+  //           this.despPorc =
+  //             this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
+  //           this.despSeco =
+  //             this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
+  //         }
+  //       }
+  //       if (this.despPorc > 0) {
+  //         this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
+  //         this.despSeco = Number(parseFloat(String(this.despSeco)));
+  //       } else {
+  //         this.despPorc = 0;
+  //       }
+  //     });
+
+  //     if (this.recepLotes == 0 && this.despLotes == 0) {
+  //       Notiflix.Notify.warning('No se han encontrado datos');
+  //     } else {
+  //       Notiflix.Notify.success('Se han encontrado datos');
+  //     }
+  //   } else if (
+  //     this.fechaSeleccionadaI == null &&
+  //     this.fechaSeleccionadaF != null
+  //   ) {
+  //     const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
+  //     const apiUrl =
+  //       'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+  //     this.http.get<any[]>(apiUrl).subscribe((data) => {
+  //       this.lotesRecepcion = data;
+  //       console.log(data);
+  //       for (let i = 0; i < this.lotesRecepcion.length; i++) {
+  //         if (this.lotesRecepcion[i].fLote <= fechaFormateadaF) {
+  //           this.recepLotes = this.recepLotes + 1;
+  //           this.recepCamiones =
+  //             this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+  //           this.recepVagones =
+  //             this.recepVagones + this.lotesRecepcion[i].cantVagones;
+  //           this.recepBruto =
+  //             this.recepBruto +
+  //             parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+  //           this.recepTara =
+  //             this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+  //           this.recepHumedo =
+  //             this.recepHumedo +
+  //             parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+  //           this.recepPorc =
+  //             this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+  //           this.recepSeco =
+  //             this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+  //         }
+  //       }
+  //       if (this.recepPorc > 0) {
+  //         this.recepPorc = Number(
+  //           (this.recepPorc / this.recepLotes).toFixed(2)
+  //         );
+  //         this.recepSeco = Number(parseFloat(String(this.recepSeco)));
+  //       } else {
+  //         this.recepPorc = 0;
+  //       }
+
+  //       if (this.recepLotes == 0) {
+  //         Notiflix.Notify.warning('No se han encontrado datos');
+  //       } else {
+  //         Notiflix.Notify.success('Se han encontrado datos');
+  //       }
+  //       this.cargarDonut(this.recepCamiones, this.recepVagones);
+  //     });
+
+  //     const apiDes =
+  //       'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+  //     this.http.get<any[]>(apiDes).subscribe((data) => {
+  //       this.lotesDespacho = data;
+  //       console.log(data);
+  //       for (let i = 0; i < this.lotesDespacho.length; i++) {
+  //         if (this.lotesDespacho[i].fLote <= fechaFormateadaF) {
+  //           this.despLotes = this.despLotes + 1;
+  //           this.despCamiones =
+  //             this.despCamiones + this.lotesDespacho[i].cantCamiones;
+  //           if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
+  //             this.despEmbarque = this.despEmbarque + 1;
+  //           }
+  //           this.despBruto =
+  //             this.despBruto +
+  //             parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
+  //           this.despTara =
+  //             this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
+  //           this.despHumedo =
+  //             this.despHumedo +
+  //             parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
+  //           this.despPorc =
+  //             this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
+  //           this.despSeco =
+  //             this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
+  //         }
+  //       }
+  //       if (this.despPorc > 0) {
+  //         this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
+  //         this.despSeco = Number(parseFloat(String(this.despSeco)));
+  //       } else {
+  //         this.despPorc = 0;
+  //       }
+  //     });
+
+  //     if (this.recepLotes == 0 && this.despLotes == 0) {
+  //       Notiflix.Notify.warning('No se han encontrado datos');
+  //     } else {
+  //       Notiflix.Notify.success('Se han encontrado datos');
+  //     }
+  //   } else if (
+  //     this.fechaSeleccionadaI != null &&
+  //     this.fechaSeleccionadaF != null
+  //   ) {
+  //     const fechaFormateadaI = this.formatDate(this.fechaSeleccionadaI);
+  //     const fechaFormateadaF = this.formatDate(this.fechaSeleccionadaF);
+  //     const apiUrl =
+  //       'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+  //     this.http.get<any[]>(apiUrl).subscribe((data) => {
+  //       this.lotesRecepcion = data;
+  //       console.log(data);
+  //       for (let i = 0; i < this.lotesRecepcion.length; i++) {
+  //         if (
+  //           fechaFormateadaI <= this.lotesRecepcion[i].fLote &&
+  //           this.lotesRecepcion[i].fLote <= fechaFormateadaF
+  //         ) {
+  //           this.recepLotes = this.recepLotes + 1;
+  //           this.recepCamiones =
+  //             this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+  //           this.recepVagones =
+  //             this.recepVagones + this.lotesRecepcion[i].cantVagones;
+  //           this.recepBruto =
+  //             this.recepBruto +
+  //             parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+  //           this.recepTara =
+  //             this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+  //           this.recepHumedo =
+  //             this.recepHumedo +
+  //             parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+  //           this.recepPorc =
+  //             this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+  //           this.recepSeco =
+  //             this.recepSeco + parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+  //         }
+  //       }
+  //       if (this.recepPorc > 0) {
+  //         this.recepPorc = Number(
+  //           (this.recepPorc / this.recepLotes).toFixed(2)
+  //         );
+  //         this.recepSeco = Number(parseFloat(String(this.recepSeco)));
+  //       } else {
+  //         this.recepPorc = 0;
+  //       }
+
+  //       this.cargarDonut(this.recepCamiones, this.recepVagones);
+
+  //       const apiDes =
+  //         'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+  //       this.http.get<any[]>(apiDes).subscribe((data) => {
+  //         this.lotesDespacho = data;
+  //         console.log(data);
+  //         for (let i = 0; i < this.lotesDespacho.length; i++) {
+  //           if (
+  //             fechaFormateadaI <= this.lotesDespacho[i].fLote &&
+  //             this.lotesDespacho[i].fLote <= fechaFormateadaF
+  //           ) {
+  //             this.despLotes = this.despLotes + 1;
+  //             this.despCamiones =
+  //               this.despCamiones + this.lotesDespacho[i].cantCamiones;
+  //             if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
+  //               this.despEmbarque = this.despEmbarque + 1;
+  //             }
+  //             this.despBruto =
+  //               this.despBruto +
+  //               parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
+  //             this.despTara =
+  //               this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
+  //             this.despHumedo =
+  //               this.despHumedo +
+  //               parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
+  //             this.despPorc =
+  //               this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
+  //             this.despSeco =
+  //               this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
+  //           }
+  //         }
+  //         if (this.despPorc > 0) {
+  //           this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
+  //           this.despSeco = Number(parseFloat(String(this.despSeco)));
+  //         } else {
+  //           this.despPorc = 0;
+  //         }
+  //       });
+  //       if (this.recepLotes == 0 && this.despLotes == 0) {
+  //         Notiflix.Notify.warning('No se han encontrado datos', {
+  //           timeout: 1500,
+  //         });
+  //       } else {
+  //         Notiflix.Notify.success('Se han encontrado datos', {
+  //           timeout: 1500,
+  //         });
+  //       }
+  //     });
+  //   } else {
+  //     if (
+  //       this.idServicio == null ||
+  //       this.idServicio == undefined ||
+  //       this.idServicio == 0 ||
+  //       this.idServicio == ''
+  //     ) {
+  //       Notiflix.Notify.failure('Por favor, seleccione un servicio');
+  //       this.recepLotes = 0;
+  //       this.recepCamiones = 0;
+  //       this.recepVagones = 0;
+  //       this.recepBruto = 0;
+  //       this.recepTara = 0;
+  //       this.recepHumedo = 0;
+  //       this.recepPorc = 0;
+  //       this.recepSeco = 0;
+  //       return;
+  //     }
+  //     if (
+  //       this.idSolicitud == null ||
+  //       this.idSolicitud == undefined ||
+  //       this.idSolicitud == 0 ||
+  //       this.idSolicitud == ''
+  //     ) {
+  //       Notiflix.Notify.failure('Por favor, seleccione una solicitud');
+  //       this.recepLotes = 0;
+  //       this.recepCamiones = 0;
+  //       this.recepVagones = 0;
+  //       this.recepBruto = 0;
+  //       this.recepTara = 0;
+  //       this.recepHumedo = 0;
+  //       this.recepPorc = 0;
+  //       this.recepSeco = 0;
+  //       return;
+  //     }
+  //     if (this.idServicio && this.idSolicitud) {
+  //       const apiUrl =
+  //         'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+  //       this.http.get<any[]>(apiUrl).subscribe((data) => {
+  //         this.lotesRecepcion = data;
+  //         console.log(data);
+  //         for (let i = 0; i < this.lotesRecepcion.length; i++) {
+  //           if (
+  //             this.lotesRecepcion[i].servicio == this.idServicio &&
+  //             this.lotesRecepcion[i].solicitud == this.idSolicitud
+  //           ) {
+  //             this.recepLotes = this.recepLotes + 1;
+  //             this.recepCamiones =
+  //               this.recepCamiones + this.lotesRecepcion[i].cantCamiones;
+  //             this.recepVagones =
+  //               this.recepVagones + this.lotesRecepcion[i].cantVagones;
+  //             this.recepBruto =
+  //               this.recepBruto +
+  //               parseFloat(this.lotesRecepcion[i].pesoBrutoHumedo);
+  //             this.recepTara =
+  //               this.recepTara + parseFloat(this.lotesRecepcion[i].pesoTara);
+  //             this.recepHumedo =
+  //               this.recepHumedo +
+  //               parseFloat(this.lotesRecepcion[i].pesoNetoHumedo);
+  //             this.recepPorc =
+  //               this.recepPorc + parseFloat(this.lotesRecepcion[i].porcHumedad);
+  //             this.recepSeco =
+  //               this.recepSeco +
+  //               parseFloat(this.lotesRecepcion[i].pesoNetoSeco);
+  //           }
+  //         }
+  //         if (this.recepPorc > 0) {
+  //           this.recepPorc = Number(
+  //             (this.recepPorc / this.recepLotes).toFixed(2)
+  //           );
+  //           this.recepSeco = Number(parseFloat(String(this.recepSeco)));
+  //         } else {
+  //           this.recepPorc = 0;
+  //         }
+
+  //         if (this.recepLotes == 0 && this.despLotes == 0) {
+  //           Notiflix.Notify.warning('No se han encontrado datos', {
+  //             timeout: 1500,
+  //           });
+  //         } else {
+  //           Notiflix.Notify.success('Se han encontrado datos', {
+  //             timeout: 1500,
+  //           });
+  //         }
+  //         this.cargarDonut(this.recepCamiones, this.recepVagones);
+  //       });
+
+  //       const apiDes =
+  //         'https://control.als-inspection.cl/api_min/api/lote-despacho/';
+  //       this.http.get<any[]>(apiDes).subscribe((data) => {
+  //         this.lotesDespacho = data;
+  //         console.log(data);
+  //         for (let i = 0; i < this.lotesDespacho.length; i++) {
+  //           if (
+  //             this.lotesDespacho[i].servicio == this.idServicio &&
+  //             this.lotesDespacho[i].solicitud == this.idSolicitud
+  //           ) {
+  //             this.despLotes = this.despLotes + 1;
+  //             this.despCamiones =
+  //               this.despCamiones + this.lotesDespacho[i].cantCamiones;
+  //             if (this.lotesDespacho[i].tipoTransporte == 'Embarque') {
+  //               this.despEmbarque = this.despEmbarque + 1;
+  //             }
+  //             this.despBruto =
+  //               this.despBruto +
+  //               parseFloat(this.lotesDespacho[i].pesoBrutoHumedo);
+  //             this.despTara =
+  //               this.despTara + parseFloat(this.lotesDespacho[i].pesoTara);
+  //             this.despHumedo =
+  //               this.despHumedo +
+  //               parseFloat(this.lotesDespacho[i].pesoNetoHumedo);
+  //             this.despPorc =
+  //               this.despPorc + parseFloat(this.lotesDespacho[i].porcHumedad);
+  //             this.despSeco =
+  //               this.despSeco + parseFloat(this.lotesDespacho[i].pesoNetoSeco);
+  //           }
+  //         }
+  //         if (this.despPorc > 0) {
+  //           this.despPorc = Number((this.despPorc / this.despLotes).toFixed(2));
+  //           this.despSeco = Number(parseFloat(String(this.despSeco)));
+  //         } else {
+  //           this.despPorc = 0;
+  //         }
+  //       });
+  //       if (this.recepLotes == 0 && this.despLotes == 0) {
+  //         Notiflix.Notify.warning('No se han encontrado datos', {
+  //           timeout: 1500,
+  //         });
+  //       } else {
+  //         Notiflix.Notify.success('Se han encontrado datos', {
+  //           timeout: 1500,
+  //         });
+  //       }
+  //     } else {
+  //       Notiflix.Notify.warning('No se han encontrado datos', {
+  //         timeout: 1500,
+  //       });
+  //       this.recepLotes = 0;
+  //       this.recepCamiones = 0;
+  //       this.recepVagones = 0;
+  //       this.recepBruto = 0;
+  //       this.recepTara = 0;
+  //       this.recepHumedo = 0;
+  //       this.recepPorc = 0;
+  //       this.recepSeco = 0;
+
+  //       this.despLotes = 0;
+  //       this.despCamiones = 0;
+  //       this.despEmbarque = 0;
+  //       this.despBruto = 0;
+  //       this.despTara = 0;
+  //       this.despHumedo = 0;
+  //       this.despPorc = 0;
+  //       this.despSeco = 0;
+  //     }
+  //   }
+  // }
 
   crearNuevoLote() {
     const dialogRef = this.dialog.open(NuevoLoteComponent, {
@@ -699,7 +833,7 @@ export class StarterComponent {
     });
   }
 
-  verInventario(idBodega: number) {}
+  verInventario(idBodega: number) { }
 
   solicitudesFiltradas: any[];
 
@@ -746,9 +880,9 @@ export class StarterComponent {
                             return this.valorGuardado
                               ? this.valorGuardado + ' Total'
                               : w.globals.seriesTotals.reduce(
-                                  (a: any, b: any) => a + b,
-                                  0
-                                ) + ' Total';
+                                (a: any, b: any) => a + b,
+                                0
+                              ) + ' Total';
                           },
                         },
                       },
@@ -796,9 +930,9 @@ export class StarterComponent {
                     // Si no, mostrar el total de la serie
                     return w != null
                       ? w.globals.seriesTotals.reduce(
-                          (a: any, b: any) => a + b,
-                          0
-                        ) + ' Total'
+                        (a: any, b: any) => a + b,
+                        0
+                      ) + ' Total'
                       : 'no tiene';
                   }
                 },

@@ -1,62 +1,58 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
-    <mat-card-title
-      >Formulario creación de Servicios y Solicitudes</mat-card-title
-    >
-    <mat-card-subtitle class="mat-body-1"
-      >Complete el siguiente formulario para enviar su
-      solicitud</mat-card-subtitle
-    >
+    <mat-card-title>Formulario creación de Servicios y Solicitudes</mat-card-title>
+    <mat-card-subtitle class="mat-body-1">Complete el siguiente formulario para enviar su
+      solicitud</mat-card-subtitle>
   </mat-card-content>
 </mat-card>
 
 <div class="row">
   <!-- Servicio -->
   <mat-card class="b-1 col-md-6">
-    <mat-card-header class="m-b-16">
+    <mat-card-header class="m-b-16 d-flex justify-content-between align-items-center">
       <mat-card-title>Crear un servicio</mat-card-title>
+      <button mat-stroked-button color="primary" (click)="dilogEdit(1)">Editar servicio</button>
     </mat-card-header>
     <mat-card-content class="b-t-1">
       <form (ngSubmit)="enviarServicio()">
-        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-          >Número Servicio</mat-label
-        >
+
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Referencia ALS</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input matInput [(ngModel)]="servicio.refAls" name="refAls" (ngModelChange)="formatearReferencia()"
+            maxlength="13" />
+        </mat-form-field>
+
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Número Servicio</mat-label>
         <mat-form-field appearance="outline" class="w-100" color="primary">
           <input matInput [(ngModel)]="servicio.nServ" name="nServ" />
         </mat-form-field>
 
-        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-          >Fecha inicio</mat-label
-        >
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha inicio</mat-label>
         <mat-form-field appearance="outline" class="w-100" color="primary">
-          <input
-            matInput
-            [matDatepicker]="picker1"
-            [(ngModel)]="servicio.fServ"
-            name="fServ"
-          />
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="picker1"
-          ></mat-datepicker-toggle>
+          <input matInput [matDatepicker]="picker1" [(ngModel)]="servicio.fServ" name="fServ" />
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
           <mat-datepicker #picker1></mat-datepicker>
         </mat-form-field>
 
-        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-          >Lugar</mat-label
-        >
+        <!-- Lugar -->
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Lugar</mat-label>
         <mat-form-field appearance="outline" class="w-100" color="primary">
-          <input
-            type="text"
-            placeholder="Escoja un lugar para el servicio"
-            matInput
-            [formControl]="myControl"
-            [matAutocomplete]="auto"
-            [(ngModel)]="servicio.lServ"
-            name="lServ"
-          />
-          <mat-autocomplete #auto="matAutocomplete">
+          <input type="text" placeholder="Escoja un lugar para el servicio" matInput [formControl]="myControl"
+            [matAutocomplete]="autoLugar" [(ngModel)]="servicio.lServ" name="lServ" />
+          <mat-autocomplete #autoLugar="matAutocomplete">
             @for (option of filteredOptions | async; track option) {
+            <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Tipo de Servicio -->
+        <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Tipo de Servicio</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input type="text" placeholder="Escoja el tipo de Servicio" matInput [formControl]="myControl2"
+            [matAutocomplete]="autoTipo" [(ngModel)]="servicio.tServ" name="tServ" />
+          <mat-autocomplete #autoTipo="matAutocomplete">
+            @for (option of filteredOptions2 | async; track option) {
             <mat-option [value]="option">{{ option }}</mat-option>
             }
           </mat-autocomplete>
@@ -76,69 +72,33 @@
       </form>
     </mat-card-content>
     <mat-card-actions>
-      <button
-        type="submit"
-        mat-raised-button
-        color="primary"
-        (click)="crearServicio()"
-      >
+      <button type="submit" mat-raised-button color="primary" (click)="crearServicio()">
         Crear servicio
-      </button>
-    </mat-card-actions>
-    <mat-card-actions class="m-b-16">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="dilogEdit(1)"
-      >
-        Editar Servicio
       </button>
     </mat-card-actions>
   </mat-card>
   <!-- Solicitud -->
   <mat-card class="b-1 col-md-6">
-    <mat-card-header class="m-b-16">
+    <mat-card-header class="m-b-16 d-flex justify-content-between align-items-center">
       <mat-card-title>Crear una solicitud</mat-card-title>
+      <button mat-stroked-button color="primary" (click)="dilogEdit(2)">Editar Solicitud</button>
     </mat-card-header>
     <mat-card-content class="b-t-1">
-      <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-        >Servicio</mat-label
-      >
+      <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Servicio</mat-label>
       <mat-form-field appearance="outline" class="w-100" color="primary">
-        <mat-select
-          matInput
-          [(value)]="nServ"
-          [(ngModel)]="solicitud.nServ"
-          placeholder="Seleccione un servicio"
-        >
-          <mat-option
-            *ngFor="let servicio of servicios"
-            [value]="servicio.id"
-            >{{ servicio.nServ }}</mat-option
-          >
+        <mat-select matInput [(value)]="nServ" [(ngModel)]="solicitud.nServ" placeholder="Seleccione un servicio">
+          <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">{{ servicio.nServ }}</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-        >Número Solicitud</mat-label
-      >
+      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Número Solicitud</mat-label>
       <mat-form-field appearance="outline" class="w-100" color="primary">
         <input matInput [(ngModel)]="solicitud.nSoli" name="nSoli" />
       </mat-form-field>
 
-      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-        >Fecha Solicitud</mat-label
-      >
+      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha Solicitud</mat-label>
       <mat-form-field appearance="outline" class="w-100" color="primary">
-        <input
-          matInput
-          [matDatepicker]="picker2"
-          [(ngModel)]="solicitud.FiSoli"
-          name="FiSoli"
-        />
-        <mat-datepicker-toggle
-          matIconSuffix
-          [for]="picker2"
-        ></mat-datepicker-toggle>
+        <input matInput [matDatepicker]="picker2" [(ngModel)]="solicitud.FiSoli" name="FiSoli" />
+        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
         <mat-datepicker #picker2></mat-datepicker>
       </mat-form-field>
 
@@ -155,19 +115,10 @@
             <mat-hint>Opcional</mat-hint>
           </mat-form-field> -->
 
-      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-        >Lugar</mat-label
-      >
+      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Lugar</mat-label>
       <mat-form-field appearance="outline" class="w-100" color="primary">
-        <input
-          type="text"
-          placeholder="Escoja un lugar para su solicitud"
-          matInput
-          [formControl]="myControl"
-          [matAutocomplete]="auto"
-          [(ngModel)]="solicitud.lSoli"
-          name="lSoli"
-        />
+        <input type="text" placeholder="Escoja un lugar para su solicitud" matInput [formControl]="myControl"
+          [matAutocomplete]="auto" [(ngModel)]="solicitud.lSoli" name="lSoli" />
         <mat-autocomplete #auto="matAutocomplete">
           @for (option of filteredOptions | async; track option) {
           <mat-option [value]="option">{{ option }}</mat-option>
@@ -192,17 +143,9 @@
         Crear solicitud
       </button>
     </mat-card-actions>
-    <mat-card-actions class="m-b-16">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="dilogEdit(2)"
-      >
-        Editar Solicitud
-      </button>
-    </mat-card-actions>
   </mat-card>
 </div>
+
 <div class="row m-b-16">
   <mat-card class="col-md-12">
     <mat-card-header class="m-b-16">
@@ -212,19 +155,10 @@
       <mat-card-content class="b-t-1">
         <form (ngSubmit)="preEliminarServicio()">
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Servicio</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione un servicio"
-              [(ngModel)]="selectedServicioId"
-              name="servicioSelect"
-            >
-              <mat-option
-                *ngFor="let servicio of servicios"
-                [value]="servicio.id"
-              >
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Servicio</mat-label>
+            <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="selectedServicioId"
+              name="servicioSelect">
+              <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">
                 {{ servicio.nServ }}
               </mat-option>
             </mat-select>
@@ -236,19 +170,10 @@
 
         <form (ngSubmit)="preEliminarSolicitud()">
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Solicitud</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione una solicitud"
-              [(ngModel)]="selectedSolicitudId"
-              name="solicitudSelect"
-            >
-              <mat-option
-                *ngFor="let solicitud of solicitudes"
-                [value]="solicitud.id"
-              >
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Solicitud</mat-label>
+            <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="selectedSolicitudId"
+              name="solicitudSelect">
+              <mat-option *ngFor="let solicitud of solicitudes" [value]="solicitud.id">
                 {{ solicitud.nSoli }}
               </mat-option>
             </mat-select>
@@ -280,62 +205,32 @@
     <mat-card-content>
       <mat-card-content class="b-t-1">
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Servicio</mat-label
-          >
-          <mat-select
-            matInput
-            placeholder="Seleccione un servicio"
-            [(ngModel)]="idServicioEliminar"
-            (ngModelChange)="filtrarSolicitudes($event)"
-          >
-            <mat-option
-              *ngFor="let servicio of servicios"
-              [value]="servicio.id"
-              >{{ servicio.nServ }}</mat-option
-            >
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Servicio</mat-label>
+          <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="idServicioEliminar"
+            (ngModelChange)="filtrarSolicitudes($event)">
+            <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">{{ servicio.nServ }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Solicitud</mat-label
-          >
-          <mat-select
-            matInput
-            placeholder="Seleccione una solicitud"
-            [(ngModel)]="idSolicitudEliminar"
-            (ngModelChange)="cargarLotesParaEliminar($event)"
-          >
-            <mat-option
-              *ngFor="let solicitud of solicitudesFiltradas"
-              [value]="solicitud.id"
-              >{{ solicitud.nSoli }}</mat-option
-            >
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Solicitud</mat-label>
+          <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="idSolicitudEliminar"
+            (ngModelChange)="cargarLotesParaEliminar($event)">
+            <mat-option *ngFor="let solicitud of solicitudesFiltradas" [value]="solicitud.id">{{ solicitud.nSoli
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Lotes</mat-label
-          >
-          <mat-select
-            matInput
-            placeholder="Seleccione una lote"
-            [(ngModel)]="loteSeleccionadoEliminar"
-          >
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Lotes</mat-label>
+          <mat-select matInput placeholder="Seleccione una lote" [(ngModel)]="loteSeleccionadoEliminar">
             <mat-option *ngFor="let lote of lotesEliminar; let i as index" [value]="lote">{{
-               lote.observacion
-            }}</mat-option>
+              lote.observacion
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <button
-          mat-flat-button
-          color="primary"
-          class="m-t-20"
-          (click)="preEliminarLote(loteSeleccionadoEliminar)"
-        >
+        <button mat-flat-button color="primary" class="m-t-20" (click)="preEliminarLote(loteSeleccionadoEliminar)">
           Eliminar lote
         </button>
       </mat-card-content>
@@ -347,45 +242,24 @@
   <mat-card class="b-1">
     <mat-card-header class="m-b-8">
       <mat-card-title>Cierre de Día</mat-card-title>
-      <mat-card-subtitle
-        >Aquí puede generar y enviar el informe de cierre de
-        día</mat-card-subtitle
-      >
+      <mat-card-subtitle>Aquí puede generar y enviar el informe de cierre de
+        día</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content class="m-8">
       <div>
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Servicio</mat-label
-          >
-          <mat-select
-            matInput
-            placeholder="Seleccione un servicio"
-            [(ngModel)]="idServicio"
-            (ngModelChange)="filtrarSolicitudes($event)"
-          >
-            <mat-option
-              *ngFor="let servicio of servicios"
-              [value]="servicio.id"
-              >{{ servicio.nServ }}</mat-option
-            >
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Servicio</mat-label>
+          <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="idServicio"
+            (ngModelChange)="filtrarSolicitudes($event)">
+            <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">{{ servicio.nServ }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Solicitud</mat-label
-          >
-          <mat-select
-            matInput
-            placeholder="Seleccione una solicitud"
-            [(ngModel)]="idSolicitud"
-          >
-            <mat-option
-              *ngFor="let solicitud of solicitudesFiltradas"
-              [value]="solicitud.id"
-              >{{ solicitud.nSoli }}</mat-option
-            >
+          <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Solicitud</mat-label>
+          <mat-select matInput placeholder="Seleccione una solicitud" [(ngModel)]="idSolicitud">
+            <mat-option *ngFor="let solicitud of solicitudesFiltradas" [value]="solicitud.id">{{ solicitud.nSoli
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -393,31 +267,15 @@
       <div>
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Fecha inicial del informe</mat-label>
-          <input
-            matInput
-            [matDatepicker]="pickerFechaInicial"
-            [(ngModel)]="fechaInicial"
-            name="fechaInicial"
-          />
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="pickerFechaInicial"
-          ></mat-datepicker-toggle>
+          <input matInput [matDatepicker]="pickerFechaInicial" [(ngModel)]="fechaInicial" name="fechaInicial" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerFechaInicial"></mat-datepicker-toggle>
           <mat-datepicker #pickerFechaInicial></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="m-16" color="primary">
           <mat-label>Fecha final del informe</mat-label>
-          <input
-            matInput
-            [matDatepicker]="pickerFechaFinal"
-            [(ngModel)]="fechaFinal"
-            name="fechaFinal"
-          />
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="pickerFechaFinal"
-          ></mat-datepicker-toggle>
+          <input matInput [matDatepicker]="pickerFechaFinal" [(ngModel)]="fechaFinal" name="fechaFinal" />
+          <mat-datepicker-toggle matIconSuffix [for]="pickerFechaFinal"></mat-datepicker-toggle>
           <mat-datepicker #pickerFechaFinal></mat-datepicker>
         </mat-form-field>
       </div>
@@ -428,7 +286,7 @@
           <mat-select [(ngModel)]="horaInicial">
             <mat-option *ngFor="let hora of horas" [value]="hora">{{
               hora
-            }}</mat-option>
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -437,7 +295,7 @@
           <mat-select [(ngModel)]="horaFinal">
             <mat-option *ngFor="let hora of horas" [value]="hora">{{
               hora
-            }}</mat-option>
+              }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -449,12 +307,7 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button
-          mat-raised-button
-          class="m-l-16"
-          color="primary"
-          (click)="addUsersToFruits()"
-        >
+        <button mat-raised-button class="m-l-16" color="primary" (click)="addUsersToFruits()">
           Agregar usuarios a destinatarios
         </button>
       </div>
@@ -462,58 +315,29 @@
         <mat-label>Destinatarios</mat-label>
         <mat-chip-grid #chipGrid aria-label="Ingrese los Destinatarios">
           @for(fruit of fruits; track fruit.name) {
-          <mat-chip-row
-            (removed)="remove(fruit)"
-            [editable]="true"
-            (edited)="edit(fruit, $event)"
-            [aria-description]="'presione enter para editar ' + fruit.name"
-            class="f-s-14"
-          >
+          <mat-chip-row (removed)="remove(fruit)" [editable]="true" (edited)="edit(fruit, $event)"
+            [aria-description]="'presione enter para editar ' + fruit.name" class="f-s-14">
             {{ fruit.name }}
             <button matChipRemove [attr.aria-label]="'remove ' + fruit.name">
               <mat-icon>cancel</mat-icon>
             </button>
           </mat-chip-row>
           }
-          <input
-            placeholder="Nuevo Email..."
-            [matChipInputFor]="chipGrid"
-            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-            [matChipInputAddOnBlur]="addOnBlur"
-            (matChipInputTokenEnd)="add($event)"
-          />
+          <input placeholder="Nuevo Email..." [matChipInputFor]="chipGrid"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="addOnBlur"
+            (matChipInputTokenEnd)="add($event)" />
         </mat-chip-grid>
       </mat-form-field>
     </mat-card-content>
     <mat-card-actions>
-      <button
-        type="submit"
-        class="m-r-8"
-        mat-raised-button
-        color="primary"
-        [disabled]="!fechaInicial || !fechaFinal || !horaInicial || !horaFinal"
-        (click)="cierreD()"
-      >
+      <button type="submit" class="m-r-8" mat-raised-button color="primary"
+        [disabled]="!fechaInicial || !fechaFinal || !horaInicial || !horaFinal" (click)="cierreD()">
         Generar Informe
       </button>
-      <button
-        *ngIf="generado"
-        type="submit"
-        class="m-l-8"
-        mat-raised-button
-        color="primary"
-        (click)="descargarExcel()"
-      >
+      <button *ngIf="generado" type="submit" class="m-l-8" mat-raised-button color="primary" (click)="descargarExcel()">
         Descargar documento
       </button>
-      <button
-        *ngIf="generado"
-        type="submit"
-        class="m-l-8"
-        mat-raised-button
-        color="primary"
-        (click)="enviarCorreo()"
-      >
+      <button *ngIf="generado" type="submit" class="m-l-8" mat-raised-button color="primary" (click)="enviarCorreo()">
         Enviar documento
       </button>
       <!-- <button
@@ -539,19 +363,10 @@
       <mat-card-content class="b-t-1">
         <form (ngSubmit)="preEliminarServicio()">
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Usuario</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione un servicio"
-              [(ngModel)]="userSeleccionado"
-              name="userSeleccionado"
-            >
-              <mat-option
-                *ngFor="let usuario of usuarios"
-                [value]="usuario.email"
-              >
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Usuario</mat-label>
+            <mat-select matInput placeholder="Seleccione un servicio" [(ngModel)]="userSeleccionado"
+              name="userSeleccionado">
+              <mat-option *ngFor="let usuario of usuarios" [value]="usuario.email">
                 {{ usuario.email }}
               </mat-option>
             </mat-select>
@@ -560,9 +375,7 @@
 
         <form (ngSubmit)="preEliminarSolicitud()">
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Rol</mat-label
-            >
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Rol</mat-label>
             <mat-select [(value)]="rolSeleccionado">
               <mat-option *ngFor="let rol of roles" [value]="rol">
                 {{ rol }}
@@ -573,13 +386,7 @@
       </mat-card-content>
     </mat-card-content>
     <mat-card-content>
-      <button
-        mat-flat-button
-        color="primary"
-        class="m-t-20"
-        (click)="asignarRol()"
-        type="submit"
-      >
+      <button mat-flat-button color="primary" class="m-t-20" (click)="asignarRol()" type="submit">
         Asignar rol
       </button>
     </mat-card-content>
@@ -602,11 +409,8 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
-      <mat-paginator
-        [pageSize]="10"
-        [pageSizeOptions]="[5, 10, 25, 100]"
-        [length]="dataSource.data.length"
-      ></mat-paginator>
+      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
+        [length]="dataSource.data.length"></mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>
@@ -615,83 +419,43 @@
   <mat-card class="col-md-12">
     <mat-card-header class="m-b-16">
       <mat-card-title>Gestión de Bodegas</mat-card-title>
-      <mat-card-subtitle class="mat-body-1"
-        >Seleccione un número de bodega para modificar su nombre. Deje el campo
-        de bodegas vacío para crear una bodega nueva.</mat-card-subtitle
-      >
+      <mat-card-subtitle class="mat-body-1">Seleccione un número de bodega para modificar su nombre. Deje el campo
+        de bodegas vacío para crear una bodega nueva.</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
       <mat-card-content class="b-t-1">
         <form (ngSubmit)="preEliminarServicio()">
-          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-            >Bodegas</mat-label
-          >
+          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">Bodegas</mat-label>
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block"
-              >Bodegas</mat-label
-            >
-            <mat-select
-              matInput
-              placeholder="Seleccione una bodega"
-              [(ngModel)]="bodegaSeleccionada"
-              name="bodegaSeleccionada"
-              (selectionChange)="onBodegaChange($event)"
-            >
+            <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Bodegas</mat-label>
+            <mat-select matInput placeholder="Seleccione una bodega" [(ngModel)]="bodegaSeleccionada"
+              name="bodegaSeleccionada" (selectionChange)="onBodegaChange($event)">
               <mat-option *ngFor="let bodega of bodegas" [value]="bodega">
                 {{ bodega.idBodega }}
               </mat-option>
             </mat-select>
           </mat-form-field>
 
-          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-            >Nombre Bodega</mat-label
-          >
+          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Nombre Bodega</mat-label>
           <mat-form-field appearance="outline" class="w-100" color="primary">
-            <input
-              matInput
-              [(ngModel)]="bodegaSeleccionada.nombreBodega"
-              name="nombreBodega"
-            />
+            <input matInput [(ngModel)]="bodegaSeleccionada.nombreBodega" name="nombreBodega" />
           </mat-form-field>
 
-          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-            >Total de Material</mat-label
-          >
+          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Total de Material</mat-label>
           <mat-form-field appearance="outline" class="w-100" color="primary">
-            <input
-              type="number"
-              matInput
-              [(ngModel)]="bodegaSeleccionada.total"
-              name="totalBodega"
-              placeholder="Total Bodega"
-            />
+            <input type="number" matInput [(ngModel)]="bodegaSeleccionada.total" name="totalBodega"
+              placeholder="Total Bodega" />
           </mat-form-field>
 
-          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block"
-            >Imagen Bodega</mat-label
-          >
-          <input
-            type="file"
-            (change)="onFileChange($event)"
-            name="imagenBodega"
-            accept="image/*"
-          />
+          <mat-label class="mat-subtitle-2 f-w-600 m-b-8 m-t-8 d-block">Imagen Bodega</mat-label>
+          <input type="file" (change)="onFileChange($event)" name="imagenBodega" accept="image/*" />
 
-          <img
-            [src]="imagenPreview"
-            alt="Imagen de la bodega"
-            *ngIf="imagenPreview"
-          />
+          <img [src]="imagenPreview" alt="Imagen de la bodega" *ngIf="imagenPreview" />
         </form>
       </mat-card-content>
     </mat-card-content>
     <mat-card-actions>
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="guardarBodega()"
-        type="submit"
-      >
+      <button mat-flat-button color="primary" (click)="guardarBodega()" type="submit">
         Guardar Bodega
       </button>
     </mat-card-actions>
@@ -702,10 +466,8 @@
   <mat-card class="col-md-12">
     <mat-card-header class="m-b-16">
       <mat-card-title>Gestión de Balanza</mat-card-title>
-      <mat-card-subtitle class="mat-body-1"
-        >Aquí podrá solicitar el reporte de medición de balanza, además de
-        asignar la fecha y n° de validación de la misma.</mat-card-subtitle
-      >
+      <mat-card-subtitle class="mat-body-1">Aquí podrá solicitar el reporte de medición de balanza, además de
+        asignar la fecha y n° de validación de la misma.</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
       <mat-card-content class="b-t-1">
@@ -713,29 +475,15 @@
         <form [formGroup]="BalanzaForm" (ngSubmit)="consultarBalanza()">
           <mat-form-field>
             <mat-label>Fecha Inicial</mat-label>
-            <input
-              matInput
-              [matDatepicker]="pickerBalanzaInicial"
-              formControlName="fechaBalanzaInicial"
-            />
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="pickerBalanzaInicial"
-            ></mat-datepicker-toggle>
+            <input matInput [matDatepicker]="pickerBalanzaInicial" formControlName="fechaBalanzaInicial" />
+            <mat-datepicker-toggle matSuffix [for]="pickerBalanzaInicial"></mat-datepicker-toggle>
             <mat-datepicker #pickerBalanzaInicial></mat-datepicker>
           </mat-form-field>
           <!-- Para la fecha final -->
           <mat-form-field>
             <mat-label>Fecha Final</mat-label>
-            <input
-              matInput
-              [matDatepicker]="pickerBalanzaFinal"
-              formControlName="fechaBalanzaFinal"
-            />
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="pickerBalanzaFinal"
-            ></mat-datepicker-toggle>
+            <input matInput [matDatepicker]="pickerBalanzaFinal" formControlName="fechaBalanzaFinal" />
+            <mat-datepicker-toggle matSuffix [for]="pickerBalanzaFinal"></mat-datepicker-toggle>
             <mat-datepicker #pickerBalanzaFinal></mat-datepicker>
           </mat-form-field>
 
@@ -746,12 +494,7 @@
       </mat-card-content>
     </mat-card-content>
     <mat-card-actions>
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="descargarReporte()"
-        type="submit"
-      >
+      <button mat-flat-button color="primary" (click)="descargarReporte()" type="submit">
         Descargar Reporte
       </button>
     </mat-card-actions>
@@ -802,4 +545,3 @@
     </mat-card-content>
   </mat-card>
 </div>
-
