@@ -434,7 +434,13 @@ export class FormulariosComponent {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/user-logs/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        this.dataSource.data = data.reverse();
+        // Ordena los logs por fecha y hora
+        data.sort((a, b) => {
+          const dateA = new Date(`${a.fecha} ${a.hora}`);
+          const dateB = new Date(`${b.fecha} ${b.hora}`);
+          return dateB.getTime() - dateA.getTime(); // Orden descendente
+        });
+        this.dataSource.data = data;
         console.log(data);
       },
       (error) => {

@@ -35,6 +35,9 @@ import { ServicioService } from 'src/app/services/servicio.service';
 import { DetalleLoteComponent } from '../recepcion/detalle-lote/detalle-lote.component';
 import { CrearLoteDialog } from '../recepcion/recepcion.component';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FluidezComponent } from './fluidez/fluidez.component';
+import { AnguloComponent } from './angulo/angulo.component';
+import { EstibaComponent } from './estiba/estiba.component';
 
 export interface loteRecepcion {
   id: number;
@@ -217,14 +220,6 @@ export class ImoComponent {
             }
           });
       });
-
-    this.criteriosAceptacionForm = new FormGroup({
-      id: new FormControl(''),
-      porcentajeHumedad: new FormControl(''),
-      variacionPeso: new FormControl(''),
-    });
-    // Llamar a la función para consultar datos en la API
-    this.getCriteriosAceptacion();
   }
 
   onPageEvent(event: any) {
@@ -296,29 +291,6 @@ export class ImoComponent {
     this.solicitudesFiltradas = this.solicitudes.filter(
       (solicitud) => solicitud.nServ === servicioId
     );
-  }
-
-  detalleLote(nLote: string, numero: number) {
-    // console.log('Detalle del lote:', nLote); // Verifica el número de lote
-    // console.log('Número del lote:', numero); // Verifica el número de lote
-    // const dialogRef = this.dialog.open(DetalleHumedadComponent, {
-    //   width: '90%', // Ajusta el ancho del diálogo
-    //   height: '90%', // Ajusta la altura del diálogo
-    //   maxWidth: '95vw', // Máximo ancho en viewport
-    //   maxHeight: '95vh', // Máxima altura en viewport
-    //   data: {
-    //     numero: numero,
-    //     idServicio: this.idServicio,
-    //     idSolicitud: this.idSolicitud,
-    //     nLote: nLote,
-    //   },
-    // });
-
-    // dialogRef.afterClosed().subscribe((result) => {
-    //   if (result) {
-    //     this.ngOnInit();
-    //   }
-    // });
   }
 
   mostrarTabla: boolean = false;
@@ -420,9 +392,9 @@ export class ImoComponent {
                 }
               });
 
-              Notify.failure(
-                'No se encontraron lotes para la combinación de servicio y solicitud'
-              );
+              // Notify.failure(
+              //   'No se encontraron lotes para la combinación de servicio y solicitud'
+              // );
               this.totalPeso = 0;
               this.mostrarTabla = false;
               this.dataSource1 = LOTE_DEFAULT; // Cargar datos por defecto si no hay coincidencias
@@ -442,63 +414,56 @@ export class ImoComponent {
     }
   }
 
-  guardarCriteriosAceptacionAPI(criterios: any): Observable<any> {
-    return this.http.post(this.apiUrl, criterios);
-  }
-  actualizarCriteriosAceptacionAPI(criterios: any): Observable<any> {
-    return this.http.put(this.apiUrl + criterios.id + '/', criterios);
-  }
-  // Función para consultar datos en la API
-  getCriteriosAceptacionAPI(): Observable<any> {
-    return this.http.get(this.apiUrl);
+  cargarFluidez(nLote: string, numero: number) {
+    console.log('Cargando fluidez para el lote:', nLote);
+    // Aquí puedes abrir el diálogo de fluidezComponent
+    const dialogRef = this.dialog.open(FluidezComponent, {
+      width: '90%', // Ajusta el ancho del diálogo
+      height: '90%', // Ajusta la altura del diálogo
+      maxWidth: '95vw', // Máximo ancho en viewport
+      maxHeight: '95vh', // Máxima altura en viewport
+      data: {
+        numero: numero,
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+        nLote: nLote,
+      },
+    });
   }
 
-  getCriteriosAceptacion(): void {
-    this.getCriteriosAceptacionAPI().subscribe(
-      (response) => {
-        console.log('Datos obtenidos de la API:');
-        console.log(response[0]); // Imprimir el primer elemento del array de respuesta
-        // Rellenar el formulario con los datos obtenidos
-        if (response.length === 0) {
-          console.warn('No se encontraron criterios de aceptación en la API');
-          this.criteriosAceptacionForm.reset(); // Reiniciar el formulario si no hay datos
-          return;
-        }
-        this.criteriosAceptacionForm.patchValue(response[0]);
+  cargarAngulo(nLote: string, numero: number) {
+    console.log('Cargando ángulo de reposo para el lote:', nLote);
+    // Aquí puedes abrir el diálogo de anguloComponent
+    const dialogRef = this.dialog.open(AnguloComponent, {
+      width: '90%', // Ajusta el ancho del diálogo
+      height: '90%', // Ajusta la altura del diálogo
+      maxWidth: '95vw', // Máximo ancho en viewport
+      maxHeight: '95vh', // Máxima altura en viewport
+      data: {
+        numero: numero,
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+        nLote: nLote,
       },
-      (error) => {
-        console.error(error);
-      }
-    );
+    });
   }
 
-  guardarCriteriosAceptacion(): void {
-    const criterios = this.criteriosAceptacionForm.value;
-    if (criterios.id) {
-      // Si el ID existe, actualizar los criterios de aceptación
-      this.actualizarCriteriosAceptacionAPI(criterios).subscribe(
-        (response) => {
-          console.log('Criterios de aceptación actualizados:', response);
-          Notify.success('Criterios de aceptación actualizados correctamente');
-        },
-        (error) => {
-          console.error('Error al actualizar criterios de aceptación:', error);
-          Notify.failure(
-            'Error al actualizar criterios de aceptación: ' + error.message
-          );
-        }
-      );
-      return;
-    }
-    this.guardarCriteriosAceptacionAPI(criterios).subscribe(
-      (response) => {
-        console.log(response);
-        Notify.success('Criterios de aceptación guardados correctamente');
+  cargarEstiba(nLote: string, numero: number) {
+    console.log('Cargando factor de estiba para el lote:', nLote);
+    // Aquí puedes abrir el diálogo de EstibaComponent
+    const dialogRef = this.dialog.open(EstibaComponent, {
+      width: '90%', // Ajusta el ancho del diálogo
+      height: '90%', // Ajusta la altura del diálogo
+      maxWidth: '95vw', // Máximo ancho en viewport
+      maxHeight: '95vh', // Máxima altura en viewport
+      data: {
+        numero: numero,
+        idServicio: this.idServicio,
+        idSolicitud: this.idSolicitud,
+        nLote: nLote,
       },
-      (error) => {
-        console.error(error);
-      }
-    );
+    });
+    
   }
 
   // Método para abrir el diálogo

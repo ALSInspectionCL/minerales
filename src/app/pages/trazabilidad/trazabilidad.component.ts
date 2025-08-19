@@ -360,7 +360,7 @@ export class TrazabilidadComponent {
     let codigo: string = inputValue;
     // Si el codigo contiene cualquiera de estos elementos: _:;,.' se reemplaza por un guión
     inputValue = inputValue
-    .replace(/[_;.,']/g, '-')
+    .replace(/[_;,']/g, '-')
     // Cambiar los valores de codigo para que esten en mayusculas
     .toUpperCase()
     // Verificar si el código está completo (por ejemplo, si tiene un largo específico y un guión)

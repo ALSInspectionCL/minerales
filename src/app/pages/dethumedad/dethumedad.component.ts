@@ -428,9 +428,9 @@ export class DethumedadComponent {
                 }
               });
 
-              Notify.failure(
-                'No se encontraron lotes para la combinación de servicio y solicitud'
-              );
+              // Notify.failure(
+              //   'No se encontraron lotes para la combinación de servicio y solicitud'
+              // );
               this.totalPeso = 0;
               this.mostrarTabla = false;
               this.mostrarTablaEmbarques = false;

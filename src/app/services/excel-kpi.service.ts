@@ -7,7 +7,7 @@ import * as ExcelJS from 'exceljs';
 export class ExcelKPIService {
 
   constructor() { }
-  
+
   async descargarExcelResumenLote(lotes: any[]): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Resumen Lote');
@@ -43,6 +43,7 @@ export class ExcelKPIService {
 
     const totalColumnas = headers.length;
 
+    // Subtítulos
     const groupTitleRow = worksheet.getRow(11);
     groupTitleRow.height = 20;
     for (let i = 1; i <= totalColumnas; i++) groupTitleRow.getCell(i).value = '';
@@ -60,10 +61,8 @@ export class ExcelKPIService {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F4A261' } };
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       cell.border = {
-        top: { style: 'thin', color: { argb: '000000' } },
-        left: { style: 'thin', color: { argb: '000000' } },
-        bottom: { style: 'thin', color: { argb: '000000' } },
-        right: { style: 'thin', color: { argb: '000000' } },
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' },
       };
     });
 
@@ -76,10 +75,8 @@ export class ExcelKPIService {
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E88E5' } };
       cell.border = {
-        top: { style: 'thin', color: { argb: '000000' } },
-        left: { style: 'thin', color: { argb: '000000' } },
-        bottom: { style: 'thin', color: { argb: '000000' } },
-        right: { style: 'thin', color: { argb: '000000' } },
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' },
       };
     });
 
@@ -95,7 +92,7 @@ export class ExcelKPIService {
       try {
         return Math.floor((f1(b).getTime() - f1(a).getTime()) / (1000 * 60 * 60 * 24));
       } catch {
-        return 'Sin completar';
+        return null;
       }
     };
     const cumplimientoBinario = (valor: number, max: number) =>
@@ -107,39 +104,35 @@ export class ExcelKPIService {
 
       const diasDiferencia = lote.fechaTermino && lote.DUSAvanceComposito
         ? safeDiff(lote.fechaTermino, lote.DUSAvanceComposito)
-        : 'Sin completar';
-
-      const cumplimiento = cumplimientoBinario(Number(diasDiferencia), 2);
+        : null;
+      const cumplimiento = cumplimientoBinario(diasDiferencia as number, 2);
 
       const diasEntregaAU = lote.DUSAvanceComposito && lote.DUSFinales
         ? safeDiff(lote.DUSAvanceComposito, lote.DUSFinales)
-        : 'Sin completar';
+        : null;
 
       const tatLoteALote = lote.fechaEntregaLab && lote.LALFinales
         ? safeDiff(lote.fechaEntregaLab, lote.LALFinales)
-        : 'Sin completar';
-
-      const cumpleTatLote = cumplimientoBinario(Number(tatLoteALote), 15);
+        : null;
+      const cumpleTatLote = cumplimientoBinario(tatLoteALote as number, 15);
 
       const diasEnvioReportePeso = lote.fechaTermino && lote.fechaEnvioReporte
         ? safeDiff(lote.fechaTermino, lote.fechaEnvioReporte)
-        : 'Sin completar';
-
-      const cumpleReporteALS = cumplimientoBinario(Number(diasEnvioReportePeso), 2);
+        : null;
+      const cumpleReporteALS = cumplimientoBinario(diasEnvioReportePeso as number, 2);
 
       const diasEntregaMuestraLab = lote.fechaTermino && lote.fechaEntregaLab
         ? safeDiff(lote.fechaTermino, lote.fechaEntregaLab)
-        : 'Sin completar';
-
-      const cumpleEntregaLab = cumplimientoBinario(Number(diasEntregaMuestraLab), 2);
+        : null;
+      const cumpleEntregaLab = cumplimientoBinario(diasEntregaMuestraLab as number, 2);
 
       const diasEntregaTestigoAduana = lote.fechaTermino && lote.fechaEntregaLabAduana
         ? safeDiff(lote.fechaTermino, lote.fechaEntregaLabAduana)
-        : 'Sin completar';
+        : null;
+      const cumpleEntregaAduana = cumplimientoBinario(diasEntregaTestigoAduana as number, 20);
 
-      const cumpleEntregaAduana = cumplimientoBinario(Number(diasEntregaTestigoAduana), 20);
-
-      row.values = [
+      // -----> Aquí aplicamos el "modelo 2": escribir celda por celda con formato
+      const valores = [
         contador++,
         lote.fLote || 'No aplica',
         lote.fechaTermino || 'No aplica',
@@ -153,13 +146,13 @@ export class ExcelKPIService {
         lote.contratoCochilco || '',
         lote.DV || '',
         lote.contratoAnglo || '',
-        (Number(lote.pesoNetoHumedo || 0) * 1000).toLocaleString('es-CL'),
-        lote.porcHumedad ?? 'No aplica',
-        (Number(lote.pesoNetoSeco || 0) * 1000).toLocaleString('es-CL'),
-        '',
+        Number(lote.pesoNetoHumedo || 0) * 1000,
+        lote.porcHumedad ? Number(lote.porcHumedad) / 100 : null, // porcentaje
+        Number(lote.pesoNetoSeco || 0) * 1000,
+        null,
         lote.bodegaNave || '',
         lote.fechaEnvioReporte || '',
-        '',
+        null,
         lote.fechaEntregaLab || '',
         lote.DUSAvanceComposito || '',
         lote.DUSFinales || '',
@@ -181,18 +174,25 @@ export class ExcelKPIService {
         lote.resguardoTestigoAduana || '',
       ];
 
-      row.eachCell((cell) => {
-        cell.alignment = { vertical: 'middle', wrapText: true, horizontal: 'center' };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } };
+      valores.forEach((val, i) => {
+        const cell = row.getCell(i + 1);
+        cell.value = val;
+
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.border = {
-          top: { style: 'thin', color: { argb: '000000' } },
-          left: { style: 'thin', color: { argb: '000000' } },
-          bottom: { style: 'thin', color: { argb: '000000' } },
-          right: { style: 'thin', color: { argb: '000000' } },
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' },
         };
+
+        if (typeof val === 'number') {
+          if (i === 13 || i === 15) cell.numFmt = '#,##0'; // Tonelajes (enteros con miles)
+          else if (i === 14) cell.numFmt = '0.00%';        // Porcentaje humedad
+          else if ([24, 26, 27, 29, 31, 33].includes(i)) cell.numFmt = '0'; // Días (enteros)
+        }
       });
     });
 
+    // --- criterios extra
     const criterios = [
       ['Criterio Cumplimiento Puerto', 2],
       ['Criterio Entrega a Aduana', 20],
@@ -210,24 +210,18 @@ export class ExcelKPIService {
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E88E5' } };
       cell.border = {
-        top: { style: 'thin', color: { argb: '000000' } },
-        left: { style: 'thin', color: { argb: '000000' } },
-        bottom: { style: 'thin', color: { argb: '000000' } },
-        right: { style: 'thin', color: { argb: '000000' } },
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' },
       };
     });
 
     criterios.forEach(([, valor], index) => {
       const cell = worksheet.getRow(startRow + 1).getCell(startCol + index);
       cell.value = valor;
-      cell.font = { name: 'Calibri', size: 11 };
       cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } };
       cell.border = {
-        top: { style: 'thin', color: { argb: '000000' } },
-        left: { style: 'thin', color: { argb: '000000' } },
-        bottom: { style: 'thin', color: { argb: '000000' } },
-        right: { style: 'thin', color: { argb: '000000' } },
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' },
       };
     });
 

@@ -130,7 +130,7 @@
         <ng-container matColumnDef="prueba1">
           <th mat-header-cell *matHeaderCellDef>Punto de Fluidez</th>
           <td mat-cell *matCellDef="let element; let i = index">
-            <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
+            <button mat-icon-button (click)="cargarFluidez(element.nLote, i + 1)">
               <mat-icon>
                 <i-tabler
                   name="bucket-droplet"
@@ -145,7 +145,7 @@
         <ng-container matColumnDef="prueba2">
           <th mat-header-cell *matHeaderCellDef>Angulo de reposo</th>
           <td mat-cell *matCellDef="let element; let i = index">
-            <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
+            <button mat-icon-button (click)="cargarAngulo(element.nLote, i + 1)">
               <mat-icon>
                 <i-tabler
                   name="angle"
@@ -160,7 +160,7 @@
         <ng-container matColumnDef="prueba3">
           <th mat-header-cell *matHeaderCellDef>Factor de Estiba</th>
           <td mat-cell *matCellDef="let element; let i = index">
-            <button mat-icon-button (click)="detalleLote(element.nLote, i + 1)">
+            <button mat-icon-button (click)="cargarEstiba(element.nLote, i + 1)">
               <mat-icon>
                 <i-tabler
                   name="function"

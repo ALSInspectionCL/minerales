@@ -1,0 +1,46 @@
+<mat-card>
+  <mat-card-header>
+    <div class="header">
+      <h2>Determinación Punto de Fluidez</h2>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="header">
+      <h3>Información general de pruebas de Fluidez del Lote</h3>
+    </div>
+    <mat-card class="card-with-shadow m-8">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Fecha de realización de la muestra: </strong> {{ fechaPrueba }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Lugar de Muestreo: </strong> Puerto Ventanas</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Tonelaje: </strong> {{ sumaTonelaje }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Material: </strong> Concentrado de Cobre los bronces</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Buque a Cargar: </strong>{{ nombreEmbarque }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Quien realiza la prueba: </strong>Bruno Acevedo</p>
+        </div>
+      </div>
+    </div>
+    </mat-card>
+  </mat-card-content>
+  <mat-card-content>
+    <mat-horizontal-stepper>
+      <mat-step label="Prueba de humedad"> Content 1 </mat-step>
+      <mat-step label="Pruebas de Fluidez"> Content 2 </mat-step>
+      <mat-step label="Resultados"> Content 3 </mat-step>
+    </mat-horizontal-stepper>
+    <div class="header">
+      <h3>Pruebas de Fluidez</h3>
+    </div>
+  </mat-card-content>
+</mat-card>
