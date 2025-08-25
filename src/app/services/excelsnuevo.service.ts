@@ -8,7 +8,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ExcelsService {
 
-  apiUrl = 'http://127.0.0.1:8000/api/trazabilidad/'
+  apiUrl = 'https://control.als-inspection.cl/api_min/api/trazabilidad/'
 
   constructor(private http: HttpClient) { }
 

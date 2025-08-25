@@ -367,13 +367,39 @@ export class DetalleEmbarqueComponent {
   actualizarLote() {
     const cantSubLotes = this.dataSource1.length;
 
+    let porcHumedad = this.porcHumedad;
+    if (porcHumedad === null || porcHumedad === undefined || isNaN(Number(porcHumedad))) {
+      porcHumedad = 0;
+    }else{
+      porcHumedad = Number(this.porcHumedad.toFixed(2));
+    }
+
+    let pesoNetoHumedo = this.sumaPesos;
+    if (pesoNetoHumedo === null || pesoNetoHumedo === undefined || isNaN(Number(pesoNetoHumedo))) {
+      pesoNetoHumedo = 0;
+    }else{
+      pesoNetoHumedo = Number(this.sumaPesos.toFixed(2));
+    }
+
+    let pesoNetoSeco = this.pesoSeco;
+    if (pesoNetoSeco === null || pesoNetoSeco === undefined || isNaN(Number(pesoNetoSeco))) {
+      pesoNetoSeco = 0;
+    }else{
+      pesoNetoSeco = Number(this.pesoSeco.toFixed(2));
+    }
+    let CuFino = this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)));
+    if (CuFino === null || CuFino === undefined || isNaN(Number(CuFino))) {
+      CuFino = 0;
+    }
+  
+
     const loteActualizado = {
       ...this.lote,
       cantSubLotes: cantSubLotes,
-      pesoNetoHumedo: this.sumaPesos.toFixed(2),
-      porcHumedad: this.porcHumedad.toFixed(2),
-      pesoNetoSeco: this.pesoSeco.toFixed(2),
-      CuFino: this.calcularCobreFino(Number(this.pesoSeco.toFixed(2))),
+      pesoNetoHumedo: pesoNetoHumedo,
+      porcHumedad: porcHumedad,
+      pesoNetoSeco: pesoNetoSeco,
+      CuFino: CuFino || 0,
     };
     this.lote.CuFino = Number(
       this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
@@ -390,7 +416,7 @@ export class DetalleEmbarqueComponent {
       });
   }
 
-  calcularCobreFino(totalSeco: number) {
+  calcularCobreFino(totalSeco: number) : number {
     // Verificar el Cobre de Origen y Cobre de Destino
     const CuOrigen = this.lote.CuOrigen;
     const CuDestino = this.lote.CuDestino;
@@ -398,14 +424,17 @@ export class DetalleEmbarqueComponent {
     console.log('Cobre Destino:', CuDestino);
     console.log('Total Seco:', totalSeco);
     let CuFino = 0;
-    if (CuDestino != 0) {
+    if (CuDestino != 0 || CuDestino != null) {
       CuFino = totalSeco - (totalSeco * CuDestino) / 100;
-    } else if (CuOrigen != 0) {
+    } else if (CuOrigen != 0 || CuOrigen != null) {
       CuFino = totalSeco - (totalSeco * CuOrigen) / 100;
     } else {
-      CuFino = 0;
+      CuFino = 0; 
     }
-    return CuFino.toFixed(2);
+    if (CuFino <= 0) {
+      CuFino = 0; // Asegura que CuFino no sea negativo
+    }
+    return Number(CuFino.toFixed(2));
   }
 
   onBodegaChange(event: MatSelectChange) {

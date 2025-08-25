@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class TrazabilidadService {
 
-  private apiUrl = 'http://127.0.0.1:8000/api/trazabilidad/'; // Cambia la URL según tu API
+  private apiUrl = 'https://control.als-inspection.cl/api_min/api/trazabilidad/'; // Cambia la URL según tu API
 
   constructor(private http: HttpClient) { }
 
