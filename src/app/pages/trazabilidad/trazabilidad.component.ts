@@ -240,13 +240,20 @@ export class TrazabilidadComponent {
           estado: t.estado, // Agregar el estado de la trazabilidad
         };
       });
+      console.log('Trazabilidades con nombres:', trazabilidades);
       // Ordenar trazabilidades por fecha de lote desde la más reciente a la más antigua
       trazabilidades.sort(
         (a, b) => new Date(b.fLote).getTime() - new Date(a.fLote).getTime()
       );
-      this.dataSource.data = trazabilidades;
+      // Filtrar trazabilidades para que no se repitan los lotes
+      const trazabilidadesUnicas = trazabilidades.filter(
+        (t, index, self) =>
+          index ===
+          self.findIndex((t2) => t2.nLote === t.nLote)
+      );
+      this.dataSource.data = trazabilidadesUnicas;
       console.log('Lotes cargados:', this.dataSource.data);
-      this.lote = trazabilidades.length > 0 ? trazabilidades[0] : null;
+      this.lote = trazabilidadesUnicas.length > 0 ? trazabilidadesUnicas[0] : null;
       console.log('Lotes con nombres:', this.lote);
     });
   }

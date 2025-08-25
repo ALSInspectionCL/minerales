@@ -285,6 +285,14 @@ class TrazabilidadMecanica(models.Model):
     observacion = models.CharField(max_length=200,blank=True, null=True)
     estado = models.CharField(max_length=200, blank=True, null=True)
     fechaSobre = models.DateField(blank=True, null=True)
+    fechaInstruccionDespacho = models.DateField(blank=True, null=True)
+    fechaConfirmacionDespacho = models.DateField(blank=True, null=True)
+    fechaDespacho = models.DateField(blank=True, null=True)
+    numeroGuia = models.CharField(max_length=50, blank=True, null=True)
+    laboratorio = models.CharField(max_length=50, blank=True, null=True)
+    fechaLlegadaLaboratorio = models.DateField(blank=True, null=True)
+    pais= models.CharField(max_length=50, blank=True, null=True)
+    tipoSobre = models.CharField(max_length=50, blank=True, null=True)
 
 class Emails(models.Model):
     emailOrigen = models.CharField(max_length=200, blank=True, null=True)

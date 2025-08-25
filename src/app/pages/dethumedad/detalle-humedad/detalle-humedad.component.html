@@ -155,23 +155,10 @@
               </div>
             </div>
             <div class="text-center m-8">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-              >
-                <mat-label>Hora</mat-label>
-                <input
-                  matInput
-                  type="time"
-                  formControlName="horaIngresoHorno"
-                  placeholder="Ingrese hora"
-                />
-              </mat-form-field>
               <button
                 *ngIf="!cliente"
                 mat-raised-button
-                (click)="guardarDatos()"
+                (click)="guardarDatosIniciales()"
                 color="primary"
                 class="w-50"
               >
@@ -231,23 +218,10 @@
               </div>
             </div>
             <div class="text-center m-8">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-              >
-                <mat-label>Hora</mat-label>
-                <input
-                  matInput
-                  type="time"
-                  formControlName="horaSalidaHorno1"
-                  placeholder="Ingrese hora"
-                />
-              </mat-form-field>
               <button
                 *ngIf="!cliente"
                 mat-raised-button
-                (click)="guardarDatos()"
+                (click)="guardarDatosPrimeraSalida()"
                 color="primary"
                 class="w-50"
               >
@@ -307,24 +281,11 @@
               </div>
             </div>
             <div class="text-center m-8">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-              >
-                <mat-label>Hora</mat-label>
-                <input
-                  matInput
-                  formControlName="horaSalidaHorno2"
-                  type="time"
-                  placeholder="Ingrese hora"
-                />
-              </mat-form-field>
               <button
                 *ngIf="!cliente"
                 mat-raised-button
                 color="primary"
-                (click)="guardarDatos()"
+                (click)="guardarDatosSegundaSalida()"
                 class="w-50"
               >
                 Enviar Datos
@@ -383,20 +344,7 @@
               </div>
             </div>
             <div class="text-center m-8">
-              <mat-form-field
-                appearance="outline"
-                class="w-50 m-8"
-                color="primary"
-              >
-                <mat-label>Hora</mat-label>
-                <input
-                  matInput
-                  type="time"
-                  formControlName="horaSalidaHorno3"
-                  placeholder="Ingrese hora"
-                />
-              </mat-form-field>
-              <button *ngIf="!cliente" (click)="guardarDatos()" mat-raised-button color="primary" class="w-50">
+              <button *ngIf="!cliente" (click)="guardarDatosTerceraSalida()" mat-raised-button color="primary" class="w-50">
                 Enviar Datos
               </button>
             </div>

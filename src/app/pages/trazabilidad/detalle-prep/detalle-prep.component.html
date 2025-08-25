@@ -45,7 +45,7 @@
                         </mat-form-field>
 
 
-                        <mat-label class="section-label">Fecha de embarque</mat-label>
+                        <mat-label class="section-label">Fecha de Preparación *</mat-label>
                         <mat-form-field appearance="outline" class="m-16">
                             <input matInput [matDatepicker]="pickerEmbarque" formControlName="fEmbarque"
                                 placeholder="Seleccione una fecha" />
@@ -72,25 +72,25 @@
                             <mat-datepicker #pickerDus></mat-datepicker>
                         </mat-form-field>
 
-                        <mat-label class="section-label">Peso neto Húmedo</mat-label>
+                        <mat-label class="section-label">Peso Neto Húmedo *</mat-label>
                         <mat-form-field appearance="outline" class="m-16">
                             <mat-label>Peso neto Húmedo</mat-label>
                             <input matInput type="number" formControlName="pesoNetoHumedo" min="0" step="any">
                         </mat-form-field>
 
-                        <mat-label class="section-label">% Humedad</mat-label>
+                        <mat-label class="section-label">% Humedad *</mat-label>
                         <mat-form-field appearance="outline" class="m-16">
                             <mat-label>% Humedad</mat-label>
                             <input matInput type="number" formControlName="humedad" min="0" max="100" step="any">
                         </mat-form-field>
 
-                        <mat-label class="section-label">Peso neto Seco</mat-label>
+                        <mat-label class="section-label">Peso Neto Seco *</mat-label>
                         <mat-form-field appearance="outline" class="m-16">
                             <mat-label>Peso neto Seco</mat-label>
                             <input matInput type="number" formControlName="pesoNetoSeco" min="0" step="any">
                         </mat-form-field>
 
-                        <mat-label class="section-label">Responsable</mat-label>
+                        <mat-label class="section-label">Responsable *</mat-label>
                         <mat-form-field appearance="outline" class="m-16">
                             <mat-label>Responsable</mat-label>
                             <input matInput type="text" formControlName="responsable">
@@ -99,6 +99,7 @@
                         <div class="d-flex justify-content-between m-t-16">
                             <button mat-flat-button color="primary" (click)="generarCodigosQREnExcelUnificado()"
                                 [disabled]="miFormulario.invalid">Finalizar</button>
+
                         </div>
 
                     </div>

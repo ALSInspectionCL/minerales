@@ -1,26 +1,27 @@
-<mat-card class="cardWithShadow">
-  <mat-card-header>
-    <mat-card-title class="f-s-20 f-w-600 m-10">Detalle de la Trazabilidad</mat-card-title>
-    <mat-card-subtitle class="f-s-16 m-10">
-      Número de Lote: {{ data.numLote || "Cargando..." }}
-    </mat-card-subtitle>
-    <button mat-icon-button class="float-right" (click)="redescargarQR()">
-      <i-tabler name="qrcode" class="icon-24"></i-tabler>
-    </button>
-  </mat-card-header>
+<h2 mat-dialog-title>Trazabilidad de la muestra {{lote.observacion || '...'}}</h2>
+<!-- <mat-card class="cardWithShadow">
   <mat-card-content class="p-24">
-    <div class="table-responsive" [class.scrollable-table]="dataSource.data.length > 8">
-      <table mat-table [dataSource]="dataSource" class="w-100">
+    <div class="row justify-content-between">
+      <div class="col-lg-4">
+        <mat-form-field appearance="outline" class="w-100 hide-hint">
+          <input
+            matInput
+            placeholder="Ingrese Patente"
+            (keyup)="applyFilter($any($event.target).value)"
+          />
+          <mat-icon matSuffix>
+            <i-tabler name="search" class="icon-20"></i-tabler>
+          </mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card> -->
 
-        <ng-container matColumnDef="numeroLote">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            N° Lote
-          </th>
-          <!-- Mostrar el index de los nLotes -->
-           <td mat-cell *matCellDef="let lote; let i = index">
-            {{i+1}}
-            </td>
-        </ng-container>
+<mat-card class="cardWithShadow">
+  <mat-card-content class="p-24">
+    <div class="table-responsive">
+      <table mat-table [dataSource]="dataSource" class="w-100">
 
         <ng-container matColumnDef="controlPeso">
           <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
@@ -101,7 +102,7 @@
             ><i-tabler name="eye-closed" class="icon-18"></i-tabler
           ></a>
             <a *ngIf="element?.fechaPreparacionMuestra" class="m-r-10 cursor-pointer"
-              ><i-tabler name="eye" class="icon-18" (click)="tieneMecanica(element.nLote)"></i-tabler
+              ><i-tabler name="eye" class="icon-18" (click)="tieneMecanica(element.nLote, 1)"></i-tabler
             ></a>
           </td>
         </ng-container>

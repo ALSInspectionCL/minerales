@@ -19,6 +19,7 @@ import { DetallePrepComponent } from '../detalle-prep/detalle-prep.component';
 import Notiflix from 'notiflix';
 import { PreparacionComponent } from '../preparacion/preparacion.component';
 import { CommonModule } from '@angular/common';
+import { RolService } from 'src/app/services/rol.service';
 
 @Component({
   selector: 'app-detalle-traza',
@@ -58,7 +59,6 @@ export class DetalleTrazaComponent {
   ];
 
   displayedColumns: string[] = [
-    'numeroLote',
     'controlPeso',
     'ingresoRLab',
     'ingresoLab',
@@ -78,20 +78,47 @@ export class DetalleTrazaComponent {
   id: any;
   courseDetail: '';
 
+  admin: boolean = false;
+  operator: boolean = false;
+  encargado: boolean = false;
+
   constructor(
     public dialog: MatDialog,
     private http: HttpClient,
     public activatedRouter: ActivatedRoute,
     public apirecep: RecepcionTransporteService,
+    private rolService: RolService,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       numLote: any;
+      id: any
     }
   ) {
     this.cargarLoteTrazabilidad(data.numLote);
     this.id = activatedRouter?.snapshot?.paramMap?.get('id');
+
+    // this.courseDetail = ''.getCourse().filter((x) => x?.Id === +this.id)[0];
   }
   lote: any;
+
+  ngOnInit() {
+    const email = localStorage.getItem('email') || '';
+
+    this.rolService.hasRole(email, 'Operador').subscribe(hasRole => {
+      this.operator = hasRole;
+      console.log(`El usuario ${hasRole ? 'tiene' : 'no tiene'} el rol de Operador`);
+    });
+
+    this.rolService.hasRole(email, 'Admin').subscribe(hasRole => {
+      this.admin = hasRole;
+      console.log(`El usuario ${hasRole ? 'tiene' : 'no tiene'} el rol de Admin`);
+    });
+
+    this.rolService.hasRole(email, 'Encargado').subscribe(hasRole => {
+      this.encargado = hasRole;
+      console.log(`El usuario ${hasRole ? 'tiene' : 'no tiene'} el rol de Encargado`);
+    });
+  }
 
   cargarLoteTrazabilidad(nLote: string): any {
     //Buscar la trazabilidad por el nLote en la api de trazabilidad
@@ -114,71 +141,69 @@ export class DetalleTrazaComponent {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  tieneMecanica(nLote: string): any {
+  tieneMecanica(nLote: string, opcion: any): any {
     // Verifica si el lote tiene preparación mecánica, para eso hay que buscar en la api de trazabilidad mecanica si existe el nLote
     const apiUrl =
       'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        const existeLote = data.some((item) => item.nLote === nLote); // Verifica si el lote existe en la respuesta
+        const existeLote = data.some((item) => item.nLote === nLote);
+
         if (existeLote) {
-          console.log('El lote tiene preparación mecánica.');
-          // Abre el diálogo de preparación mecánica
-          let opcion = 1;
-          this.preparacionDialog(nLote, opcion); // Llama a la función para abrir el diálogo de preparación mecánica
+          // Si ya existe, continuar sin restricción de roles
+          this.mecanica(nLote, opcion);
         } else {
-          console.log('El lote no tiene preparación mecánica.');
-          Notiflix.Confirm.show(
-            'Preparación Mecánica',
-            '¿No se ha iniciado la preparación mecánica aún? ¿Deseas iniciarla ahora?',
-            'Sí',
-            'No',
-            () => {
-              // Acción si el usuario acepta la primera confirmación
-              setTimeout(() => {
-                Notiflix.Confirm.prompt(
-                  'Preparación Mecánica',
-                  '¿Cuántos sobres desea crear?',
-                  '1',
-                  'Confirmar',
-                  'Cancelar',
-                  (clientAnswer: any) => {
-                    // Usamos una función de flecha con tipo explícito
-                    // Segunda pregunta: ¿Local o Aduana?
-                    setTimeout(() => {
-                      Notiflix.Confirm.show(
-                        'Destino del Producto',
-                        '¿El producto va a aduana o queda local?',
-                        'Aduana',
-                        'Local',
-                        () => {
-                          console.log('Destino: Aduana');
-                          this.detalleMecanica(nLote, clientAnswer, 'Aduana');
-                        },
-                        () => {
-                          console.log('Destino: Local');
-                          this.detalleMecanica(nLote, clientAnswer, 'Aduana');
-                        }
-                      );
-                    }, 500);
-                  },
-                  (clientAnswer: any) => {
-                    // Función de flecha también aquí
-                  },
-                  {}
-                );
-              }, 500); // Retrasa la ejecución de la segunda confirmación en 500ms
-            },
-            () => {
-              // Acción si el usuario rechaza la primera confirmación
-              console.log('Primera confirmación rechazada.');
-            }
-          );
+          // Si NO existe, validar roles antes de continuar
+          if (this.admin || this.operator || this.encargado) {
+            Notiflix.Confirm.show(
+              'Preparación Mecánica',
+              '¿No se ha iniciado la preparación mecánica aún? ¿Deseas iniciarla ahora?',
+              'Sí',
+              'No',
+              () => {
+                setTimeout(() => {
+                  Notiflix.Confirm.prompt(
+                    'Preparación Mecánica',
+                    '¿Cuántos sobres desea crear?',
+                    '1',
+                    'Confirmar',
+                    'Cancelar',
+                    (sobres: any) => {
+                      setTimeout(() => {
+                        Notiflix.Confirm.show(
+                          'Destino del Producto',
+                          '¿El producto va a aduana o queda local?',
+                          'Aduana',
+                          'Local',
+                          () => {
+                            console.log('Destino: Aduana');
+                            this.detalleMecanica(sobres, nLote, 'Aduana');
+                          },
+                          () => {
+                            console.log('Destino: Local');
+                            this.detalleMecanica(sobres, nLote, 'Local');
+                          }
+                        );
+                      }, 500);
+                    },
+                    () => { },
+                    {}
+                  );
+                }, 500);
+              },
+              () => {
+                console.log('Primera confirmación rechazada.');
+              }
+            );
+          } else {
+            // Usuario sin permisos
+            Notiflix.Notify.warning('Aún no se ha iniciado la preparación mecánica.');
+          }
         }
       },
       (error) => {
-        console.error('Error fetching data', error); // Maneja el error de la solicitud
-        Notiflix.Notify.failure('Error al verificar la preparación mecánica.'); // Muestra un mensaje de error
+        console.error('Error fetching data', error);
+        Notiflix.Notify.failure('Error al verificar la preparación mecánica.');
       }
     );
   }
@@ -198,44 +223,36 @@ export class DetalleTrazaComponent {
     });
   }
 
-  detalleMecanica(nLote: string, CantSobres: number, destino: string): any {
+  detalleMecanica(sobres: any, Num: any, destino: string,) {
+    console.log('Locura')
+    console.log(Num)
     const dialogRef = this.dialog.open(DetallePrepComponent, {
-      width: '40%', // Ajusta el ancho del diálogo
-      height: '90%', // Ajusta la altura del diálogo
+      width: '40%',
+      height: '90%',
       data: {
-        nLote: nLote,
-        CantSobres: CantSobres,
+        nLote: Num,
+        CantSobres: sobres,
         destino: destino,
       },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe(result => {
       console.log('El diálogo se cerró con el resultado: ', result);
     });
   }
 
-  redescargarQR(): any {
-    // Preguntar que QR desea descargar, el de muestra natural o el general
-    Notiflix.Confirm.show(
-      'Descargar QR',
-      '¿Qué QR deseas descargar?',
-      'Muestra Natural',
-      'General',
-      () => {
-        // Acción si el usuario acepta la primera confirmación
-        console.log(this.lote);
+  mecanica(Num: any, opcion: any) {
+    const dialogRef = this.dialog.open(PreparacionComponent, {
+      width: '90%', // Ajusta el ancho del diálogo
+      height: '90%', // Ajusta la altura del diálogo
+      data: {
+        nLote: Num,
+        opcion: opcion
       },
-      () => {
-        // Acción si el usuario rechaza la primera confirmación
-        console.log(this.lote);
-      }
-    );
-  }
+    });
 
-  private getHoraActual(): string {
-    return new Date().toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
+    dialogRef.afterClosed().subscribe(result => {
+
     });
   }
 }

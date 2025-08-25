@@ -18,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_RANGE_SELECTION_STRATEGY } from '@angular/material/datepicker';
 import { FiveDayRangeSelectionStrategy } from '../detalle-qr/detalle-qr.component';
+import { forkJoin } from 'rxjs';
 
 interface Lote {
   find(arg0: (lote: any) => boolean): any;
@@ -71,50 +72,53 @@ export class DetallePrepComponent {
       nLote: string;
       CantSobres: number;
       destino: string;
+      pesoHumedo: any,
+      humedad: any,
+      pesoSeco: any
     }
   ) {
     this.cargarLote(this.data.nLote);
 
-    if(data.destino === 'Aduana'){
+    if (data.destino === 'Aduana') {
       this.miFormulario = this.fb.group({
-        nave: ['', Validators.required],
-        bodega: ['', Validators.required],
+        nave: [''],
+        bodega: [''],
         material: ['Concentrado de Cobre', Validators.required],
         numLote: [this.data.nLote, Validators.required],
         muestreado: ['ALS INSPECTION', Validators.required],
-        exportador: ['Anglo American', Validators.required],
-        puertoDes: ['', Validators.required],
-        contrato: ['', Validators.required],
+        exportador: ['ANGLO AMERICAN', Validators.required],
+        puertoDes: [''],
+        contrato: [''],
         cliente: ['TO ORDER'],
-        contratoCochilco: ['', Validators.required],
+        contratoCochilco: [''],
         fEmbarque: [null, Validators.required],
         referenciaAls: [``],
         dus: [null, Validators.required],
         fechaDus: [null, Validators.required],
-        pesoNetoHumedo: ['', Validators.required],
-        humedad: ['', Validators.required],
-        pesoNetoSeco: ['', Validators.required],
+        pesoNetoHumedo: [this.data.pesoHumedo, Validators.required],
+        humedad: [this.data.humedad, Validators.required],
+        pesoNetoSeco: [this.data.pesoSeco, Validators.required],
         responsable: ['', Validators.required],
       });
     } else {
       this.miFormulario = this.fb.group({
-        nave: ['', Validators.required],
-        bodega: ['', Validators.required],
+        nave: [''],
+        bodega: [''],
         material: ['Concentrado de Cobre', Validators.required],
         numLote: [this.data.nLote, Validators.required],
         muestreado: ['ALS INSPECTION', Validators.required],
-        exportador: ['Anglo American', Validators.required],
-        puertoDes: ['', Validators.required],
-        contrato: ['', Validators.required],
+        exportador: ['ANGLO AMERICAN', Validators.required],
+        puertoDes: [''],
+        contrato: [''],
         cliente: ['TO ORDER'],
-        contratoCochilco: ['', Validators.required],
+        contratoCochilco: [''],
         fEmbarque: [null, Validators.required],
         referenciaAls: [``],
-        dus: [],
+        dus: [null],
         fechaDus: [null],
-        pesoNetoHumedo: ['', Validators.required],
-        humedad: ['', Validators.required],
-        pesoNetoSeco: ['', Validators.required],
+        pesoNetoHumedo: [this.data.pesoHumedo, Validators.required],
+        humedad: [this.data.humedad, Validators.required],
+        pesoNetoSeco: [this.data.pesoSeco, Validators.required],
         responsable: ['', Validators.required],
       });
     }
@@ -126,9 +130,12 @@ export class DetallePrepComponent {
       this.miFormulario.get('dus')?.enable();
       this.miFormulario.get('fechaDus')?.enable();
     }
+
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.obtenerLoteConNombres(this.data.nLote)
+  }
   lote: any;
   fEmbarque: Date;
   fechaDus: Date;
@@ -145,12 +152,11 @@ export class DetallePrepComponent {
           numLote: this.lote.nLote,
           material: 'Concentrado de Cobre',
           muestreado: 'ALS INSPECTION',
-          exportador: 'Anglo American',
+          exportador: 'ANGLO AMERICAN',
           pesoNetoHumedo: this.lote.pesoNetoHumedo,
           humedad: parseFloat(this.lote.porcHumedad).toFixed(4),
           referenciaAls: this.lote.observacion,
           pesoNetoSeco: this.lote.pesoNetoSeco,
-          responsable: this.lote.responsable,
         });
         console.log('Lote encontrado:');
         console.log(this.lote);
@@ -252,6 +258,40 @@ export class DetallePrepComponent {
   //   }
   // }
 
+  obtenerLoteConNombres(loteId: any): void {
+    const apiLote = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
+    const apiServicio = 'https://control.als-inspection.cl/api_min/api/servicio/';
+    const apiSolicitud = 'https://control.als-inspection.cl/api_min/api/solicitud/';
+
+    this.http.get<any[]>(apiLote).subscribe((resLotes) => {
+      this.lote = resLotes.find(lote => lote.nLote === loteId);
+
+      if (!this.lote) {
+        Notiflix.Notify.failure('Lote no encontrado.');
+        return;
+      }
+
+      // this.miFormulario.patchValue({
+      //   humedad: this.lote.porcHumedad,
+      //   pesoNetoHumedo: this.lote.pesoNetoHumedo,
+      //   pesoNetoSeco: this.lote.pesoNetoSeco
+      // });
+
+      forkJoin({
+        servicios: this.http.get<any[]>(apiServicio),
+        solicitudes: this.http.get<any[]>(apiSolicitud),
+      }).subscribe(({ servicios, solicitudes }) => {
+        const servicioEncontrado = servicios.find(s => s.id === this.lote.servicio);
+        const solicitudEncontrada = solicitudes.find(s => s.id === this.lote.solicitud);
+
+        this.lote.nombreServicio = servicioEncontrado?.nServ || 'Desconocido';
+        this.lote.nombreSolicitud = solicitudEncontrada?.nSoli || 'Desconocido';
+
+        console.log('Lote con nombres:', this.lote);
+      });
+    });
+  }
+
   mostrarResultado() {
     const formulariosGenerados = this.generarFormulariosConEtiqueta();
     console.log(this.data.CantSobres);
@@ -349,13 +389,13 @@ export class DetallePrepComponent {
 
       const fechaEmbarque: Date | null = this.miFormulario.get('fEmbarque')?.value;
       const fechaDus: Date | null = this.miFormulario.get('fechaDus')?.value;
-      
+
       const formattedFEmbarque = this.formatDate(fechaEmbarque);
       const formattedFDus = this.formatDate(fechaDus);
 
       for (let i = 0; i < grupo.length; i++) {
         const formulario = formulariosGenerados[grupo[i]];
-        const codQrActual = 'E' + this.lote.nLote + '/' + String(i + 1)+'.';
+        const codQrActual = 'E' + this.lote.nLote + '/' + String(i + 1) + '.';
         const qrDataUrl = await QRCode.toDataURL(codQrActual, {
           errorCorrectionLevel: 'H',
           type: 'image/png',
@@ -376,37 +416,38 @@ export class DetallePrepComponent {
         });
         const rowOffset = i * 17;
 
-        hoja.getCell(`A${2 + rowOffset}`).value = `Nave: ${formulario.nave}`;
-        hoja.getCell(`A${3 + rowOffset}`).value = `Bodega: ${formulario.bodega}`;
+        hoja.getCell(`A${2 + rowOffset}`).value = `Nave: ${formulario.nave || 'N/A'}`;
+        hoja.getCell(`A${3 + rowOffset}`).value = `Bodega: ${formulario.bodega || 'N/A'}`;
         hoja.getCell(`A${4 + rowOffset}`).value = `Material: ${formulario.material}`;
-        hoja.getCell(`A${5 + rowOffset}`).value = `Num Lote: ${formulario.numLote}`;
+        hoja.getCell(`A${5 + rowOffset}`).value = `Solicitud: ${this.lote.nombreSolicitud}`;
         hoja.getCell(`A${6 + rowOffset}`).value = `Muestreado: ${formulario.muestreado}`;
         hoja.getCell(`A${7 + rowOffset}`).value = `Exportador: ${formulario.exportador}`;
-        hoja.getCell(`A${8 + rowOffset}`).value = `Puerto Des: ${formulario.puertoDes}`;
-        hoja.getCell(`A${9 + rowOffset}`).value = `Contrato: ${formulario.contrato}`;
-        hoja.getCell(`A${10 + rowOffset}`).value = `Contrato Cochilco: ${formulario.contratoCochilco}`;
+        hoja.getCell(`A${8 + rowOffset}`).value = `Puerto Des: ${formulario.puertoDes || 'N/A'}`;
+        hoja.getCell(`A${9 + rowOffset}`).value = `Contrato: ${formulario.contrato || 'N/A'}`;
+        hoja.getCell(`A${10 + rowOffset}`).value = `Contrato Cochilco: ${formulario.contratoCochilco || 'N/A'}`;
         hoja.getCell(`B${2 + rowOffset}`).value = `Cliente: ${formulario.cliente}`;
         hoja.getCell(`B${3 + rowOffset}`).value = `Fecha Embarque: ${formattedFEmbarque}`;
-        hoja.getCell(`B${4 + rowOffset}`).value = `Referencia Als: ${this.lote.observacion}`;
+        hoja.getCell(`B${4 + rowOffset}`).value = `Referencia Als: ${this.lote.nombreServicio}`;
         hoja.getCell(`B${5 + rowOffset}`).value = `Dus: ${formulario.dus || 'No aplica'}`;
         hoja.getCell(`B${6 + rowOffset}`).value = `Fecha Dus: ${formattedFDus || 'No aplica'}`;
-        hoja.getCell(`B${7 + rowOffset}`).value = `Peso Neto Húmedo: ${formulario.pesoNetoHumedo}`;
-        hoja.getCell(`B${8 + rowOffset}`).value = `Humedad: ${formulario.humedad}`;
-        hoja.getCell(`B${9 + rowOffset}`).value = `Peso Neto Seco: ${formulario.pesoNetoSeco}`;
+        hoja.getCell(`B${7 + rowOffset}`).value = `Peso Neto Húmedo: ${formulario.pesoNetoHumedo} tmh`;
+        hoja.getCell(`B${8 + rowOffset}`).value = `Humedad: ${formulario.humedad} %`;
+        hoja.getCell(`B${9 + rowOffset}`).value = `Peso Neto Seco: ${formulario.pesoNetoSeco} tms`;
         hoja.getCell(`B${10 + rowOffset}`).value = `Responsable: ${formulario.responsable}`;
+        hoja.getCell(`C${5 + rowOffset}`).value = `Ref Lote: ${this.lote.observacion}`;
         hoja.getCell(`C${6 + rowOffset}`).value = `N Sobre: ${formulario.etiqueta}`;
-  
+
         hoja.getCell(`A${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
         hoja.getCell(`B${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
 
         hoja.addImage(imageIdQR, {
           tl: { col: 2, row: 6 + rowOffset },
-          ext: { width: 80, height: 80 },
+          ext: { width: 100, height: 100 },
         });
 
         hoja.addImage(imageId, {
           tl: { col: 2, row: 0 + rowOffset },
-          ext: { width: 100, height: 100 },
+          ext: { width: 70, height: 70 },
         });
       }
       aplicarFuenteTamanio10(hoja);
@@ -427,20 +468,20 @@ export class DetallePrepComponent {
     }
 
     hojaSimple.getColumn(1).width = 35;
-    hojaSimple.getColumn(2).width = 20;
+    hojaSimple.getColumn(2).width = 30;
     hojaSimple.getColumn(3).width = 20;
 
     const simpleForm = {
       numLote: this.data.nLote,
       material: 'Concentrado de cobre',
       muestreado: 'ALS INSPECTION',
-      cliente: 'OCEAN PARTNERS',
-      fechaPreparacion: '2025-04-24',
+      cliente: 'ANGLO AMERICAN',
+      fechaPreparacion: new Date().toLocaleDateString('es-CL'),
       referenciaAls: this.lote.Observacion,
       pesoNetoHumedo: this.miFormulario.get('pesoNetoHumedo')?.value,
       humedad: parseFloat(this.miFormulario.get('humedad')?.value).toFixed(4),
       pesoNetoSeco: this.miFormulario.get('pesoNetoSeco')?.value,
-      responsable: 'Carlos Soto',
+      responsable: this.miFormulario.get('responsable')?.value,
     };
 
     const codQrActual2 = 'S' + this.data.nLote;
@@ -468,28 +509,25 @@ export class DetallePrepComponent {
     const rowOffsetSimple = 0;
     const setSimple = (cell: any, text: any) =>
       (hojaSimple.getCell(cell).value = text);
-    setSimple(`A2`, `Num Lote: ${simpleForm.numLote}`);
+    setSimple(`A2`, `Solicitud: ${this.lote.nombreSolicitud}`);
     setSimple(`A3`, `Material: ${simpleForm.material}`);
     setSimple(`A4`, `Muestreado por: ${simpleForm.muestreado}`);
     setSimple(`A5`, `Cliente: ${simpleForm.cliente}`);
-    setSimple(
-      `A6`,
-      `Fecha Preparación Muestra: ${simpleForm.fechaPreparacion}`
-    );
-    setSimple(`A7`, `Referencia ALS: ${this.lote.observacion}`);
-    setSimple(`B2`, `Peso Neto Húmedo: ${simpleForm.pesoNetoHumedo}`);
-    setSimple(`B3`, `% Humedad: ${simpleForm.humedad}`);
-    setSimple(`B4`, `Peso Neto Seco: ${simpleForm.pesoNetoSeco}`);
-    setSimple(`B5`, `Responsable: ${simpleForm.responsable}`);
-
+    setSimple(`A6`, `Fecha Preparación Muestra: ${simpleForm.fechaPreparacion}`);
+    setSimple(`A7`, `Referencia ALS: ${this.lote.nombreServicio}`);
+    setSimple(`B2`, `Peso Neto Húmedo: ${simpleForm.pesoNetoHumedo} tmh`);
+    setSimple(`B3`, `% Humedad: ${simpleForm.humedad} %`);
+    setSimple(`B4`, `Peso Neto Seco: ${simpleForm.pesoNetoSeco} tms`);
+    setSimple(`B5`, `Responsable: ${this.miFormulario.get('responsable')?.value}`);
+    setSimple(`B6`, `Ref Lote: ${this.lote.observacion}`);
     hojaSimple.addImage(imageId, {
       tl: { col: 2, row: 1 },
-      ext: { width: 100, height: 100 },
+      ext: { width: 80, height: 80 },
     });
 
     hojaSimple.addImage(imageIdSimpleQR, {
-      tl: { col: 2, row: 6 },
-      ext: { width: 100, height: 100 },
+      tl: { col: 2, row: 5 },
+      ext: { width: 80, height: 80 },
     });
     aplicarFuenteTamanio10(hojaSimple);
 
@@ -507,32 +545,40 @@ export class DetallePrepComponent {
     // Guardar los datos en la base de datos. Se deben guardar los datos de cada formulario en la base de datos, para eso se debe hacer un post a la api de trazabilidad mecanica
     const apiUrl =
       'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
-      const dataToSend = {
-        nLote: this.miFormulario.get('numLote')?.value|| this.lote[0].nLote, // Valor por defecto
-        nSublote: this.miFormulario.get('numLote')?.value, // Valor por defecto
-        idTransporte: '',
-        nave: this.miFormulario.get('nave')?.value,
-        bodega: this.miFormulario.get('bodega')?.value,
-        material: this.miFormulario.get('material')?.value,
-        muestreadoPor: this.miFormulario.get('muestreado')?.value,
-        exportador: this.miFormulario.get('exportador')?.value,
-        puertoDestino: this.miFormulario.get('puertoDes')?.value,
-        contrato: this.miFormulario.get('contrato')?.value,
-        cliente: this.miFormulario.get('cliente')?.value,
-        cochilco: this.miFormulario.get('contratoCochilco')?.value,
-        fechaEmbarque: this.formatDate(this.miFormulario.get('fEmbarque')?.value),
-        DUS: this.miFormulario.get('dus')?.value?.trim() || 'No aplica',
-        fechaDUS: this.miFormulario.get('fechaDus')?.value
+    const dataToSend = {
+      nLote: this.miFormulario.get('numLote')?.value || this.lote[0].nLote, // Valor por defecto
+      nSubLote: this.miFormulario.get('numLote')?.value, // Valor por defecto
+      idTransporte: '',
+      nave: this.miFormulario.get('nave')?.value,
+      bodega: this.miFormulario.get('bodega')?.value,
+      material: this.miFormulario.get('material')?.value,
+      muestreadoPor: this.miFormulario.get('muestreado')?.value,
+      exportador: this.miFormulario.get('exportador')?.value,
+      puertoDestino: this.miFormulario.get('puertoDes')?.value,
+      contrato: this.miFormulario.get('contrato')?.value,
+      cliente: this.miFormulario.get('cliente')?.value,
+      cochilco: this.miFormulario.get('contratoCochilco')?.value,
+      fechaEmbarque: this.formatDate(this.miFormulario.get('fEmbarque')?.value),
+      DUS: this.miFormulario.get('dus')?.value?.trim() || 'No aplica',
+      fechaDUS: this.miFormulario.get('fechaDus')?.value
         ? this.formatDate(this.miFormulario.get('fechaDus')!.value)
         : null,
-        pesoNetoHumedo: this.miFormulario.get('pesoNetoHumedo')?.value,
-        pesoNetoSeco: this.miFormulario.get('pesoNetoSeco')?.value,
-        porcHumedad: this.miFormulario.get('humedad')?.value,
-        responsable: this.miFormulario.get('responsable')?.value,
-        observacion: 'Sin Observaciones',
-        estado: 'En Preparación',
-        fechaSobre: null,
-      };
+      pesoNetoHumedo: this.miFormulario.get('pesoNetoHumedo')?.value,
+      pesoNetoSeco: this.miFormulario.get('pesoNetoSeco')?.value,
+      porcHumedad: parseFloat(Number(this.miFormulario.get('humedad')?.value).toFixed(2)),
+      responsable: this.miFormulario.get('responsable')?.value,
+      observacion: 'Sin Observaciones',
+      estado: 'En Preparación',
+      fechaSobre: null,
+      fechaInstruccionDespacho: null,
+      fechaConfirmacionDespacho: null,
+      fechaDespacho: null,
+      numeroGuia: null,
+      laboratorio: null,
+      fechaLlegadaLaboratorio: null,
+      pais: null,
+      tipoSobre: 'Interno'
+    };
 
     // Enviar los datos a la API pero tantas veces como sobres se hayan creado. El nLote se mantiene y el nSubLote cambia segun el número de sobre
     for (let i = 0; i < cantidad; i++) {
@@ -549,6 +595,8 @@ export class DetallePrepComponent {
         }
       );
     }
+
+    this.cerrarDialogo()
   }
 
   cerrarDialogo() {
@@ -560,11 +608,11 @@ export class DetallePrepComponent {
       console.warn('formatDate recibió una fecha inválida:', date);
       return ''; // O podrías retornar una fecha por defecto, según lo que necesites
     }
-  
+
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-  
+
     return `${year}-${month}-${day}`;
   }
 }
