@@ -156,7 +156,7 @@
             </div>
             <div class="text-center m-8">
               <button
-                *ngIf="!cliente"
+                *ngIf="!cliente && estado === 'Iniciado'"
                 mat-raised-button
                 (click)="guardarDatosIniciales()"
                 color="primary"
@@ -219,7 +219,7 @@
             </div>
             <div class="text-center m-8">
               <button
-                *ngIf="!cliente"
+                *ngIf="!cliente && estado === 'Iniciado'"
                 mat-raised-button
                 (click)="guardarDatosPrimeraSalida()"
                 color="primary"
@@ -282,7 +282,7 @@
             </div>
             <div class="text-center m-8">
               <button
-                *ngIf="!cliente"
+                *ngIf="!cliente && estado === 'Iniciado'"
                 mat-raised-button
                 color="primary"
                 (click)="guardarDatosSegundaSalida()"
@@ -344,7 +344,7 @@
               </div>
             </div>
             <div class="text-center m-8">
-              <button *ngIf="!cliente" (click)="guardarDatosTerceraSalida()" mat-raised-button color="primary" class="w-50">
+              <button *ngIf="!cliente && estado === 'Iniciado'" (click)="guardarDatosTerceraSalida()" mat-raised-button color="primary" class="w-50">
                 Enviar Datos
               </button>
             </div>
@@ -526,7 +526,7 @@
           <mat-divider class="m-8"></mat-divider>
           <div class="text-center">
             <button
-              *ngIf="!cliente"
+              *ngIf="!cliente && estado === 'Iniciado'"
               mat-raised-button
               color="primary"
               (click)="preFinalizarProceso()"

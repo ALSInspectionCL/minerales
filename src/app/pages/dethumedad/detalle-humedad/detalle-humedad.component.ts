@@ -138,6 +138,7 @@ export class DetalleHumedadComponent {
   fInicio = '';
   fFin = '';
   cliente = false;
+  estado = '';
   pesoLata1 = document.getElementById('pesoLata1');
   pesoLata2 = document.getElementById('pesoLata2');
   pesoTotal1 = document.getElementById('pesoTotal1');
@@ -256,6 +257,7 @@ export class DetalleHumedadComponent {
                 encontrado
               );
               this.humedad = encontrado;
+              this.estado = encontrado.observacion || 'Iniciado';
               // this.cargarCamposConDatos(encontrado);
               this.humedadForm.patchValue(encontrado);
               this.fInicio = encontrado.fInicio || '';
@@ -348,6 +350,10 @@ export class DetalleHumedadComponent {
     const nLote = this.nLote;
     const nSublote = this.nSublote;
     const url = `https://control.als-inspection.cl/api_min/api/humedades/`;
+    if (this.estado === 'Finalizado') {
+      Notiflix.Notify.failure('El proceso ya ha sido finalizado. No se pueden guardar más datos.');
+      return;
+    }
     this.http.get<Humedad[]>(url).subscribe(
       (data) => {
         const existe = data.some(
@@ -738,7 +744,8 @@ export class DetalleHumedadComponent {
       observacion: 'Finalizado',
     });
     this.actualizarDatos();
-    Notiflix.Notify.success('Proceso finalizado correctamente');
+    Notiflix.Notify.success('Proceso finalizado correctamente.');
+    this.ngOnInit();
   }
 
   displayedColumnsResultados: string[] = [

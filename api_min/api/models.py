@@ -325,7 +325,8 @@ class Humedades(models.Model):
     porcHumedad1 = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     porcHumedad2 = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     porcHumedadFinal = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
-    
+    estado = models.CharField(max_length=50, blank=True, null=True)
+
 class CriteriosAceptacion(models.Model):
     porcentajeHumedad = models.DecimalField(max_digits=5, decimal_places=3, blank=True, null=True)
     variacionPeso = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)

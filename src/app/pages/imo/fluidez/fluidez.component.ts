@@ -2,7 +2,12 @@ import { P } from '@angular/cdk/keycodes';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
-import { ReactiveFormsModule, FormsModule, FormGroup, FormControl } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormsModule,
+  FormGroup,
+  FormControl,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule, MatCard } from '@angular/material/card';
@@ -59,41 +64,42 @@ export class FluidezComponent {
   fechaPrueba: String = this.formatDate(new Date());
   constructor(
     private http: HttpClient,
-    
+
     @Inject(MAT_DIALOG_DATA)
     public data: {
       numero: any;
       idServicio: any;
       idSolicitud: any;
       nLote: any;
-    },private rolService: RolService
+    },
+    private rolService: RolService
   ) {
     // Asignar los valores recibidos a las variables locales
     this.nLote = data.nLote;
     this.idSolicitud = data.idSolicitud;
     this.idServicio = data.idServicio;
-        this.humedadForm = new FormGroup({
-          id: new FormControl(0), // Este campo se actualizará después de verificar si el nLote existe
-          nLote: new FormControl(this.data.nLote),
-          idSolicitud: new FormControl(this.data.idSolicitud),
-          idServicio: new FormControl(this.data.idServicio),
-          nLata1: new FormControl(''),
-          nLata2: new FormControl(''),
-          pLata1: new FormControl(''),
-          pLata2: new FormControl(''),
-          pMaterial1: new FormControl(''),
-          pMaterial2: new FormControl(''),
-          pTotal1: new FormControl(''),
-          pTotal2: new FormControl(''),
-          porcHumedad1: new FormControl(''),
-          porcHumedad2: new FormControl(''),
-          porcHumedadFinal: new FormControl(''),
-        });
+    this.humedadForm = new FormGroup({
+      id: new FormControl(0), // Este campo se actualizará después de verificar si el nLote existe
+      nLote: new FormControl(this.data.nLote),
+      idSolicitud: new FormControl(this.data.idSolicitud),
+      idServicio: new FormControl(this.data.idServicio),
+      nLata1: new FormControl(''),
+      nLata2: new FormControl(''),
+      pLata1: new FormControl(''),
+      pLata2: new FormControl(''),
+      pBrutoHumedo1: new FormControl(''),
+      pBrutoHumedo2: new FormControl(''),
+      pBrutoSeco1: new FormControl(''),
+      pBrutoSeco2: new FormControl(''),
+      porcHumedad1: new FormControl(''),
+      porcHumedad2: new FormControl(''),
+      porcHumedadPromedio: new FormControl(''),
+    });
   }
 
   ngOnInit(): void {
     console.log('Datos recibidos:', this.data);
-        this.rolService
+    this.rolService
       .hasRole(localStorage.getItem('email') || '', 'Cliente')
       .subscribe((hasRole) => {
         if (hasRole) {
@@ -113,8 +119,92 @@ export class FluidezComponent {
 
     return `${year}-${month}-${day}`;
   }
-
+  actualizarPesoMaterial() {
+    const pesoLata1 = this.humedadForm.value.pLata1;
+    const pesoMaterial1 = this.humedadForm.value.pMaterial1;
+    const pesoTotal1 = this.calcularPesoMaterial(pesoLata1, pesoMaterial1);
+    if (pesoTotal1 !== '') {
+      this.humedadForm.patchValue({
+        pTotal1: parseFloat(pesoTotal1),
+      });
+    } else {
+      this.humedadForm.patchValue({
+        pTotal1: '',
+      });
+    }
+    // Actualizar el pesoMaterial2
+    const pesoLata2 = this.humedadForm.value.pLata2;
+    const pesoMaterial2 = this.humedadForm.value.pMaterial2;
+    const pesoTotal2 = this.calcularPesoMaterial(pesoLata2, pesoMaterial2);
+    if (pesoTotal2 !== '') {
+      this.humedadForm.patchValue({
+        pTotal2: parseFloat(pesoTotal2),
+      });
+    } else {
+      this.humedadForm.patchValue({
+        pTotal2: '',
+      });
+    }
+  }
   guardarHumedad() {
+    this.actualizarPesoMaterial();
     console.log('Guardar Humedad');
+    console.log(this.humedadForm.value);
+    this.humedadForm.patchValue({
+      porcHumedad1: this.calcularPorcentajeHumedad(
+        this.humedadForm.value.pBrutoHumedo1,
+        this.humedadForm.value.pBrutoSeco1,
+        this.humedadForm.value.pLata1
+      ),
+      porcHumedad2: this.calcularPorcentajeHumedad(
+        this.humedadForm.value.pBrutoHumedo2,
+        this.humedadForm.value.pBrutoSeco2,
+        this.humedadForm.value.pLata2
+      ),
+      porcHumedadPromedio: this.calcularPorcentajeHumedadPromedio(),
+    });
+  }
+
+  calcularPesoMaterial(pesoLata: any, pesoTotal: any) {
+    const lataVal = parseFloat(pesoLata);
+    const totalVal = parseFloat(pesoTotal);
+    if (isNaN(lataVal) || isNaN(totalVal)) {
+      return '';
+    }
+    const diferencia = totalVal + lataVal;
+    return diferencia >= 0 ? diferencia.toFixed(2) : '';
+  }
+
+  calcularPorcentajeHumedad(pesoBrutoHumedo: any, pesoBrutoSeco: any, taraBandeja: any) {
+    const brutoHumedoVal = parseFloat(pesoBrutoHumedo);
+    const brutoSecoVal = parseFloat(pesoBrutoSeco);
+    const taraBandejaVal = parseFloat(taraBandeja);
+    if (isNaN(brutoHumedoVal) || isNaN(brutoSecoVal) || brutoHumedoVal === 0 || isNaN(taraBandejaVal)) {
+      console.log('Invalid input values:', { pesoBrutoHumedo, pesoBrutoSeco, taraBandeja });
+      return '';
+    }
+    const diferencia = ((brutoHumedoVal - brutoSecoVal) / (brutoHumedoVal - taraBandejaVal)) * 100;
+    console.log('Calculated humidity percentage:', diferencia);
+    return diferencia >= 0 ? diferencia.toFixed(2) : '';
+  }
+
+  calcularPorcentajeHumedadPromedio() {
+    const porcHumedad1 = parseFloat(this.calcularPorcentajeHumedad(
+        this.humedadForm.value.pBrutoHumedo1,
+        this.humedadForm.value.pBrutoSeco1,
+        this.humedadForm.value.pLata1)
+      );
+    const porcHumedad2 = parseFloat(this.calcularPorcentajeHumedad(
+        this.humedadForm.value.pBrutoHumedo2,
+        this.humedadForm.value.pBrutoSeco2,
+        this.humedadForm.value.pLata2)
+      );
+    if (isNaN(porcHumedad1) || isNaN(porcHumedad2)) {
+      console.log('Invalid input values for average humidity:', { porcHumedad1, porcHumedad2 });
+      return '';
+    }
+    const promedio = (porcHumedad1 + porcHumedad2) / 2;
+    console.log('Calculated average humidity percentage:', promedio);
+    return promedio >= 0 ? promedio.toFixed(2) : '';
   }
 }
