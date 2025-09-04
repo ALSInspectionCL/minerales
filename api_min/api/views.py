@@ -6,8 +6,8 @@ from email.message import EmailMessage
 from rest_framework.filters import SearchFilter, OrderingFilter # type: ignore
 from rest_framework import filters # type: ignore
 from rest_framework import viewsets # type: ignore
-from .serializer import EquipoControlSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
-from .models import CriteriosAceptacion, EquipoControl, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
+from .serializer import EquipoControlSerializer, FluidezSerializer, PruebaFluidezSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
+from .models import CriteriosAceptacion, EquipoControl, Fluidez, PruebaFluidez, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
 from rest_framework.views import APIView # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
@@ -150,6 +150,18 @@ class EquipoControlViewSet(viewsets.ModelViewSet):
     serializer_class = EquipoControlSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=marca', '=capacidad', '=codigo', '=fechaCalibracion')
+
+class FluidezViewSet(viewsets.ModelViewSet):
+    queryset = Fluidez.objects.all()
+    serializer_class = FluidezSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote')
+
+class PruebaFluidezViewSet(viewsets.ModelViewSet):
+    queryset = PruebaFluidez.objects.all()
+    serializer_class = PruebaFluidezSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote')
 
 
 def obtener_lotes_por_fechas(request):

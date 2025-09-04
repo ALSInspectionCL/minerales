@@ -9,28 +9,31 @@
       <h3>Información general de pruebas de Fluidez del Lote</h3>
     </div>
     <mat-card class="card-with-shadow m-8">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6">
-          <p><strong>Fecha de realización de la muestra: </strong> {{ fechaPrueba }}</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Lugar de Muestreo: </strong> Puerto Ventanas</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Tonelaje: </strong> {{ sumaTonelaje }}</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Material: </strong> Concentrado de Cobre los bronces</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Buque a Cargar: </strong>{{ nombreEmbarque }}</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Quien realiza la prueba: </strong>Bruno Acevedo</p>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p>
+              <strong>Fecha de realización de la muestra: </strong>
+              {{ fechaPrueba }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Lugar de Muestreo: </strong> Puerto Ventanas</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Tonelaje: </strong> {{ sumaTonelaje }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Material: </strong> Concentrado de Cobre los bronces</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Buque a Cargar: </strong>{{ nombreEmbarque }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Quien realiza la prueba: </strong>Bruno Acevedo</p>
+          </div>
         </div>
       </div>
-    </div>
     </mat-card>
   </mat-card-content>
   <mat-card-content>
@@ -38,205 +41,1611 @@
       <mat-step label="Prueba de humedad">
         <mat-card class="cardWithShadow m-8">
           <mat-card-content class="p-24">
-          <div [formGroup]="humedadForm" class="container text-left m-8">
-            <h2>Determinación de Humedad</h2>
-            <mat-divider></mat-divider>
-            <h3>Formulario primera Bandeja</h3>
-            <div class="row">
-              <div class="col">
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
+            <div [formGroup]="humedadForm" class="container text-left m-8">
+              <h2>Determinación de Humedad</h2>
+              <mat-divider></mat-divider>
+              <h3>Formulario primera Bandeja</h3>
+              <div class="row">
+                <div class="col">
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Número de Bandeja</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      formControlName="nLata1"
+                      id="nLata1"
+                      placeholder="Ingrese número de lata"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Tara Bandeja (g)</mat-label>
+                    <input
+                      id="pLata1"
+                      matInput
+                      formControlName="pLata1"
+                      type="number"
+                      placeholder="Ej: 400.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Peso Bruto Humedo (g)</mat-label>
+                    <input
+                      id="pBrutoHumedo1"
+                      matInput
+                      formControlName="pBrutoHumedo1"
+                      type="number"
+                      placeholder="Ej: 900.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Peso Bruto Seco (g)</mat-label>
+                    <input
+                      id="pBrutoSeco1"
+                      matInput
+                      formControlName="pBrutoSeco1"
+                      type="number"
+                      placeholder="Ej: 800.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Porcentaje de Humedad (%)</mat-label>
+                    <input
+                      id="porcHumedad1"
+                      matInput
+                      readonly
+                      formControlName="porcHumedad1"
+                      type="number"
+                      placeholder="Este campo se calcula automáticamente"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                </div>
+              </div>
+              <mat-divider></mat-divider>
+              <h3>Formulario segunda Bandeja</h3>
+              <div class="row">
+                <div class="col">
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Número de Bandeja</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      formControlName="nLata2"
+                      id="nLata2"
+                      placeholder="Ingrese número de lata"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Tara Bandeja (g)</mat-label>
+                    <input
+                      id="pLata2"
+                      matInput
+                      formControlName="pLata2"
+                      type="number"
+                      placeholder="Ej: 400.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Peso Bruto Humedo (g)</mat-label>
+                    <input
+                      id="pBrutoHumedo2"
+                      matInput
+                      formControlName="pBrutoHumedo2"
+                      type="number"
+                      placeholder="Ej: 900.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Peso Bruto Seco (g)</mat-label>
+                    <input
+                      id="pBrutoSeco2"
+                      matInput
+                      formControlName="pBrutoSeco2"
+                      type="number"
+                      placeholder="Ej: 800.0"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-50 m-8"
+                    color="primary"
+                  >
+                    <mat-label>Porcentaje de Humedad (%)</mat-label>
+                    <input
+                      id="porcHumedad2"
+                      matInput
+                      readonly
+                      formControlName="porcHumedad2"
+                      type="number"
+                      placeholder="Este campo se calcula automáticamente"
+                      step="0.01"
+                      min="0"
+                    />
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="text-center m-8">
+                <button
+                  *ngIf="!cliente"
+                  mat-raised-button
+                  (click)="guardarHumedad()"
                   color="primary"
+                  class="w-50"
                 >
-                  <mat-label>Número de Bandeja</mat-label>
-                  <input
-                    matInput
-                    type="text"
-                    formControlName="nLata1"
-                    id="nLata1"
-                    placeholder="Ingrese número de lata"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Tara Bandeja (g)</mat-label>
-                  <input
-                    id="pLata1"
-                    matInput
-                    formControlName="pLata1"
-                    type="number"
-                    placeholder="Ej: 400.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Peso Bruto Humedo (g)</mat-label>
-                  <input
-                    id="pBrutoHumedo1"
-                    matInput
-                    formControlName="pBrutoHumedo1"
-                    type="number"
-                    placeholder="Ej: 900.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Peso Bruto Seco (g)</mat-label>
-                  <input
-                    id="pBrutoSeco1"
-                    matInput
-                    formControlName="pBrutoSeco1"
-                    type="number"
-                    placeholder="Ej: 800.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Porcentaje de Humedad (%)</mat-label>
-                  <input
-                    id="porcHumedad1"
-                    matInput
-                    readonly
-                    formControlName="porcHumedad1"
-                    type="number"
-                    placeholder="Este campo se calcula automáticamente"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
+                  Enviar Datos
+                </button>
               </div>
             </div>
-            <mat-divider></mat-divider>
-            <h3>Formulario segunda Bandeja</h3>
-            <div class="row">
-              <div class="col">
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Número de Bandeja</mat-label>
-                  <input
-                    matInput
-                    type="text"
-                    formControlName="nLata2"
-                    id="nLata2"
-                    placeholder="Ingrese número de lata"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Tara Bandeja (g)</mat-label>
-                  <input
-                    id="pLata2"
-                    matInput
-                    formControlName="pLata2"
-                    type="number"
-                    placeholder="Ej: 400.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Peso Bruto Humedo (g)</mat-label>
-                  <input
-                    id="pBrutoHumedo2"
-                    matInput
-                    formControlName="pBrutoHumedo2"
-                    type="number"
-                    placeholder="Ej: 900.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Peso Bruto Seco (g)</mat-label>
-                  <input
-                    id="pBrutoSeco2"
-                    matInput
-                    formControlName="pBrutoSeco2"
-                    type="number"
-                    placeholder="Ej: 800.0"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-                <mat-form-field
-                  appearance="outline"
-                  class="w-50 m-8"
-                  color="primary"
-                >
-                  <mat-label>Porcentaje de Humedad (%)</mat-label>
-                  <input
-                    id="porcHumedad2"
-                    matInput
-                    readonly
-                    formControlName="porcHumedad2"
-                    type="number"
-                    placeholder="Este campo se calcula automáticamente"
-                    step="0.01"
-                    min="0"
-                  />
-                </mat-form-field>
-              </div>
-            </div>
-            <div class="text-center m-8">
-              <button
-                *ngIf="!cliente"
-                mat-raised-button
-                (click)="guardarHumedad()"
-                color="primary"
-                class="w-50"
-              >
-                Enviar Datos
-              </button>
-            </div>
-          </div>  
           </mat-card-content>
         </mat-card>
       </mat-step>
-      <mat-step label="Pruebas de Fluidez"> 
+      <mat-step label="Pruebas de Fluidez">
         <mat-card class="cardWithShadow m-8">
           <mat-card-content class="p-24">
-
+            <mat-accordion>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 0"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Primera Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[0]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(0)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Primera Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 1"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Segunda Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[1]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(1)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Segunda Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 2"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Tercera Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[2]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(2)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Tercera Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 3"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Cuarta Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[3]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(3)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Cuarta Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 4"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Quinta Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[4]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(4)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Quinta Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 5"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Sexta Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[5]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(5)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Sexta Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+              <mat-expansion-panel
+                class="cardWithShadow"
+                [expanded]="step === 6"
+                (opened)="panelOpenState = true"
+                (closed)="panelOpenState = false"
+                hideToggle
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16"
+                    >Septima Prueba de Fluidez
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div [formGroup]="fluidezForms[6]" class="container text-left m-8">
+                  <h3>Primera Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata1"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata1"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo1"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco1"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad1"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <mat-divider></mat-divider>
+                  <h3>Segunda Bandeja</h3>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Número de Bandeja</mat-label>
+                        <input
+                          matInput
+                          type="text"
+                          formControlName="nLata2"
+                          placeholder="Ingrese número de lata"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Tara Bandeja (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pLata2"
+                          type="number"
+                          placeholder="Ej: 400.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Humedo (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoHumedo2"
+                          type="number"
+                          placeholder="Ej: 900.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Peso Bruto Seco (g)</mat-label>
+                        <input
+                          matInput
+                          formControlName="pBrutoSeco2"
+                          type="number"
+                          placeholder="Ej: 800.0"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje de Humedad (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedad2"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Porcentaje Promedio (%)</mat-label>
+                        <input
+                          matInput
+                          readonly
+                          formControlName="porcHumedadPromedio"
+                          type="number"
+                          placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="text-center m-8">
+                    <button
+                      *ngIf="!cliente"
+                      mat-raised-button
+                      (click)="guardarFluidez(6)"
+                      color="primary"
+                      class="w-50"
+                    >
+                      Guardar Septima Prueba
+                    </button>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
           </mat-card-content>
         </mat-card>
       </mat-step>
       <mat-step label="Resultados">
         <mat-card class="cardWithShadow m-8">
-          <mat-card-content class="p-24">
-
-          </mat-card-content>
+          <mat-card-content class="p-24"> </mat-card-content>
         </mat-card>
       </mat-step>
     </mat-horizontal-stepper>

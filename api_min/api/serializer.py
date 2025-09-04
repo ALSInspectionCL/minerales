@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import CriteriosAceptacion, EquipoControl, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails
+from .models import CriteriosAceptacion, EquipoControl, Fluidez, PruebaFluidez, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails
 
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -115,5 +115,15 @@ class CriteriosAceptacionSerializer(serializers.ModelSerializer):
 class VerificacionBalanzaSerializer(serializers.ModelSerializer):
     class Meta:
         model = VerificacionBalanza
+        fields = '__all__'
+
+class FluidezSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fluidez
+        fields = '__all__'
+
+class PruebaFluidezSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PruebaFluidez
         fields = '__all__'
 

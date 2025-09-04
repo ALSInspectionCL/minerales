@@ -269,6 +269,7 @@ export class DetalleHumedadComponent {
               // Actualizar los campos de pesoMaterial1 y pesoMaterial2
             } else {
               console.log('No se encontraron datos para el nLote:', this.nLote);
+              this.estado = 'Iniciado';
               this.dataSource = [this.dataDefault];
             }
           } else {
