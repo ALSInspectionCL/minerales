@@ -418,6 +418,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -615,6 +630,21 @@
                           formControlName="porcHumedadPromedio"
                           type="number"
                           placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
                           step="0.01"
                           min="0"
                         />
@@ -820,6 +850,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1017,6 +1062,21 @@
                           formControlName="porcHumedadPromedio"
                           type="number"
                           placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
                           step="0.01"
                           min="0"
                         />
@@ -1222,6 +1282,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1419,6 +1494,21 @@
                           formControlName="porcHumedadPromedio"
                           type="number"
                           placeholder="Este campo se calcula automáticamente"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
                           step="0.01"
                           min="0"
                         />
@@ -1624,6 +1714,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Desplazamiento (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="desplazamiento"
+                          type="number"
+                          placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1645,7 +1750,68 @@
       </mat-step>
       <mat-step label="Resultados">
         <mat-card class="cardWithShadow m-8">
-          <mat-card-content class="p-24"> </mat-card-content>
+          <mat-card-content class="p-24">
+            <h3>Determinación de Humedad de la Muestra</h3>
+            <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f0f0f0;">
+                  <th># Bandeja</th>
+                  <th>Tara Bandeja</th>
+                  <th>P Bruto Húmedo</th>
+                  <th>P Bruto Seco</th>
+                  <th>% Hum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="text-center">
+                  <td>{{ humedadForm.get('nLata1')?.value }}</td>
+                  <td>{{ humedadForm.get('pLata1')?.value }}</td>
+                  <td>{{ humedadForm.get('pBrutoHumedo1')?.value }}</td>
+                  <td>{{ humedadForm.get('pBrutoSeco1')?.value }}</td>
+                  <td [style.backgroundColor]="'#f7d358'">{{ humedadForm.get('porcHumedad1')?.value }}</td>
+                </tr>
+                <tr class="text-center">
+                  <td>{{ humedadForm.get('nLata2')?.value }}</td>
+                  <td>{{ humedadForm.get('pLata2')?.value }}</td>
+                  <td>{{ humedadForm.get('pBrutoHumedo2')?.value }}</td>
+                  <td>{{ humedadForm.get('pBrutoSeco2')?.value }}</td>
+                  <td [style.backgroundColor]="'#f7d358'">{{ humedadForm.get('porcHumedad2')?.value }}</td>
+                </tr>
+                <tr>
+                  <td colspan="4" style="text-align: right; font-weight: bold;">Humedad Promedio</td>
+                  <td style="background-color: #f7d358; text-align: center; font-weight: bold;">{{ avgHumedad }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 class="mt-4">Determinación Humedad de Fluidización</h3>
+            <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f0f0f0;">
+                  <th>Diámetro base</th>
+                  <th># Bandeja</th>
+                  <th>Tara Bandeja</th>
+                  <th>P Bruto Húmedo</th>
+                  <th>P Bruto Seco</th>
+                  <th>% Hum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="text-align: center;" *ngFor="let form of fluidezForms; let i = index">
+                  <td>{{ form.get('desplazamiento')?.value }}</td>
+                  <td>{{ form.get('nLata1')?.value }}</td>
+                  <td>{{ ((+form.get('pLata1')?.value || 0) + (+form.get('pLata2')?.value || 0)) | number:'1.2-2' }}</td>
+                  <td>{{ ((+form.get('pBrutoHumedo1')?.value || 0) + (+form.get('pBrutoHumedo2')?.value || 0)) | number:'1.2-2' }}</td>
+                  <td>{{ ((+form.get('pBrutoSeco1')?.value || 0) + (+form.get('pBrutoSeco2')?.value || 0)) | number:'1.2-2' }}</td>
+                  <td [style.backgroundColor]="'#f7d358'">{{ getHumedadTable(form) }}</td>
+                </tr>
+                <tr>
+                  <td colspan="5" style="text-align: right; font-weight: bold;">Avg Desplazamiento</td>
+                  <td style="background-color: #f7d358; font-weight: bold;">{{ avgDesplazamiento }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </mat-card-content>
         </mat-card>
       </mat-step>
     </mat-horizontal-stepper>

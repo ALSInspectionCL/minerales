@@ -66,6 +66,11 @@ export class FluidezComponent implements OnInit {
   humedadForm: FormGroup;
   fluidezForms: FormGroup[] = [];
   fechaPrueba: String = this.formatDate(new Date());
+
+  // New properties for summary data
+  avgHumedad: string = '';
+  avgDesplazamiento: string = '';
+
   constructor(
     private http: HttpClient,
 
@@ -105,76 +110,26 @@ export class FluidezComponent implements OnInit {
       estado: new FormControl('Iniciado'),
     });
   }
+  
+  // New method to calculate summary data
+  calculateSummary() {
+    // Calculate average humidity from humedadForm
+    this.avgHumedad = this.humedadForm.get('porcHumedadPromedio')?.value || '';
 
-  updatePorcHumedad1() {
-    const pLata1 = this.humedadForm.get('pLata1')?.value;
-    const pBrutoHumedo1 = this.humedadForm.get('pBrutoHumedo1')?.value;
-    const pBrutoSeco1 = this.humedadForm.get('pBrutoSeco1')?.value;
-    const porcHumedad1 = this.calcularPorcentajeHumedad(
-      pBrutoHumedo1,
-      pBrutoSeco1,
-      pLata1
-    );
-    this.humedadForm.patchValue({ porcHumedad1 }, { emitEvent: false });
-    this.updatePorcHumedadPromedio();
-  }
-
-  updatePorcHumedad2() {
-    const pLata2 = this.humedadForm.get('pLata2')?.value;
-    const pBrutoHumedo2 = this.humedadForm.get('pBrutoHumedo2')?.value;
-    const pBrutoSeco2 = this.humedadForm.get('pBrutoSeco2')?.value;
-    const porcHumedad2 = this.calcularPorcentajeHumedad(
-      pBrutoHumedo2,
-      pBrutoSeco2,
-      pLata2
-    );
-    this.humedadForm.patchValue({ porcHumedad2 }, { emitEvent: false });
-    this.updatePorcHumedadPromedio();
-  }
-
-  updatePorcHumedadPromedio() {
-    const porcHumedad1 =
-      parseFloat(this.humedadForm.get('porcHumedad1')?.value) || 0;
-    const porcHumedad2 =
-      parseFloat(this.humedadForm.get('porcHumedad2')?.value) || 0;
-    if (porcHumedad1 > 0 && porcHumedad2 > 0) {
-      const promedio = ((porcHumedad1 + porcHumedad2) / 2).toFixed(2);
-      this.humedadForm.patchValue(
-        { porcHumedadPromedio: promedio },
-        { emitEvent: false }
-      );
-    } else {
-      this.humedadForm.patchValue(
-        { porcHumedadPromedio: '' },
-        { emitEvent: false }
-      );
-    }
-  }
-
-  updatePorcHumedadFluidez(step: number, bandeja: number) {
-    const form = this.fluidezForms[step];
-    const pLata = form.get(`pLata${bandeja}`)?.value;
-    const pBrutoHumedo = form.get(`pBrutoHumedo${bandeja}`)?.value;
-    const pBrutoSeco = form.get(`pBrutoSeco${bandeja}`)?.value;
-    const porcHumedad = this.calcularPorcentajeHumedad(
-      pBrutoHumedo,
-      pBrutoSeco,
-      pLata
-    );
-    form.patchValue({ [`porcHumedad${bandeja}`]: porcHumedad }, { emitEvent: false });
-    this.updatePorcHumedadPromedioFluidez(step);
-  }
-
-  updatePorcHumedadPromedioFluidez(step: number) {
-    const form = this.fluidezForms[step];
-    const porcHumedad1 = parseFloat(form.get('porcHumedad1')?.value) || 0;
-    const porcHumedad2 = parseFloat(form.get('porcHumedad2')?.value) || 0;
-    if (porcHumedad1 > 0 && porcHumedad2 > 0) {
-      const promedio = ((porcHumedad1 + porcHumedad2) / 2).toFixed(2);
-      form.patchValue({ porcHumedadPromedio: promedio }, { emitEvent: false });
-    } else {
-      form.patchValue({ porcHumedadPromedio: '' }, { emitEvent: false });
-    }
+    // Calculate average displacement from fluidezForms
+    let totalDesplazamiento = 0;
+    let countDesplazamiento = 0;
+    this.fluidezForms.forEach((form) => {
+      const desplazamiento = parseFloat(form.get('desplazamiento')?.value);
+      if (!isNaN(desplazamiento)) {
+        totalDesplazamiento += desplazamiento;
+        countDesplazamiento++;
+      }
+    });
+    this.avgDesplazamiento =
+      countDesplazamiento > 0
+        ? (totalDesplazamiento / countDesplazamiento).toFixed(2)
+        : '';
   }
 
   ngOnInit(): void {
@@ -260,6 +215,7 @@ export class FluidezComponent implements OnInit {
         porcHumedad1: new FormControl(''),
         porcHumedad2: new FormControl(''),
         porcHumedadPromedio: new FormControl(''),
+        desplazamiento: new FormControl(''),
         estado: new FormControl('Iniciado'),
       });
     }
@@ -287,6 +243,7 @@ export class FluidezComponent implements OnInit {
                 porcHumedad1: this.formatDecimal(existente.porcHumedad1),
                 porcHumedad2: this.formatDecimal(existente.porcHumedad2),
                 porcHumedadPromedio: this.formatDecimal(existente.porcHumedadPromedio),
+                desplazamiento: this.formatDecimal(existente.desplazamiento),
               };
               this.fluidezForms[i].patchValue(formatted);
             } else {
@@ -310,7 +267,9 @@ export class FluidezComponent implements OnInit {
       this.fluidezForms[i]
         .get('pBrutoSeco1')
         ?.valueChanges.subscribe(() => this.updatePorcHumedadFluidez(i, 1));
-
+      this.fluidezForms[i]
+        .get('desplazamiento')
+        ?.valueChanges.subscribe(() => this.updatePorcHumedadFluidez(i, 1));
       this.fluidezForms[i]
         .get('pLata2')
         ?.valueChanges.subscribe(() => this.updatePorcHumedadFluidez(i, 2));
@@ -320,6 +279,90 @@ export class FluidezComponent implements OnInit {
       this.fluidezForms[i]
         .get('pBrutoSeco2')
         ?.valueChanges.subscribe(() => this.updatePorcHumedadFluidez(i, 2));
+    }
+
+    // After loading data, calculate summary
+    this.calculateSummary();
+
+    // Subscribe to changes to recalculate summary dynamically
+    this.humedadForm.get('porcHumedadPromedio')?.valueChanges.subscribe(() => {
+      this.calculateSummary();
+    });
+    this.fluidezForms.forEach((form) => {
+      form.get('desplazamiento')?.valueChanges.subscribe(() => {
+        this.calculateSummary();
+      });
+    });
+  }
+
+  updatePorcHumedad1() {
+    const pLata1 = this.humedadForm.get('pLata1')?.value;
+    const pBrutoHumedo1 = this.humedadForm.get('pBrutoHumedo1')?.value;
+    const pBrutoSeco1 = this.humedadForm.get('pBrutoSeco1')?.value;
+    const porcHumedad1 = this.calcularPorcentajeHumedad(
+      pBrutoHumedo1,
+      pBrutoSeco1,
+      pLata1
+    );
+    this.humedadForm.patchValue({ porcHumedad1 }, { emitEvent: false });
+    this.updatePorcHumedadPromedio();
+  }
+
+  updatePorcHumedad2() {
+    const pLata2 = this.humedadForm.get('pLata2')?.value;
+    const pBrutoHumedo2 = this.humedadForm.get('pBrutoHumedo2')?.value;
+    const pBrutoSeco2 = this.humedadForm.get('pBrutoSeco2')?.value;
+    const porcHumedad2 = this.calcularPorcentajeHumedad(
+      pBrutoHumedo2,
+      pBrutoSeco2,
+      pLata2
+    );
+    this.humedadForm.patchValue({ porcHumedad2 }, { emitEvent: false });
+    this.updatePorcHumedadPromedio();
+  }
+
+  updatePorcHumedadPromedio() {
+    const porcHumedad1 =
+      parseFloat(this.humedadForm.get('porcHumedad1')?.value) || 0;
+    const porcHumedad2 =
+      parseFloat(this.humedadForm.get('porcHumedad2')?.value) || 0;
+    if (porcHumedad1 > 0 && porcHumedad2 > 0) {
+      const promedio = ((porcHumedad1 + porcHumedad2) / 2).toFixed(2);
+      this.humedadForm.patchValue(
+        { porcHumedadPromedio: promedio },
+        { emitEvent: false }
+      );
+    } else {
+      this.humedadForm.patchValue(
+        { porcHumedadPromedio: '' },
+        { emitEvent: false }
+      );
+    }
+  }
+
+  updatePorcHumedadFluidez(step: number, bandeja: number) {
+    const form = this.fluidezForms[step];
+    const pLata = form.get(`pLata${bandeja}`)?.value;
+    const pBrutoHumedo = form.get(`pBrutoHumedo${bandeja}`)?.value;
+    const pBrutoSeco = form.get(`pBrutoSeco${bandeja}`)?.value;
+    const porcHumedad = this.calcularPorcentajeHumedad(
+      pBrutoHumedo,
+      pBrutoSeco,
+      pLata
+    );
+    form.patchValue({ [`porcHumedad${bandeja}`]: porcHumedad }, { emitEvent: false });
+    this.updatePorcHumedadPromedioFluidez(step);
+  }
+
+  updatePorcHumedadPromedioFluidez(step: number) {
+    const form = this.fluidezForms[step];
+    const porcHumedad1 = parseFloat(form.get('porcHumedad1')?.value) || 0;
+    const porcHumedad2 = parseFloat(form.get('porcHumedad2')?.value) || 0;
+    if (porcHumedad1 > 0 && porcHumedad2 > 0) {
+      const promedio = ((porcHumedad1 + porcHumedad2) / 2).toFixed(2);
+      form.patchValue({ porcHumedadPromedio: promedio }, { emitEvent: false });
+    } else {
+      form.patchValue({ porcHumedadPromedio: '' }, { emitEvent: false });
     }
   }
 
@@ -381,6 +424,10 @@ export class FluidezComponent implements OnInit {
               { id: existente.id },
               { emitEvent: false }
             );
+            // Si fInicio no existe, establecer la fecha actual
+            if (!this.humedadForm.get('fInicio')?.value) {
+              this.humedadForm.patchValue({ fInicio: this.formatDate(new Date()) }, { emitEvent: false });
+            }
             //Actualizar el registro existente
             this.http
               .put(
@@ -501,11 +548,16 @@ export class FluidezComponent implements OnInit {
       .subscribe(
         (data) => {
           const existente = data.find(
-            (item) => item.nLote === nLote && Number(item.nPrueba) === nPrueba
+            (item) => item.nLote === nLote && Number(item.nPrueba) === Number(nPrueba)
           );
           if (existente) {
             console.log(`El registro ya existe para nLote: ${nLote}, nPrueba: ${nPrueba}`);
+            console.log('Existente:', existente);
             form.patchValue({ id: existente.id }, { emitEvent: false });
+            // Si fInicio no existe, establecer la fecha actual
+            if (!form.get('fInicio')?.value) {
+              form.patchValue({ fInicio: this.formatDate(new Date()) }, { emitEvent: false });
+            }
             // Actualizar el registro existente
             this.http
               .put(
@@ -562,4 +614,25 @@ export class FluidezComponent implements OnInit {
     this.step--;
   }
   panelOpenState = false;
+
+  // Getter to calculate humidity percentage for table
+  getHumedadTable(form: FormGroup): string {
+    const pBrutoHumedo1 = +form.get('pBrutoHumedo1')?.value || 0;
+    const pBrutoHumedo2 = +form.get('pBrutoHumedo2')?.value || 0;
+    const pBrutoSeco1 = +form.get('pBrutoSeco1')?.value || 0;
+    const pBrutoSeco2 = +form.get('pBrutoSeco2')?.value || 0;
+    const pLata1 = +form.get('pLata1')?.value || 0;
+    const pLata2 = +form.get('pLata2')?.value || 0;
+
+    // Round sums to 2 decimal places
+    const sumHumedo = ((pBrutoHumedo1 + pBrutoHumedo2));
+    const sumSeco = ((pBrutoSeco1 + pBrutoSeco2));
+    const sumLata = ((pLata1 + pLata2));
+
+    if (sumHumedo - sumLata === 0) return '0.00';
+    if (sumHumedo === 0 || sumSeco === 0 || sumLata === 0) return '';
+
+    const result = ((sumHumedo - sumSeco) / (sumHumedo - sumLata)) * 100;
+    return result.toFixed(2);
+  }
 }
