@@ -230,7 +230,7 @@ export class ImoComponent {
     const apiUrl = 'https://control.als-inspection.cl/api_min/api/servicio/';
     this.http.get<any[]>(apiUrl).subscribe(
       (data) => {
-        this.servicios = data; // Asigna los servicios obtenidos a la variable
+        this.servicios = data.filter(servicio => servicio.tServ === 'Despacho'); // Asigna los servicios obtenidos a la variable
         console.log(data);
       },
       (error) => {
@@ -448,7 +448,7 @@ export class ImoComponent {
     });
   }
 
-  cargarEstiba(nLote: string, numero: number) {
+  cargarEstiba(nLote: string, numero: number, observacion: any, nave: any) {
     console.log('Cargando factor de estiba para el lote:', nLote);
     // Aquí puedes abrir el diálogo de EstibaComponent
     const dialogRef = this.dialog.open(EstibaComponent, {
@@ -461,6 +461,8 @@ export class ImoComponent {
         idServicio: this.idServicio,
         idSolicitud: this.idSolicitud,
         nLote: nLote,
+        observacion: observacion,
+        nave: nave
       },
     });
     
