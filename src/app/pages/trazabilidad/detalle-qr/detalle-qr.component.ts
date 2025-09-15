@@ -370,7 +370,7 @@ export class DetalleQrComponent {
 
   async crearQRConExcel() {
     const apiUrl =
-      'https://control.als-inspection.cl/api_op/oceanapi/trazabilidad/';
+      'https://control.als-inspection.cl/api_min/api/trazabilidad/';
 
     if (!this.lote.nLote || !this.idServicio || !this.idSolicitud) {
       Notiflix.Notify.failure('Faltan datos para generar el QR');

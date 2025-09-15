@@ -601,11 +601,6 @@ export class DetalleHumedadComponent {
     const pSalidaHorno2Lata2 = this.humedadForm.value.pSalidaHorno2Lata2;
     const pSalidaHorno3Lata1 = this.humedadForm.value.pSalidaHorno3Lata1;
     const pSalidaHorno3Lata2 = this.humedadForm.value.pSalidaHorno3Lata2;
-    const porcentajeHumedad1 =
-      ((Number(pMaterial1) - (Number(pSalidaHorno1Lata1) - Number(pLata1))) /
-        Number(pMaterial1)) *
-      100;
-    console.log('Porcentaje de humedad 1:', porcentajeHumedad1);
     //El porcentaje de humedad se calcula como: ((pMaterialx - pSalidaHornoxLatay) / pMaterialx) * 100)
     //Todos los porcentajes se guardan en el formulario y además solo se guardan los primeros 5 digitos de la parte decimal
     console.log('Calculando porcentaje de humedad...');
@@ -644,34 +639,51 @@ export class DetalleHumedadComponent {
       return;
     } else {
       const porcHumedad1 =
-        Number((((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100).toFixed(2));
+        Number((((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100).toFixed(4));
       this.humedadForm.patchValue({
         porcHumedad1: parseFloat(porcHumedad1.toFixed(2)),
       });
       console.log('porcHumedad1 segundo pesaje:', porcHumedad1);
-      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(2));
+      console.log('porcHumedad1 segundo pesaje:', this.humedadForm.value.porcHumedad1);
+      this.dataSource[0].porcHumedad1 = parseFloat(this.humedadForm.value.porcHumedad1);
       const porcHumedad2 =
-        Number((((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100).toFixed(2));
+        Number((((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100).toFixed(4));
       this.humedadForm.patchValue({
         porcHumedad2: parseFloat(porcHumedad2.toFixed(2)),
       });
       console.log('porcHumedad2 segundo pesaje:', porcHumedad2);
-      this.dataSource[0].porcHumedad2 = parseFloat(porcHumedad2.toFixed(2));
+      this.dataSource[0].porcHumedad2 = parseFloat(this.humedadForm.value.porcHumedad2);
       const porcHumedadFinal = 
-        Number(((porcHumedad1 + porcHumedad2) / 2)).toFixed(3);
+        Number(((this.humedadForm.value.porcHumedad1 + this.humedadForm.value.porcHumedad2) / 2));
       console.log('porcHumedadFinal segundo pesaje:', porcHumedadFinal);
-      // Redondeo positivo a dos decimales (DESACTIVADO POR PRUEBAS)
+      // Redondeo positivo a dos decimales solo si el tercer decimal es 5
       function redondeoPositivo(num: number): number {
         const entero = Math.floor(num);
+        console.log('Parte entera:', entero);
         const decimal = num - entero;
-        if (decimal >= 0.005) {
+        console.log('Parte decimal:', decimal);
+        if (Math.floor(num * 1000) % 10 === 5) {
+          console.log('Redondeo hacia arriba');
           return Math.ceil(num * 100) / 100;
         } else {
+          console.log('Redondeo hacia abajo');
           return Math.floor(num * 100) / 100;
         }
       }
+      // Porcentaje de humedad final, si es 0.005 o más, se redondea hacia arriba
+      let porcHumedadFinalRedondeado = redondeoPositivo(porcHumedadFinal);
+      //Si porcHumedad1 y porcHumedad2 son iguales, entonces porcHumedadFinal es igual a ellos
+      if (this.humedadForm.value.porcHumedad1 === this.humedadForm.value.porcHumedad2) {
+        this.humedadForm.patchValue({
+          porcHumedadFinal: parseFloat(porcHumedad1.toFixed(2)),
+        });
+        this.dataSource[0].porcHumedadFinal = parseFloat(porcHumedad1.toFixed(2));
+        porcHumedadFinalRedondeado = parseFloat(porcHumedad1.toFixed(2));
 
-      const porcHumedadFinalRedondeado = redondeoPositivo(Number(porcHumedadFinal));
+        return;
+      }
+      // const porcHumedadFinalRedondeado : Number = Number((porcHumedadFinal).toFixed(2));
+      console.log('porcHumedadFinal segundo pesaje:', porcHumedadFinalRedondeado);
 
       this.humedadForm.patchValue({
         porcHumedadFinal: porcHumedadFinalRedondeado,
