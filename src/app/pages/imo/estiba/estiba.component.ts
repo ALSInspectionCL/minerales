@@ -17,6 +17,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { ImoEstibaService } from 'src/app/services/imo-estiba.service';
 import { RolService } from 'src/app/services/rol.service';
+import { Notify } from 'notiflix'; // 👈 Asegúrate de tener esto importado
 
 @Component({
   selector: 'app-estiba',
@@ -147,6 +148,16 @@ export class EstibaComponent {
     this.obtenerEstiba(data.nLote)
     this.obtenerDensidad(data.nLote)
 
+  }
+
+  ngOnInit(): void {
+    this.formfe.valueChanges.subscribe(() => {
+      this.calcularFactorEstiba();
+    });
+
+    this.formden.valueChanges.subscribe(() => {
+      this.calcularDensidad();
+    });
   }
 
   obtenerEstiba(nLote: string | number) {
@@ -288,56 +299,38 @@ export class EstibaComponent {
     const tara1 = Number(this.formfe.get('tara1')?.value) || 0;
     const pesoNeto1 = Number(this.formfe.get('pesoNeto1')?.value) || 0;
     const pesoBruto1 = tara1 + pesoNeto1;
+    this.formfe.get('pesoBruto1')?.setValue(pesoBruto1, { emitEvent: false });
 
-    this.formfe.get('pesoBruto1')?.setValue(pesoBruto1 || 0);
-    if (pesoNeto1 > 0 && volumen1 > 0) {
-      const fe1 = volumen1 / pesoNeto1;
-      console.log(fe1)
-      this.formfe.get('fe1')?.setValue(Number(fe1.toFixed(2)));
-    } else {
-      this.formfe.get('fe1')?.setValue(0);
-    }
+    const fe1 = pesoNeto1 > 0 && volumen1 > 0 ? volumen1 / pesoNeto1 : 0;
+    this.formfe.get('fe1')?.setValue(Number(fe1.toFixed(2)), { emitEvent: false });
 
-    // // --- Muestra 2 ---
+    // --- Muestra 2 ---
     const tara2 = Number(this.formfe.get('tara2')?.value) || 0;
     const pesoNeto2 = Number(this.formfe.get('pesoNeto2')?.value) || 0;
     const pesoBruto2 = tara2 + pesoNeto2;
+    this.formfe.get('pesoBruto2')?.setValue(pesoBruto2, { emitEvent: false });
 
-    this.formfe.get('pesoBruto2')?.setValue(pesoBruto2 || 0);
+    const fe2 = pesoNeto2 > 0 && volumen2 > 0 ? volumen2 / pesoNeto2 : 0;
+    this.formfe.get('fe2')?.setValue(Number(fe2.toFixed(2)), { emitEvent: false });
 
-    if (pesoNeto2 > 0 && volumen2 > 0) {
-      const fe2 = volumen2 / pesoNeto2
-      this.formfe.get('fe2')?.setValue(Number(fe2.toFixed(2)));
-    } else {
-      this.formfe.get('fe2')?.setValue(0);
-    }
-
-    // // --- Muestra 3 ---
+    // --- Muestra 3 ---
     const tara3 = Number(this.formfe.get('tara3')?.value) || 0;
     const pesoNeto3 = Number(this.formfe.get('pesoNeto3')?.value) || 0;
     const pesoBruto3 = tara3 + pesoNeto3;
+    this.formfe.get('pesoBruto3')?.setValue(pesoBruto3, { emitEvent: false });
 
-    this.formfe.get('pesoBruto3')?.setValue(pesoBruto3 || 0);
+    const fe3 = pesoNeto3 > 0 && volumen3 > 0 ? volumen3 / pesoNeto3 : 0;
+    this.formfe.get('fe3')?.setValue(Number(fe3.toFixed(2)), { emitEvent: false });
 
-    if (pesoNeto3 > 0 && volumen3 > 0) {
-      const fe3 = volumen3 / pesoNeto3;
-      this.formfe.get('fe3')?.setValue(Number(fe3.toFixed(2)));
-    } else {
-      this.formfe.get('fe3')?.setValue(0);
+    // --- Promedio ---
+    let promedio = 0;
+    const activos = [Number(fe1.toFixed(2)), Number(fe2.toFixed(2)), Number(fe3.toFixed(2))].filter(x => x > 0);
+
+    if (activos.length > 0) {
+      promedio = activos.reduce((a, b) => a + b, 0) / activos.length;
     }
 
-    // --- Calcular promedio de FE ---
-    const fe1Val = volumen1 / Number(this.formfe.get('pesoNeto1')?.value) || 0;;
-    const fe2Val = volumen2 / Number(this.formfe.get('pesoNeto2')?.value) || 0;
-    const fe3Val = volumen3 / Number(this.formfe.get('pesoNeto3')?.value) || 0;
-
-    if (fe1Val > 0 && fe2Val > 0 && fe3Val > 0) {
-      const promedio = (fe1Val + fe2Val + fe3Val) / 3;
-      this.formfe.get('totalfe')?.setValue(Number(promedio.toFixed(2)));
-    } else {
-      this.formfe.get('totalfe')?.setValue(0);
-    }
-    this.guardarFactorEstiba()
+    this.formfe.get('totalfe')?.setValue(Number(promedio.toFixed(2)), { emitEvent: false });
   }
 
   guardarFactorEstiba() {
@@ -375,180 +368,120 @@ export class EstibaComponent {
       totalfe: this.formfe.get('totalfe')?.value,
     };
 
-    console.log(this.formfe.get('nNave')?.value)
-    console.log(factorEstiba.nNave)
-
     const nLote = factorEstiba.nLote;
-    console.log(factorEstiba)
     if (!nLote) {
-      console.error("Debe ingresar un NLote válido para guardar.");
+      Notify.failure("Debe ingresar un NLote válido para guardar.");
       return;
     }
 
     this.estibaService.getEstiba().subscribe({
       next: (data: any) => {
         const lista = Array.isArray(data) ? data : data.results;
-
         if (!lista || !Array.isArray(lista)) {
-          console.error("La API no devolvió una lista de estibas");
+          Notify.failure("La API no devolvió una lista de estibas");
           return;
         }
 
-        // 🔍 Filtrar por nLote exacto
         const encontrados = lista.filter((e: any) => String(e.nLote) === String(nLote));
 
-        let responsables
-        let fechaDet
-
-        if (this.Responsable != '') {
-          responsables = this.Responsable
-        } else {
-          responsables = factorEstiba.realizado
-        }
-
-        if (this.fechaDet != '') {
-          fechaDet = this.fechaDet
-        } else {
-          fechaDet = factorEstiba.fDeterminacion
-        }
+        let responsables = this.Responsable !== '' ? this.Responsable : factorEstiba.realizado;
+        let fechaDet = this.fechaDet !== '' ? this.fechaDet : factorEstiba.fDeterminacion;
 
         if (encontrados.length > 0) {
-          // ✅ Existe → actualizar
+          // ✅ Actualizar
           const estibaExistente = encontrados[0];
           this.estibaService.actualizarEstiba(estibaExistente.id, {
-            nLote: nLote,
-            factorEstiba: factorEstiba,
-            observacion: factorEstiba.observacion,
-            nReferencia: factorEstiba.nReferencia,
-            tipoMaterial: factorEstiba.tipoMaterial,
-            cliente: factorEstiba.cliente,
+            ...factorEstiba,
+            nLote,
             realizado: responsables,
-            nNave: factorEstiba.nNave,
-            nSublote: factorEstiba.nSublote,
             fDeterminacion: fechaDet,
-
-            volumen1: factorEstiba.volumen1,
-            volumen2: factorEstiba.volumen2,
-            volumen3: factorEstiba.volumen3,
-
-            tara1: factorEstiba.tara1,
-            tara2: factorEstiba.tara2,
-            tara3: factorEstiba.tara3,
-
-            pesoNeto1: factorEstiba.pesoNeto1,
-            pesoNeto2: factorEstiba.pesoNeto2,
-            pesoNeto3: factorEstiba.pesoNeto3,
-
-            pesoBruto1: factorEstiba.pesoBruto1,
-            pesoBruto2: factorEstiba.pesoBruto2,
-            pesoBruto3: factorEstiba.pesoBruto3,
-
-            fe1: factorEstiba.fe1,
-            fe2: factorEstiba.fe2,
-            fe3: factorEstiba.fe3,
-
-            totalfe: factorEstiba.totalfe,
           }).subscribe({
             next: (res) => {
               console.log("Factor de estiba actualizado con éxito", res);
+              Notify.success("Factor de estiba guardado con éxito");
             },
             error: (err) => {
               console.error("Error al actualizar factor de estiba", err);
+              Notify.failure("Error al guardar factor de estiba");
             }
           });
         } else {
-          // ❌ No existe → crear
+          // ❌ Crear
           this.estibaService.crearEstiba({
-            nLote: nLote,
-            factorEstiba: factorEstiba,
-            observacion: factorEstiba.observacion,
-            nReferencia: factorEstiba.nReferencia,
-            tipoMaterial: factorEstiba.tipoMaterial,
-            cliente: factorEstiba.cliente,
+            ...factorEstiba,
+            nLote,
             realizado: responsables,
-            nNave: factorEstiba.nNave,
-            nSublote: factorEstiba.nSublote,
             fDeterminacion: fechaDet,
-
-            volumen1: factorEstiba.volumen1,
-            volumen2: factorEstiba.volumen2,
-            volumen3: factorEstiba.volumen3,
-
-            tara1: factorEstiba.tara1,
-            tara2: factorEstiba.tara2,
-            tara3: factorEstiba.tara3,
-
-            pesoNeto1: factorEstiba.pesoNeto1,
-            pesoNeto2: factorEstiba.pesoNeto2,
-            pesoNeto3: factorEstiba.pesoNeto3,
-
-            pesoBruto1: factorEstiba.pesoBruto1,
-            pesoBruto2: factorEstiba.pesoBruto2,
-            pesoBruto3: factorEstiba.pesoBruto3,
-
-            fe1: factorEstiba.fe1,
-            fe2: factorEstiba.fe2,
-            fe3: factorEstiba.fe3,
-
-            totalfe: factorEstiba.totalfe,
           }).subscribe({
             next: (res) => {
               console.log("Factor de estiba creado con éxito", res);
+              Notify.success("Factor de estiba creado con éxito");
             },
             error: (err) => {
               console.error("Error al crear factor de estiba", err);
+              Notify.failure("Error al crear factor de estiba");
             }
           });
         }
       },
       error: (err) => {
         console.error("Error al obtener estibas", err);
+        Notify.failure("Error al obtener estibas");
       }
     });
   }
 
   calcularDensidad() {
-
     // --- Muestra 1 ---
+    const volumen1 = Number(this.formden.get('volumen1')?.value) || 0;
     const tara1 = Number(this.formden.get('tara1')?.value) || 0;
     const pesoNeto1 = Number(this.formden.get('pesoNeto1')?.value) || 0;
     const pesoBruto1 = tara1 + pesoNeto1;
+    this.formden.get('pesoBruto1')?.patchValue(pesoBruto1.toFixed(2) || 0, { emitEvent: false });
 
-    this.formden.get('pesoBruto1')?.setValue(pesoBruto1.toFixed(2) || 0);
+    let densidad1 = 0;
+    if (volumen1 > 0 && pesoNeto1 > 0) {
+      densidad1 = (pesoNeto1 / volumen1) * 1000;
+    }
+    this.formden.get('densidad1')?.patchValue(densidad1.toFixed(2), { emitEvent: false });
 
-    // // --- Muestra 2 ---
+    // --- Muestra 2 ---
+    const volumen2 = Number(this.formden.get('volumen2')?.value) || 0;
     const tara2 = Number(this.formden.get('tara2')?.value) || 0;
     const pesoNeto2 = Number(this.formden.get('pesoNeto2')?.value) || 0;
     const pesoBruto2 = tara2 + pesoNeto2;
+    this.formden.get('pesoBruto2')?.patchValue(pesoBruto2.toFixed(2) || 0, { emitEvent: false });
 
-    this.formden.get('pesoBruto2')?.setValue(pesoBruto2.toFixed(2) || 0);
+    let densidad2 = 0;
+    if (volumen2 > 0 && pesoNeto2 > 0) {
+      densidad2 = (pesoNeto2 / volumen2) * 1000;
+    }
+    this.formden.get('densidad2')?.patchValue(densidad2.toFixed(2), { emitEvent: false });
 
-    // // --- Muestra 3 ---
+    // --- Muestra 3 ---
+    const volumen3 = Number(this.formden.get('volumen3')?.value) || 0;
     const tara3 = Number(this.formden.get('tara3')?.value) || 0;
     const pesoNeto3 = Number(this.formden.get('pesoNeto3')?.value) || 0;
     const pesoBruto3 = tara3 + pesoNeto3;
+    this.formden.get('pesoBruto3')?.patchValue(pesoBruto3.toFixed(2) || 0, { emitEvent: false });
 
-    this.formden.get('pesoBruto3')?.setValue(pesoBruto3.toFixed(2) || 0);
-
-    // --- Calcular promedio de FE ---
-    const fe1Val = Number(this.formden.get('densidad1')?.value) || 0;;
-    const fe2Val = Number(this.formden.get('densidad2')?.value) || 0;
-    const fe3Val = Number(this.formden.get('densidad3')?.value) || 0;
-
-    if (fe1Val > 0 && fe2Val > 0 && fe3Val > 0) {
-      const promedio = (fe1Val + fe2Val + fe3Val) / 3;
-      this.formden.get('totalDen')?.setValue(Number(promedio.toFixed(2)));
-    } else {
-      this.formden.get('totalDen')?.setValue(0);
+    let densidad3 = 0;
+    if (volumen3 > 0 && pesoNeto3 > 0) {
+      densidad3 = (pesoNeto3 / volumen3) * 1000;
     }
+    this.formden.get('densidad3')?.patchValue(densidad3.toFixed(2), { emitEvent: false });
 
-    this.guardarDensidad()
-
+    // --- Promedio ---
+    if (densidad1 > 0 && densidad2 > 0 && densidad3 > 0) {
+      const promedio = (Number(densidad1.toFixed(2)) + Number(densidad2.toFixed(2)) + Number(densidad3.toFixed(2))) / 3;
+      this.formden.get('totalDen')?.patchValue(Number(promedio.toFixed(2)), { emitEvent: false });
+    } else {
+      this.formden.get('totalDen')?.patchValue(0, { emitEvent: false });
+    }
   }
 
   guardarDensidad() {
     const densidad = {
-
       nLote: this.formden.get('nLote')?.value,
       nReferencia: this.formden.get('nReferencia')?.value,
       tipoMaterial: 'Concentrado de Cobre',
@@ -580,12 +513,11 @@ export class EstibaComponent {
       densidad3: this.formden.get('densidad3')?.value,
 
       totalDen: this.formden.get('totalDen')?.value,
-
     };
 
     const nLote = densidad.nLote;
     if (!nLote) {
-      console.error("Debe ingresar un NLote válido para guardar.");
+      Notify.failure("Debe ingresar un N° de Lote válido para guardar.");
       return;
     }
 
@@ -594,119 +526,55 @@ export class EstibaComponent {
         const lista = Array.isArray(data) ? data : data.results;
 
         if (!lista || !Array.isArray(lista)) {
-          console.error("La API no devolvió una lista de estibas");
+          Notify.failure("La API no devolvió una lista válida.");
           return;
         }
 
-        // 🔍 Filtrar por nLote exacto
         const encontrados = lista.filter((e: any) => String(e.nLote) === String(nLote));
-
-        let responsables
-        let fechaDet
-
-        if (this.Responsable != '') {
-          responsables = this.Responsable
-        } else {
-          responsables = densidad.realizado
-        }
-
-        if (this.Responsable != '') {
-          fechaDet = this.Responsable
-        } else {
-          fechaDet = densidad.fDeterminacion
-        }
+        
+        let responsables = this.Responsable !== '' ? this.Responsable : densidad.realizado;
+        let fechaDet = this.fechaDet !== '' ? this.fechaDet : densidad.fDeterminacion;
 
         if (encontrados.length > 0) {
           // ✅ Existe → actualizar
           const estibaExistente = encontrados[0];
           this.estibaService.actualizarDensidad(estibaExistente.id, {
-            nLote: nLote,
-            nSublote: densidad.nSublote,
-            observacion: densidad.observacion,
-
-            nReferencia: densidad.nReferencia,
-            tipoMaterial: densidad.tipoMaterial,
-            cliente: densidad.cliente,
+            ...densidad,
+            nLote,
             realizado: responsables,
-            nNave: densidad.nNave,
-            fDeterminacion: fechaDet,
-
-            volumen1: densidad.volumen1,
-            volumen2: densidad.volumen2,
-            volumen3: densidad.volumen3,
-
-            tara1: densidad.tara1,
-            tara2: densidad.tara2,
-            tara3: densidad.tara3,
-
-            pesoNeto1: densidad.pesoNeto1,
-            pesoNeto2: densidad.pesoNeto2,
-            pesoNeto3: densidad.pesoNeto3,
-
-            pesoBruto1: densidad.pesoBruto1,
-            pesoBruto2: densidad.pesoBruto2,
-            pesoBruto3: densidad.pesoBruto3,
-
-            densidad1: densidad.densidad1,
-            densidad2: densidad.densidad2,
-            densidad3: densidad.densidad3,
-
-            totalDen: densidad.totalDen,
+            fDeterminacion: fechaDet
           }).subscribe({
             next: (res) => {
-              console.log("✅ Densidad actualizada con éxito", res);
+              console.log("Densidad actualizada con éxito", res);
+              Notify.success("Densidad actualizada con éxito");
             },
             error: (err) => {
-              console.error("❌ Error al actualizar densidad", err);
+              console.error("Error al actualizar densidad", err);
+              Notify.failure("Error al actualizar densidad");
             }
           });
         } else {
           // ❌ No existe → crear
           this.estibaService.crearDensidad({
-            nLote: nLote,
-            nSublote: densidad.nSublote,
-            observacion: densidad.observacion,
-
-            nReferencia: densidad.nReferencia,
-            tipoMaterial: densidad.tipoMaterial,
-            cliente: densidad.cliente,
+            ...densidad,
+            nLote,
             realizado: responsables,
-            nNave: densidad.nNave,
-            fDeterminacion: fechaDet,
-
-            volumen1: densidad.volumen1,
-            volumen2: densidad.volumen2,
-            volumen3: densidad.volumen3,
-
-            tara1: densidad.tara1,
-            tara2: densidad.tara2,
-            tara3: densidad.tara3,
-
-            pesoNeto1: densidad.pesoNeto1,
-            pesoNeto2: densidad.pesoNeto2,
-            pesoNeto3: densidad.pesoNeto3,
-
-            pesoBruto1: densidad.pesoBruto1,
-            pesoBruto2: densidad.pesoBruto2,
-            pesoBruto3: densidad.pesoBruto3,
-
-            densidad1: densidad.densidad1,
-            densidad2: densidad.densidad2,
-            densidad3: densidad.densidad3,
-
-            totalDen: densidad.totalDen,
+            fDeterminacion: fechaDet
           }).subscribe({
             next: (res) => {
-              console.log("✅ Densidad creada con éxito", res);
+              console.log("Densidad creada con éxito", res);
+              Notify.success("Densidad creada con éxito");
             },
             error: (err) => {
-              console.error("❌ Error al crear densidad", err);
+              console.error("Error al crear densidad", err);
+              Notify.failure("Error al crear densidad");
             }
           });
         }
       },
       error: (err) => {
-        console.error("❌ Error al obtener densidad", err);
+        console.error("Error al obtener densidad", err);
+        Notify.failure("Error al obtener densidad");
       }
     });
   }

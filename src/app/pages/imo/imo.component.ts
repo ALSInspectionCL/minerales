@@ -414,7 +414,7 @@ export class ImoComponent {
     }
   }
 
-  cargarFluidez(nLote: string, numero: number) {
+  cargarFluidez(nLote: string, numero: number, observacion: any, nave: any) {
     console.log('Cargando fluidez para el lote:', nLote);
     // Aquí puedes abrir el diálogo de fluidezComponent
     const dialogRef = this.dialog.open(FluidezComponent, {
@@ -427,6 +427,8 @@ export class ImoComponent {
         idServicio: this.idServicio,
         idSolicitud: this.idSolicitud,
         nLote: nLote,
+        observacion: observacion,
+        nave: nave
       },
     });
   }

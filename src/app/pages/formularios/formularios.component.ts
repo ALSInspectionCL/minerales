@@ -61,8 +61,9 @@ import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class FiveDayRangeSelectionStrategy<D>
-  implements MatDateRangeSelectionStrategy<D> {
-  constructor(private _dateAdapter: DateAdapter<D>) { }
+  implements MatDateRangeSelectionStrategy<D>
+{
+  constructor(private _dateAdapter: DateAdapter<D>) {}
 
   selectionFinished(date: D | null): DateRange<D> {
     return this._createFiveDayRange(date);
@@ -189,11 +190,11 @@ export class FormulariosComponent {
     total: number;
     imagen: any;
   } = {
-      nombreBodega: '',
-      idBodega: 0,
-      total: 0,
-      imagen: null,
-    };
+    nombreBodega: '',
+    idBodega: 0,
+    total: 0,
+    imagen: null,
+  };
   horas: string[] = [];
   idServicio: any;
   idSolicitud: any;
@@ -233,6 +234,28 @@ export class FormulariosComponent {
   despachoSeleccionado: boolean;
   recepcionSeleccionado: boolean;
   displayedColumns: string[] = ['email', 'fecha', 'hora'];
+
+  // Properties for reports management
+  selectedServicioReporte: any;
+  selectedSolicitudReporte: any;
+  solicitudesFiltradasReporte: any[] = [];
+  fechaInformeCliente: Date | null = null;
+  fechaFacturacion: Date | null = null;
+
+  // New properties for enhanced functionality
+  isLoading: boolean = false;
+  searchTerm: string = '';
+  filteredServicios: Servicio[] = [];
+  filteredSolicitudes: Solicitud[] = [];
+  filteredUsuarios: any[] = [];
+  filteredBodegas: any[] = [];
+  dashboardStats: any = {
+    totalServicios: 0,
+    totalSolicitudes: 0,
+    totalUsuarios: 0,
+    totalBodegas: 0,
+  };
+
   constructor(
     private RolService: RolService,
     private dialog: MatDialog,
@@ -253,8 +276,7 @@ export class FormulariosComponent {
       capacidad: new FormControl('', Validators.required),
       codigo: new FormControl('', Validators.required),
       fechaCalibracion: new FormControl('', Validators.required),
-    })
-
+    });
   }
   csrfToken: string;
 
@@ -291,7 +313,6 @@ export class FormulariosComponent {
       startWith(''),
       map((value) => this._filter2(value || ''))
     );
-
   }
 
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
@@ -707,7 +728,7 @@ export class FormulariosComponent {
     );
   }
 
-    resetFormulario() {
+  resetFormulario() {
     this.servicio = {
       refAls: '',
       nServ: '',
@@ -717,7 +738,6 @@ export class FormulariosComponent {
       tServ: '',
     };
   }
-
 
   onBodegaChange(event: MatSelectChange) {
     const bodegaSeleccionada = event.value; // Esto ahora es el objeto bodega completo
@@ -1405,7 +1425,7 @@ export class FormulariosComponent {
         this.calcularPromedioHumedades(),
         this.calcularPesoNetoSecoTotal(),
         this.calcularPesoNetoRecepcionTotal() -
-        this.calcularPesoNetoDespachoTotal(),
+          this.calcularPesoNetoDespachoTotal(),
         this.calcularDiferenciaSecaTotal(),
       ])
       .eachCell((cell) => {
@@ -1676,7 +1696,7 @@ export class FormulariosComponent {
         this.calcularPromedioHumedades(),
         this.calcularPesoNetoSecoTotal(),
         this.calcularPesoNetoRecepcionTotal() -
-        this.calcularPesoNetoDespachoTotal(),
+          this.calcularPesoNetoDespachoTotal(),
         this.calcularDiferenciaSecaTotal(),
       ])
       .eachCell((cell) => {
@@ -2023,9 +2043,27 @@ export class FormulariosComponent {
   }
 
   filtrarSolicitudes(servicioId: any) {
-    this.solicitudesFiltradas = this.solicitudes.filter(
-      (solicitud) => solicitud.nServ === servicioId
+    if (!servicioId) {
+      this.solicitudesFiltradas = [];
+      return;
+    }
+
+    // Find the service name based on the service ID
+    const servicioSeleccionado = this.servicios.find(
+      (servicio) => servicio.id === servicioId
     );
+
+    if (servicioSeleccionado) {
+      // Filter requests that match the service name
+      this.solicitudesFiltradas = this.solicitudes.filter(
+        (solicitud) => solicitud.nServ === servicioSeleccionado.nServ
+      );
+      console.log('Servicio seleccionado:', servicioSeleccionado.nServ);
+      console.log('Solicitudes filtradas:', this.solicitudesFiltradas.length);
+    } else {
+      this.solicitudesFiltradas = [];
+      console.log('Servicio no encontrado para ID:', servicioId);
+    }
   }
 
   loteSeleccionadoEliminar: any = null;
@@ -2141,18 +2179,24 @@ export class FormulariosComponent {
   balanzaCargada: boolean = false;
   descargarReporte() {
     if (!this.balanzaCargada) {
-      Notiflix.Notify.warning('No hay datos de balanza cargados para generar el reporte');
+      Notiflix.Notify.warning(
+        'No hay datos de balanza cargados para generar el reporte'
+      );
       return;
     }
 
     if (!this.balanzaData || this.balanzaData.length === 0) {
-      Notiflix.Notify.warning('No hay datos disponibles para generar el reporte');
+      Notiflix.Notify.warning(
+        'No hay datos disponibles para generar el reporte'
+      );
       return;
     }
 
     try {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Reporte de Calibración de Balanza');
+      const worksheet = workbook.addWorksheet(
+        'Reporte de Calibración de Balanza'
+      );
 
       // Configurar columnas según la estructura real de datos de calibración
       worksheet.columns = [
@@ -2164,8 +2208,16 @@ export class FormulariosComponent {
         { header: 'Mail Técnico', key: 'mailTecnico', width: 25 },
         { header: 'Código Masa Patrón 1', key: 'codigoMasaPatron1', width: 18 },
         { header: 'Código Masa Patrón 2', key: 'codigoMasaPatron2', width: 18 },
-        { header: 'Peso Teórico Masa Patrón 1', key: 'pesoTeoricoMasaPatron1', width: 20 },
-        { header: 'Peso Teórico Masa Patrón 2', key: 'pesoTeoricoMasaPatron2', width: 20 },
+        {
+          header: 'Peso Teórico Masa Patrón 1',
+          key: 'pesoTeoricoMasaPatron1',
+          width: 20,
+        },
+        {
+          header: 'Peso Teórico Masa Patrón 2',
+          key: 'pesoTeoricoMasaPatron2',
+          width: 20,
+        },
         { header: 'Masa 1 Peso 1', key: 'masa1peso1', width: 15 },
         { header: 'Masa 1 Peso 2', key: 'masa1peso2', width: 15 },
         { header: 'Masa 2 Peso 1', key: 'masa2peso1', width: 15 },
@@ -2176,8 +2228,12 @@ export class FormulariosComponent {
         { header: 'Masa 4 Peso 2', key: 'masa4peso2', width: 15 },
         { header: 'Masa 5 Peso 1', key: 'masa5peso1', width: 15 },
         { header: 'Masa 5 Peso 2', key: 'masa5peso2', width: 15 },
-        { header: 'Intervalo Aceptación', key: 'intervaloAceptacion', width: 18 },
-        { header: 'Estado', key: 'estado', width: 12 }
+        {
+          header: 'Intervalo Aceptación',
+          key: 'intervaloAceptacion',
+          width: 18,
+        },
+        { header: 'Estado', key: 'estado', width: 12 },
       ];
 
       // Estilizar encabezados
@@ -2186,14 +2242,14 @@ export class FormulariosComponent {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: '4472C4' }
+          fgColor: { argb: '4472C4' },
         };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
           bottom: { style: 'thin' },
-          right: { style: 'thin' }
+          right: { style: 'thin' },
         };
       });
 
@@ -2221,13 +2277,19 @@ export class FormulariosComponent {
           masa5peso1: item.masa5peso1 || 0,
           masa5peso2: item.masa5peso2 || 0,
           intervaloAceptacion: item.intervaloAceptacion || '',
-          estado: item.estado || ''
+          estado: item.estado || '',
         });
 
         // Formatear números
-        const numericColumns = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28];
-        numericColumns.forEach(col => {
-          if (row.getCell(col).value !== null && row.getCell(col).value !== undefined) {
+        const numericColumns = [
+          9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+          27, 28,
+        ];
+        numericColumns.forEach((col) => {
+          if (
+            row.getCell(col).value !== null &&
+            row.getCell(col).value !== undefined
+          ) {
             row.getCell(col).numFmt = '#,##0.00';
           }
         });
@@ -2240,7 +2302,7 @@ export class FormulariosComponent {
       summaryRow.getCell(1).fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFE699' }
+        fgColor: { argb: 'FFE699' },
       };
 
       const statsRow = worksheet.addRow([
@@ -2251,21 +2313,21 @@ export class FormulariosComponent {
         // 'Registros Inactivos:',
         // this.balanzaData.filter((item: any) => item.estado === 'Inactivo').length,
         'Fecha Generación:',
-        new Date().toLocaleDateString()
+        new Date().toLocaleDateString(),
       ]);
       statsRow.eachCell((cell: any) => {
         cell.font = { bold: true };
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'D9E1F2' }
+          fgColor: { argb: 'D9E1F2' },
         };
       });
 
       // Auto-filtros
       worksheet.autoFilter = {
         from: 'A1',
-        to: `Z${this.balanzaData.length + 1}`
+        to: `Z${this.balanzaData.length + 1}`,
       };
 
       // Ajustar ancho de columnas
@@ -2281,26 +2343,34 @@ export class FormulariosComponent {
       });
 
       // Generar archivo
-      workbook.xlsx.writeBuffer().then((buffer: any) => {
-        const blob = new Blob([buffer], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      workbook.xlsx
+        .writeBuffer()
+        .then((buffer: any) => {
+          const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          });
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Reporte_Calibracion_Balanza_${
+            new Date().toISOString().split('T')[0]
+          }.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          Notiflix.Notify.success(
+            'Reporte de calibración de balanza descargado exitosamente'
+          );
+        })
+        .catch((error: any) => {
+          console.error('Error al generar el reporte:', error);
+          Notiflix.Notify.failure(
+            'Error al generar el reporte de calibración de balanza'
+          );
         });
-
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Reporte_Calibracion_Balanza_${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-
-        Notiflix.Notify.success('Reporte de calibración de balanza descargado exitosamente');
-      }).catch((error: any) => {
-        console.error('Error al generar el reporte:', error);
-        Notiflix.Notify.failure('Error al generar el reporte de calibración de balanza');
-      });
-
     } catch (error) {
       console.error('Error en descargarReporte:', error);
       Notiflix.Notify.failure('Error al generar el reporte');
@@ -2319,14 +2389,16 @@ export class FormulariosComponent {
 
       if (this.idPesometro) {
         // Actualiza
-        this.pesometroService.actualizarPesometro(this.idPesometro, data).subscribe({
-          next: (res) => {
-            console.log('Pesómetro actualizado:', res);
-          },
-          error: (err) => {
-            console.error('Error al actualizar pesómetro:', err);
-          }
-        });
+        this.pesometroService
+          .actualizarPesometro(this.idPesometro, data)
+          .subscribe({
+            next: (res) => {
+              console.log('Pesómetro actualizado:', res);
+            },
+            error: (err) => {
+              console.error('Error al actualizar pesómetro:', err);
+            },
+          });
       } else {
         // Crea
         this.pesometroService.crearPesometro(data).subscribe({
@@ -2336,7 +2408,7 @@ export class FormulariosComponent {
           },
           error: (err) => {
             console.error('Error al crear pesómetro:', err);
-          }
+          },
         });
       }
     } else {
@@ -2371,7 +2443,7 @@ export class FormulariosComponent {
         } else {
           console.error('Error al obtener pesómetro:', error);
         }
-      }
+      },
     });
   }
 
@@ -2382,9 +2454,7 @@ export class FormulariosComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-
-    });
+    dialogRef.afterClosed().subscribe((result) => {});
   }
 
   formatearReferencia() {
@@ -2406,4 +2476,110 @@ export class FormulariosComponent {
     this.servicio.refAls = formateado;
   }
 
+  filtrarSolicitudesReporte(servicioId: string) {
+    this.solicitudesFiltradasReporte = this.solicitudes.filter(
+      (solicitud) => solicitud.nServ === servicioId
+    );
+    this.selectedSolicitudReporte = null; // Reset solicitud selection
+  }
+
+  guardarReporte() {
+    if (!this.selectedServicioReporte || !this.selectedSolicitudReporte) {
+      Notiflix.Notify.warning('Debe seleccionar un servicio y una solicitud');
+      return;
+    }
+
+    // Find the selected servicio and solicitud objects
+    const servicioObj = this.servicios.find(
+      (s) => s.id === this.selectedServicioReporte
+    );
+    const solicitudObj = this.solicitudes.find(
+      (s) => s.nSoli === this.selectedSolicitudReporte
+    );
+
+    if (!servicioObj || !solicitudObj) {
+      Notiflix.Notify.warning('Servicio o solicitud no encontrados');
+      return;
+    }
+
+    const reporteData = {
+      servicio: servicioObj.id,
+      solicitud: solicitudObj.id,
+      fechaInformeCliente: this.formatDate(this.fechaInformeCliente || new Date()),
+      fechaFacturacion: this.formatDate(this.fechaFacturacion || new Date()),
+      tipoReporte : 'Recepción',
+    };
+    console.log('Datos del reporte a guardar:', reporteData);
+
+    //Verificar que no exista un reporte igual, si existe, reemplazarlo
+    this.http
+      .get<any[]>(
+        `https://control.als-inspection.cl/api_op/oceanapi/reportes/`
+      )
+      .subscribe((existingReports) => {
+        const existe = existingReports.some(
+          (report) =>
+            Number(report.servicio) === reporteData.servicio &&
+            Number(report.solicitud) === reporteData.solicitud
+        );
+        console.log('Reportes existentes:', existingReports);
+        console.log('¿Existe reporte igual?:', existe);
+        if (existingReports.length >= 0 && existe) {
+          // Reemplazar el reporte existente
+          const existingReportId = existingReports.find(
+            (report) =>
+            Number(report.servicio) === reporteData.servicio &&
+            Number(report.solicitud) === reporteData.solicitud
+          ).id;
+          this.http
+            .put(
+              `https://control.als-inspection.cl/api_op/oceanapi/reportes/${existingReportId}/`,
+              reporteData
+            )
+            .subscribe({
+              next: (response) => {
+                console.log('Reporte reemplazado:', reporteData);
+                Notiflix.Notify.success('Reporte reemplazado exitosamente');
+                this.resetFormularioReporte();
+              },
+              error: (error) => {
+                console.error('Error al reemplazar reporte:', error);
+                Notiflix.Notify.failure('Error al reemplazar reporte');
+              },
+            });
+        } else {
+          // No existe, proceder a crear uno nuevo
+          this.crearNuevoReporte(reporteData);
+        }
+      });
+  }
+
+  crearNuevoReporte(reporteData: any) {
+    // Enviar a backend
+    console.log('Creando nuevo reporte:', reporteData);
+    this.http
+      .post(
+        'https://control.als-inspection.cl/api_op/oceanapi/reportes/',
+        reporteData
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Guardando reporte:', reporteData);
+          Notiflix.Notify.success('Reporte guardado exitosamente');
+          this.resetFormularioReporte();
+        },
+        error: (error) => {
+          console.error('Error al guardar reporte:', error);
+          Notiflix.Notify.failure('Error al guardar reporte');
+        },
+      });
+  }
+
+  resetFormularioReporte() {
+    this.selectedServicioReporte = null;
+    this.selectedSolicitudReporte = null;
+    this.fechaInformeCliente = null;
+    this.fechaFacturacion = null;
+    this.solicitudesFiltradasReporte = [];
+  }
 }

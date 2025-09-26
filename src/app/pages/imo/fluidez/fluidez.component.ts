@@ -1,7 +1,7 @@
-import { P } from '@angular/cdk/keycodes';
+  import { P } from '@angular/cdk/keycodes';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormsModule,
@@ -24,6 +24,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import Notiflix from 'notiflix';
 import { MaterialModule } from 'src/app/material.module';
 import { RolService } from 'src/app/services/rol.service';
+import * as d3 from 'd3';
 
 @Component({
   selector: 'app-fluidez',
@@ -55,12 +56,22 @@ import { RolService } from 'src/app/services/rol.service';
   templateUrl: './fluidez.component.html',
   styleUrl: './fluidez.component.scss',
 })
-export class FluidezComponent implements OnInit {
+export class FluidezComponent implements OnInit, AfterViewInit {
+  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
+
+  // D3 chart variables
+  private svg: any;
+  private margin = { top: 20, right: 30, bottom: 40, left: 50 };
+  private width = 600 - this.margin.left - this.margin.right;
+  private height = 400 - this.margin.top - this.margin.bottom;
+  private chartData: any[] = [];
+  trendlineFormula: string = '';
+  private chartUpdateTimeout: any;
   // Recibir la información desde el componente padre
   nLote: string = '';
   idSolicitud: string = '';
   idServicio: string = '';
-  sumaTonelaje: number = 10;
+  tonelaje: number;
   nombreEmbarque: string = '';
   cliente: boolean = false;
   humedadForm: FormGroup;
@@ -70,6 +81,7 @@ export class FluidezComponent implements OnInit {
   // New properties for summary data
   avgHumedad: string = '';
   avgDesplazamiento: string = '';
+  avgDiametroBase: string = '';
 
   constructor(
     private http: HttpClient,
@@ -80,6 +92,8 @@ export class FluidezComponent implements OnInit {
       idServicio: any;
       idSolicitud: any;
       nLote: any;
+      observacion: any;
+      nave: any;
     },
     private rolService: RolService
   ) {
@@ -90,6 +104,7 @@ export class FluidezComponent implements OnInit {
     this.humedadForm = new FormGroup({
       id: new FormControl(0), // Este campo se actualizará después de verificar si el nLote existe
       nLote: new FormControl(this.data.nLote),
+      fechaPrueba: new FormControl(this.formatDate(new Date())),
       nSublote: new FormControl(''),
       observacion: new FormControl('Iniciado'),
       fInicio: new FormControl(null),
@@ -107,6 +122,7 @@ export class FluidezComponent implements OnInit {
       porcHumedad1: new FormControl(''),
       porcHumedad2: new FormControl(''),
       porcHumedadPromedio: new FormControl(''),
+      tonelaje: new FormControl(0),
       estado: new FormControl('Iniciado'),
     });
   }
@@ -130,6 +146,18 @@ export class FluidezComponent implements OnInit {
       countDesplazamiento > 0
         ? (totalDesplazamiento / countDesplazamiento).toFixed(2)
         : '';
+
+    // Calculate average diametroBase from fluidezForms
+    let totalDiametroBase = 0;
+    let countDiametroBase = 0;
+    this.fluidezForms.forEach((form) => {
+      const diametroBase = parseFloat(form.get('diametroBase')?.value);
+      if (!isNaN(diametroBase)) {
+        totalDiametroBase += diametroBase;
+        countDiametroBase++;
+      }
+    });
+    this.avgDiametroBase = countDiametroBase > 0 ? (totalDiametroBase / countDiametroBase).toFixed(2) : '';
   }
 
   ngOnInit(): void {
@@ -165,6 +193,7 @@ export class FluidezComponent implements OnInit {
               porcHumedad1: this.formatDecimal(existente.porcHumedad1),
               porcHumedad2: this.formatDecimal(existente.porcHumedad2),
               porcHumedadPromedio: this.formatDecimal(existente.porcHumedadPromedio),
+              tonelaje: 0, // Don't load tonnage from fluidez table, it will be loaded from lote-despacho
             };
             this.humedadForm.patchValue(formatted);
           } else {
@@ -216,10 +245,10 @@ export class FluidezComponent implements OnInit {
         porcHumedad2: new FormControl(''),
         porcHumedadPromedio: new FormControl(''),
         desplazamiento: new FormControl(''),
+        diametroBase: new FormControl(''),
         estado: new FormControl('Iniciado'),
       });
     }
-
     // Preload fluidez data for each step
     this.http
       .get<any[]>(`https://control.als-inspection.cl/api_min/api/prueba-fluidez/`)
@@ -244,6 +273,7 @@ export class FluidezComponent implements OnInit {
                 porcHumedad2: this.formatDecimal(existente.porcHumedad2),
                 porcHumedadPromedio: this.formatDecimal(existente.porcHumedadPromedio),
                 desplazamiento: this.formatDecimal(existente.desplazamiento),
+                diametroBase: this.formatDecimal(existente.diametroBase),
               };
               this.fluidezForms[i].patchValue(formatted);
             } else {
@@ -292,7 +322,381 @@ export class FluidezComponent implements OnInit {
       form.get('desplazamiento')?.valueChanges.subscribe(() => {
         this.calculateSummary();
       });
+      form.get('diametroBase')?.valueChanges.subscribe(() => {
+        this.calculateSummary();
+      });
     });
+
+    this.nombreEmbarque = this.data.observacion || '';
+
+    // Load fluidez data and tonnage from API
+    this.cargarFluidez();
+
+    // Subscribe to fluidezForms changes to update chart dynamically
+    this.fluidezForms.forEach((form, index) => {
+      form.get('diametroBase')?.valueChanges.subscribe(() => {
+        this.updateChart();
+      });
+      form.get('porcHumedadPromedio')?.valueChanges.subscribe(() => {
+        this.updateChart();
+      });
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.createChart();
+    this.updateChart();
+  }
+
+  // Metodo para cargar solo los datos validos, verificando que la humedad sea mayor a 0. Ordenados por humedad
+  getChartData(): any[] {
+    const data: any[] = [];
+
+    this.fluidezForms.forEach((form, index) => {
+      const diametroBase = parseFloat(form.get('diametroBase')?.value);
+      const humedad = parseFloat(form.get('porcHumedadPromedio')?.value);
+      const desplazamiento = parseFloat(form.get('desplazamiento')?.value);
+
+      // Include points that have both values, including cases where desplazamiento = 0
+      if (!isNaN(diametroBase) && !isNaN(humedad) && humedad > 0) {
+        // Include points where diametroBase > 0 OR desplazamiento = 0
+        if (diametroBase > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
+          data.push({
+            prueba: index + 1,
+            diametroBase: diametroBase,
+            humedad: humedad,
+            desplazamiento: desplazamiento
+          });
+        }
+      }
+    });
+
+    // Sort data by humidity from lowest to highest
+    return data.sort((a, b) => a.humedad - b.humedad);
+  }
+
+  // Nueva función para calcular porcentaje de humedad sin redondear (para el gráfico)
+  calcularPorcentajeHumedadParaGrafico(
+    pesoBrutoHumedo: any,
+    pesoBrutoSeco: any,
+    taraBandeja: any
+  ): number {
+    const brutoHumedoVal = parseFloat(pesoBrutoHumedo);
+    const brutoSecoVal = parseFloat(pesoBrutoSeco);
+    const taraBandejaVal = parseFloat(taraBandeja);
+
+    if (
+      isNaN(brutoHumedoVal) ||
+      isNaN(brutoSecoVal) ||
+      brutoHumedoVal === 0 ||
+      isNaN(taraBandejaVal)
+    ) {
+      return 0;
+    }
+
+    const diferencia = ((brutoHumedoVal - brutoSecoVal) / (brutoHumedoVal - taraBandejaVal)) * 100;
+    return diferencia >= 0 ? diferencia : 0;
+  }
+
+  // Nueva función para obtener datos del gráfico con valores completos de humedad
+  getChartDataWithCompleteValues(): any[] {
+    const data: any[] = [];
+
+    this.fluidezForms.forEach((form, index) => {
+      const diametroBase = parseFloat(form.get('diametroBase')?.value);
+      const desplazamiento = parseFloat(form.get('desplazamiento')?.value);
+
+      // Calcular humedad completa (sin redondear) para el gráfico
+      const pBrutoHumedo1 = form.get('pBrutoHumedo1')?.value;
+      const pBrutoHumedo2 = form.get('pBrutoHumedo2')?.value;
+      const pBrutoSeco1 = form.get('pBrutoSeco1')?.value;
+      const pBrutoSeco2 = form.get('pBrutoSeco2')?.value;
+      const pLata1 = form.get('pLata1')?.value;
+      const pLata2 = form.get('pLata2')?.value;
+
+      // Calcular humedad promedio completa para el gráfico
+      const humedad1 = this.calcularPorcentajeHumedadParaGrafico(pBrutoHumedo1, pBrutoSeco1, pLata1);
+      const humedad2 = this.calcularPorcentajeHumedadParaGrafico(pBrutoHumedo2, pBrutoSeco2, pLata2);
+
+      let humedadCompleta = 0;
+      if (humedad1 > 0 && humedad2 > 0) {
+        humedadCompleta = (humedad1 + humedad2) / 2;
+      }
+
+      // Include points that have both values, including cases where desplazamiento = 0
+      if (!isNaN(diametroBase) && humedadCompleta > 0) {
+        // Include points where diametroBase > 0 OR desplazamiento = 0
+        if (diametroBase > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
+          data.push({
+            prueba: index + 1,
+            diametroBase: diametroBase,
+            humedad: humedadCompleta, // Usar valor completo sin redondear
+            desplazamiento: desplazamiento
+          });
+          // Console log para debug: mostrar diámetro y humedad
+          console.log(`Prueba ${index + 1}: diámetro=${diametroBase.toFixed(2)}cm, humedad=${humedadCompleta}%`);
+        }
+      }
+    });
+
+    // Sort data by humidity from lowest to highest
+    return data.sort((a, b) => a.humedad - b.humedad);
+  }
+
+  // Calcular linea de tendencia
+  calculateTrendline(data: any[]): { slope: number; intercept: number; r2: number } {
+    const n = data.length;
+    if (n < 2) {
+      return { slope: 0, intercept: 0, r2: 0 };
+    }
+
+    // X = humedad (variable independiente)
+    // Y = diámetro base (variable dependiente)
+    const sumX = data.reduce((sum, point) => sum + point.humedad, 0);
+    const sumY = data.reduce((sum, point) => sum + point.diametroBase, 0);
+    const sumXY = data.reduce((sum, point) => sum + point.humedad * point.diametroBase, 0);
+    const sumXX = data.reduce((sum, point) => sum + point.humedad * point.humedad, 0);
+    const sumYY = data.reduce((sum, point) => sum + point.diametroBase * point.diametroBase, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // Calculate R-squared
+    const yMean = sumY / n;
+    const totalSumSquares = data.reduce((sum, point) => sum + Math.pow(point.diametroBase - yMean, 2), 0);
+    const residualSumSquares = data.reduce((sum, point) => {
+      const predicted = slope * point.humedad + intercept;
+      return sum + Math.pow(point.diametroBase - predicted, 2);
+    }, 0);
+
+    const r2 = totalSumSquares !== 0 ? 1 - (residualSumSquares / totalSumSquares) : 0;
+
+    return { slope, intercept, r2 };
+  }
+
+  // Crear la estructura inicial del gráfico
+  createChart(): void {
+    if (!this.chartContainer) return;
+
+    // Clear previous chart
+    d3.select(this.chartContainer.nativeElement).select('svg').remove();
+
+    // Create SVG
+    this.svg = d3.select(this.chartContainer.nativeElement)
+      .append('svg')
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+
+    // Add grid lines
+    this.svg.append('g')
+      .attr('class', 'grid')
+      .attr('transform', `translate(0,${this.height})`)
+      .call(d3.axisBottom(this.createXScale([])).tickSize(-this.height).tickFormat(null));
+
+    this.svg.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(this.createYScale([])).tickSize(-this.width).tickFormat(null));
+  }
+
+  // Actualizar grafico con nuevos datos (con debounce para evitar duplicados)
+  updateChart(): void {
+    // Clear existing timeout to debounce multiple rapid calls
+    if (this.chartUpdateTimeout) {
+      clearTimeout(this.chartUpdateTimeout);
+    }
+
+    // Set new timeout to delay chart update
+    this.chartUpdateTimeout = setTimeout(() => {
+      this.performChartUpdate();
+    }, 100); // 100ms debounce delay
+  }
+
+  // Perform the actual chart update
+  private performChartUpdate(): void {
+    if (!this.svg) return;
+
+    const data = this.getChartDataWithCompleteValues();
+    this.chartData = data;
+
+    if (data.length === 0) {
+      this.trendlineFormula = 'No hay datos válidos para mostrar';
+      return;
+    }
+
+    // Calculate scales
+    const xScale = this.createXScale(data);
+    const yScale = this.createYScale(data);
+
+    // Calculate trendline
+    const trendline = this.calculateTrendline(data);
+    this.trendlineFormula = `y = ${trendline.slope.toFixed(3)}x + ${trendline.intercept.toFixed(3)} (R² = ${trendline.r2.toFixed(3)})`;
+
+    // Clear ALL previous elements (more comprehensive cleanup)
+    this.svg.selectAll('*').remove();
+
+    // Re-add grid lines
+    this.svg.append('g')
+      .attr('class', 'grid')
+      .attr('transform', `translate(0,${this.height})`)
+      .call(d3.axisBottom(xScale).tickSize(-this.height).tickFormat(null));
+
+    this.svg.append('g')
+      .attr('class', 'grid')
+      .call(d3.axisLeft(yScale).tickSize(-this.width).tickFormat(null));
+
+    // // Add X axis
+    // this.svg.append('g')
+    //   .attr('class', 'axis')
+    //   .attr('transform', `translate(0,${this.height})`)
+    //   .call(d3.axisBottom(xScale));
+
+    // // Add Y axis
+    // this.svg.append('g')
+    //   .attr('class', 'axis')
+    //   .call(d3.axisLeft(yScale));
+
+    // Add X axis label
+    this.svg.append('text')
+      .attr('class', 'axis-label')
+      .attr('x', this.width / 2)
+      .attr('y', this.height + this.margin.bottom - 5)
+      .style('text-anchor', 'middle')
+      .text('Humedad (%)');
+
+    // Add Y axis label
+    this.svg.append('text')
+      .attr('class', 'axis-label')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -this.height / 2)
+      .attr('y', -this.margin.left + 15)
+      .style('text-anchor', 'middle')
+      .text('Diámetro Base (cm)');
+
+    // Add points
+    this.svg.selectAll('.point')
+      .data(data)
+      .enter()
+      .append('circle')
+      .attr('class', 'point')
+      .attr('cx', (d: any) => xScale(d.humedad))  // X = humedad
+      .attr('cy', (d: any) => yScale(d.diametroBase))  // Y = diámetro base
+      .attr('r', 6)
+      .style('fill', '#3b82f6')
+      .style('stroke', '#1e40af')
+      .style('stroke-width', 2)
+      .append('title')
+      .text((d: any) => `Prueba ${d.prueba}: Humedad ${d.humedad}%, Diámetro ${d.diametroBase} cm`);
+
+    // Add trendline
+    if (data.length > 1) {
+      const line = d3.line()
+        .x((d: any) => xScale(d.humedad))  // X = humedad
+        .y((d: any) => yScale(trendline.slope * d.humedad + trendline.intercept));  // Y = predicción
+
+      this.svg.append('path')
+        .datum(data)
+        .attr('class', 'trendline')
+        .attr('fill', 'none')
+        .attr('stroke', '#ef4444')
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', '5,5')
+        .attr('d', line);
+    }
+  }
+
+  // Helper method to create X scale (now uses humedad data)
+  private createXScale(data: any[]): any {
+    const minX = d3.min(data, (d: any) => d.humedad) || 0;
+    const maxX = d3.max(data, (d: any) => d.humedad) || 10;
+
+    return d3.scaleLinear()
+      .domain([Math.max(0, minX - 1), maxX + 1])
+      .range([0, this.width]);
+  }
+
+  // Helper method to create Y scale (now uses diametroBase data)
+  private createYScale(data: any[]): any {
+    const minY = d3.min(data, (d: any) => d.diametroBase) || 0;
+    const maxY = d3.max(data, (d: any) => d.diametroBase) || 10;
+
+    return d3.scaleLinear()
+      .domain([Math.max(0, minY - 1), maxY + 1])
+      .range([this.height, 0]);
+  }
+
+  cargarFluidez(){
+    // Load tonnage data from lote-despacho API first
+    this.http
+      .get<any[]>(`https://control.als-inspection.cl/api_min/api/lote-despacho/${this.nLote}/`)
+      .subscribe(
+        (dataDespacho) => {
+          if(dataDespacho.length > 0){
+            // Find the dispatch that matches the current service and request
+            const despacho = dataDespacho.find((item) => item.idServicio === this.idServicio && item.idSolicitud === this.idSolicitud);
+            if (despacho) {
+              this.nombreEmbarque = despacho.nombreEmbarque || '';
+              this.tonelaje = despacho.pesoNetoHumedo || 0;
+
+              console.log('Tonnage loaded from lote-despacho:', this.tonelaje);
+
+              // Update the form with the loaded tonnage value
+              this.humedadForm.patchValue({ tonelaje: this.tonelaje });
+
+              // Also update the component property to ensure consistency
+              this.humedadForm.get('tonelaje')?.setValue(this.tonelaje);
+            } else {
+              this.nombreEmbarque = '';
+              this.tonelaje = 0;
+              this.humedadForm.patchValue({ tonelaje: 0 });
+            }
+          } else {
+            this.nombreEmbarque = '';
+            this.tonelaje = 0;
+            this.humedadForm.patchValue({ tonelaje: 0 });
+          }
+        },
+        (error) => {
+          console.error('Error loading lote-despacho:', error);
+          this.tonelaje = 0;
+          this.humedadForm.patchValue({ tonelaje: 0 });
+        }
+      );
+
+    // Also check if there's existing fluidez data to load other fields
+    this.http
+      .get<any[]>(`https://control.als-inspection.cl/api_min/api/fluidez/`)
+      .subscribe(
+        (data) => {
+          const existente = data.find((item) => item.nLote === this.nLote);
+          if (existente) {
+            console.log('Existing fluidez data found:', existente);
+            this.fechaPrueba = existente.fInicio || this.formatDate(new Date());
+
+            // Load other fields from fluidez but NOT the tonnage (we already loaded it from lote-despacho)
+            const formatted = {
+              ...existente,
+              pLata1: this.formatDecimal(existente.pLata1),
+              pLata2: this.formatDecimal(existente.pLata2),
+              pBrutoHumedo1: this.formatDecimal(existente.pBrutoHumedo1),
+              pBrutoHumedo2: this.formatDecimal(existente.pBrutoHumedo2),
+              pBrutoSeco1: this.formatDecimal(existente.pBrutoSeco1),
+              pBrutoSeco2: this.formatDecimal(existente.pBrutoSeco2),
+              porcHumedad1: this.formatDecimal(existente.porcHumedad1),
+              porcHumedad2: this.formatDecimal(existente.porcHumedad2),
+              porcHumedadPromedio: this.formatDecimal(existente.porcHumedadPromedio),
+              // Don't override tonnage here - it's already loaded from lote-despacho
+            };
+            this.humedadForm.patchValue(formatted);
+          } else {
+            console.log('No existing fluidez data for nLote:', this.nLote);
+          }
+        },
+        (error) => {
+          console.error('Error loading fluidez data:', error);
+        }
+      );
   }
 
   updatePorcHumedad1() {
@@ -409,6 +813,10 @@ export class FluidezComponent implements OnInit {
   }
   guardarHumedad() {
     this.actualizarPesoMaterial();
+
+    // Update tonnage value from form before saving
+    this.tonelaje = this.humedadForm.get('tonelaje')?.value || 0;
+
     // Ensure estado is set
     this.humedadForm.patchValue({ estado: 'Iniciado' }, { emitEvent: false });
     const nLote = this.humedadForm.value.nLote;
@@ -599,6 +1007,57 @@ export class FluidezComponent implements OnInit {
           console.error(`Error al verificar existencia de prueba-fluidez para paso ${step}:`, error);
         }
       );
+  }
+
+  guardarDiametrosBase() {
+    console.log('Guardando diametros base para todas las pruebas de fluidez');
+    let successCount = 0;
+    let errorCount = 0;
+    this.fluidezForms.forEach((form, index) => {
+      const id = form.get('id')?.value;
+      if (id && id > 0) {
+        const diametroBase = form.get('diametroBase')?.value;
+        this.http
+          .put(
+            `https://control.als-inspection.cl/api_min/api/prueba-fluidez/${id}/`,
+            { diametroBase: diametroBase }
+          )
+          .subscribe(
+            (response) => {
+              console.log(`Diametro base actualizado para prueba ${index + 1}:`, response);
+              successCount++;
+              if (successCount + errorCount === this.fluidezForms.length) {
+                if (errorCount === 0) {
+                  Notiflix.Notify.success('Todos los diametros base han sido guardados');
+                } else {
+                  Notiflix.Notify.warning(`${successCount} diametros base guardados, ${errorCount} errores`);
+                }
+              }
+            },
+            (error) => {
+              console.error(`Error al actualizar diametro base para prueba ${index + 1}:`, error);
+              errorCount++;
+              if (successCount + errorCount === this.fluidezForms.length) {
+                if (errorCount === 0) {
+                  Notiflix.Notify.success('Todos los diametros base han sido guardados');
+                } else {
+                  Notiflix.Notify.warning(`${successCount} diametros base guardados, ${errorCount} errores`);
+                }
+              }
+            }
+          );
+      } else {
+        console.log(`Prueba ${index + 1} no tiene ID, omitiendo`);
+        errorCount++;
+        if (successCount + errorCount === this.fluidezForms.length) {
+          if (errorCount === 0) {
+            Notiflix.Notify.success('Todos los diametros base han sido guardados');
+          } else {
+            Notiflix.Notify.warning(`${successCount} diametros base guardados, ${errorCount} errores`);
+          }
+        }
+      }
+    });
   }
 
   step = -1;

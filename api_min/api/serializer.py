@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import CriteriosAceptacion, EquipoControl, Fluidez, PruebaFluidez, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails
+from .models import Angulo, Fluidez, PruebaFluidez, CriteriosAceptacion, EquipoControl, Reportes, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails, densidad, factorEstiba
 
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -117,6 +117,16 @@ class VerificacionBalanzaSerializer(serializers.ModelSerializer):
         model = VerificacionBalanza
         fields = '__all__'
 
+class FactorEstibaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = factorEstiba
+        fields = '__all__'
+
+class DensidadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = densidad
+        fields = '__all__'
+        
 class FluidezSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fluidez
@@ -127,3 +137,12 @@ class PruebaFluidezSerializer(serializers.ModelSerializer):
         model = PruebaFluidez
         fields = '__all__'
 
+class AnguloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Angulo
+        fields = '__all__'
+
+class ReportesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reportes
+        fields = '__all__'

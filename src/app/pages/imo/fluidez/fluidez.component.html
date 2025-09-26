@@ -14,14 +14,23 @@
           <div class="col-md-6">
             <p>
               <strong>Fecha de realización de la muestra: </strong>
-              {{ fechaPrueba }}
+              {{ this.humedadForm.get("fInicio")?.value | date : "dd/MM/yyyy" }}
             </p>
           </div>
           <div class="col-md-6">
             <p><strong>Lugar de Muestreo: </strong> Puerto Ventanas</p>
           </div>
           <div class="col-md-6">
-            <p><strong>Tonelaje: </strong> {{ sumaTonelaje }}</p>
+            <p><strong>Tonelaje: </strong></p>
+            <input
+              id="tonelaje"
+              matInput
+              formControlName="tonelaje"
+              type="number"
+              placeholder="Ej: 10000"
+              step="0.01"
+              min="0"
+            />
           </div>
           <div class="col-md-6">
             <p><strong>Material: </strong> Concentrado de Cobre los bronces</p>
@@ -244,7 +253,10 @@
                     >Primera Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[0]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[0]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -429,6 +441,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -460,7 +487,10 @@
                     >Segunda Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[1]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[1]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -645,6 +675,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -676,7 +721,10 @@
                     >Tercera Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[2]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[2]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -861,6 +909,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -892,7 +955,10 @@
                     >Cuarta Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[3]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[3]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -1077,6 +1143,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -1108,7 +1189,10 @@
                     >Quinta Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[4]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[4]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -1293,6 +1377,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -1324,7 +1423,10 @@
                     >Sexta Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[5]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[5]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -1509,6 +1611,21 @@
                           formControlName="desplazamiento"
                           type="number"
                           placeholder="Ingrese desplazamiento"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
                           step="0.01"
                           min="0"
                         />
@@ -1540,7 +1657,10 @@
                     >Septima Prueba de Fluidez
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div [formGroup]="fluidezForms[6]" class="container text-left m-8">
+                <div
+                  [formGroup]="fluidezForms[6]"
+                  class="container text-left m-8"
+                >
                   <h3>Primera Bandeja</h3>
                   <div class="row">
                     <div class="col">
@@ -1729,6 +1849,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Diametro Base (mm)</mat-label>
+                        <input
+                          matInput
+                          formControlName="diametroBase"
+                          type="number"
+                          placeholder="Ingrese diametro base"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1751,10 +1886,27 @@
       <mat-step label="Resultados">
         <mat-card class="cardWithShadow m-8">
           <mat-card-content class="p-24">
+            <!-- Chart Container -->
+            <div class="chart-container mb-4">
+              <h3>Gráfico de Correlación: Diámetro Base vs Humedad</h3>
+              <div class="chart-wrapper">
+                <div #chartContainer></div>
+              </div>
+              <div class="trendline-info" *ngIf="trendlineFormula">
+                {{ trendlineFormula }}
+              </div>
+              <div class="no-data" *ngIf="!trendlineFormula || trendlineFormula === 'No hay datos válidos para mostrar'">
+                No hay datos válidos para mostrar en el gráfico
+              </div>
+            </div>
+
             <h3>Determinación de Humedad de la Muestra</h3>
-            <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+            <table
+              class="table table-bordered"
+              style="width: 100%; border-collapse: collapse"
+            >
               <thead>
-                <tr style="background-color: #f0f0f0;">
+                <tr style="background-color: #f0f0f0">
                   <th># Bandeja</th>
                   <th>Tara Bandeja</th>
                   <th>P Bruto Húmedo</th>
@@ -1764,31 +1916,49 @@
               </thead>
               <tbody>
                 <tr class="text-center">
-                  <td>{{ humedadForm.get('nLata1')?.value }}</td>
-                  <td>{{ humedadForm.get('pLata1')?.value }}</td>
-                  <td>{{ humedadForm.get('pBrutoHumedo1')?.value }}</td>
-                  <td>{{ humedadForm.get('pBrutoSeco1')?.value }}</td>
-                  <td [style.backgroundColor]="'#f7d358'">{{ humedadForm.get('porcHumedad1')?.value }}</td>
+                  <td>{{ humedadForm.get("nLata1")?.value }}</td>
+                  <td>{{ humedadForm.get("pLata1")?.value }}</td>
+                  <td>{{ humedadForm.get("pBrutoHumedo1")?.value }}</td>
+                  <td>{{ humedadForm.get("pBrutoSeco1")?.value }}</td>
+                  <td [style.backgroundColor]="'#f7d358'">
+                    {{ humedadForm.get("porcHumedad1")?.value }}
+                  </td>
                 </tr>
                 <tr class="text-center">
-                  <td>{{ humedadForm.get('nLata2')?.value }}</td>
-                  <td>{{ humedadForm.get('pLata2')?.value }}</td>
-                  <td>{{ humedadForm.get('pBrutoHumedo2')?.value }}</td>
-                  <td>{{ humedadForm.get('pBrutoSeco2')?.value }}</td>
-                  <td [style.backgroundColor]="'#f7d358'">{{ humedadForm.get('porcHumedad2')?.value }}</td>
+                  <td>{{ humedadForm.get("nLata2")?.value }}</td>
+                  <td>{{ humedadForm.get("pLata2")?.value }}</td>
+                  <td>{{ humedadForm.get("pBrutoHumedo2")?.value }}</td>
+                  <td>{{ humedadForm.get("pBrutoSeco2")?.value }}</td>
+                  <td [style.backgroundColor]="'#f7d358'">
+                    {{ humedadForm.get("porcHumedad2")?.value }}
+                  </td>
                 </tr>
                 <tr>
-                  <td colspan="4" style="text-align: right; font-weight: bold;">Humedad Promedio</td>
-                  <td style="background-color: #f7d358; text-align: center; font-weight: bold;">{{ avgHumedad }}</td>
+                  <td colspan="4" style="text-align: right; font-weight: bold">
+                    Humedad Promedio
+                  </td>
+                  <td
+                    style="
+                      background-color: #f7d358;
+                      text-align: center;
+                      font-weight: bold;
+                    "
+                  >
+                    {{ avgHumedad }}
+                  </td>
                 </tr>
               </tbody>
             </table>
 
             <h3 class="mt-4">Determinación Humedad de Fluidización</h3>
-            <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+            <table
+              class="table table-bordered"
+              style="width: 100%; border-collapse: collapse"
+            >
               <thead>
-                <tr style="background-color: #f0f0f0;">
-                  <th>Diámetro base</th>
+                <tr style="background-color: #f0f0f0">
+                  <th>Desplazamiento</th>
+                  <th>Diametro Base</th>
                   <th># Bandeja</th>
                   <th>Tara Bandeja</th>
                   <th>P Bruto Húmedo</th>
@@ -1797,17 +1967,52 @@
                 </tr>
               </thead>
               <tbody>
-                <tr style="text-align: center;" *ngFor="let form of fluidezForms; let i = index">
-                  <td>{{ form.get('desplazamiento')?.value }}</td>
-                  <td>{{ form.get('nLata1')?.value }}</td>
-                  <td>{{ ((+form.get('pLata1')?.value || 0) + (+form.get('pLata2')?.value || 0)) | number:'1.2-2' }}</td>
-                  <td>{{ ((+form.get('pBrutoHumedo1')?.value || 0) + (+form.get('pBrutoHumedo2')?.value || 0)) | number:'1.2-2' }}</td>
-                  <td>{{ ((+form.get('pBrutoSeco1')?.value || 0) + (+form.get('pBrutoSeco2')?.value || 0)) | number:'1.2-2' }}</td>
-                  <td [style.backgroundColor]="'#f7d358'">{{ getHumedadTable(form) }}</td>
+                <tr
+                  style="text-align: center"
+                  *ngFor="let form of fluidezForms; let i = index"
+                >
+                  <td>{{ form.get("desplazamiento")?.value }}</td>
+                  <td>{{ form.get("diametroBase")?.value }}</td>
+                  <td>{{ form.get("nLata1")?.value }}</td>
+                  <td>
+                    {{
+                      (+form.get("pLata1")?.value || 0) +
+                        (+form.get("pLata2")?.value || 0) | number : "1.2-2"
+                    }}
+                  </td>
+                  <td>
+                    {{
+                      (+form.get("pBrutoHumedo1")?.value || 0) +
+                        (+form.get("pBrutoHumedo2")?.value || 0)
+                        | number : "1.2-2"
+                    }}
+                  </td>
+                  <td>
+                    {{
+                      (+form.get("pBrutoSeco1")?.value || 0) +
+                        (+form.get("pBrutoSeco2")?.value || 0)
+                        | number : "1.2-2"
+                    }}
+                  </td>
+                  <td [style.backgroundColor]="'#f7d358'">
+                    {{ getHumedadTable(form) }}
+                  </td>
                 </tr>
                 <tr>
-                  <td colspan="5" style="text-align: right; font-weight: bold;">Avg Desplazamiento</td>
-                  <td style="background-color: #f7d358; font-weight: bold;">{{ avgDesplazamiento }}</td>
+                  <td colspan="6" style="text-align: right; font-weight: bold">
+                    Avg Desplazamiento
+                  </td>
+                  <td style="background-color: #f7d358; font-weight: bold">
+                    {{ avgDesplazamiento }}
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="6" style="text-align: right; font-weight: bold">
+                    Avg Diametro Base
+                  </td>
+                  <td style="background-color: #f7d358; font-weight: bold">
+                    {{ avgDiametroBase }}
+                  </td>
                 </tr>
               </tbody>
             </table>

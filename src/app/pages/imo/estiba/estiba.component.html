@@ -31,7 +31,7 @@
                     </div>
                     <div class="col-md-6">
                         <p>
-                            <strong>Pruebas realizadas por: </strong>{{ ResponsableFinal  }}
+                            <strong>Pruebas realizadas por: </strong>{{ ResponsableFinal }}
                         </p>
                     </div>
                 </div>
@@ -51,13 +51,13 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>volumen (grs/cm3)</mat-label>
                                         <input id="volumen1" matInput formControlName="volumen1" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
                                         <input id="pesoBruto1" matInput formControlName="pesoBruto1" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                            placeholder="Calculado automáticamente" step="0.01" />
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara1" matInput formControlName="tara1" type="number"
@@ -66,7 +66,7 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso Neto (grs)</mat-label>
                                         <input id="pesoNeto1" matInput formControlName="pesoNeto1" type="number"
-                                            placeholder="Calculado automáticamente" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>FE (m3/ton) =</mat-label>
@@ -84,13 +84,13 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>volumen (grs/cm3)</mat-label>
                                         <input id="volumen2" matInput formControlName="volumen2" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
                                         <input id="pesoBruto2" matInput formControlName="pesoBruto2" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                            placeholder="Calculado automáticamente" step="0.01" />
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara2" matInput formControlName="tara2" type="number"
@@ -99,7 +99,7 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso Neto (grs)</mat-label>
                                         <input id="pesoNeto2" matInput formControlName="pesoNeto2" type="number"
-                                            placeholder="Calculado automáticamente" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>FE (m3/ton)</mat-label>
@@ -107,6 +107,7 @@
                                             [value]="formfe.get('fe2')?.value | number:'1.2-2'"
                                             placeholder="Calculado automáticamente" step="0.01" />
                                     </mat-form-field>
+
                                 </div>
                             </div>
 
@@ -118,13 +119,13 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>volumen (grs/cm3)</mat-label>
                                         <input id="volumen3" matInput formControlName="volumen3" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
-                                        <input id="pesoBruto3" matInput formControlName="pesoBruto3" type="number"
-                                            placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                        <input id="Calculado automáticamente" matInput formControlName="pesoBruto3"
+                                            type="number" placeholder="Ej: 3.0" step="0.01" />
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara3" matInput formControlName="tara3" type="number"
@@ -133,7 +134,7 @@
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso Neto (grs)</mat-label>
                                         <input id="pesoNeto3" matInput formControlName="pesoNeto3" type="number"
-                                            placeholder="Calculado automáticamente" step="0.01" />
+                                            placeholder="Ej: 1200.0" step="0.01" />
                                     </mat-form-field>
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>FE (m3/ton)</mat-label>
@@ -144,20 +145,25 @@
                                 </div>
                             </div>
 
+                            <mat-divider></mat-divider>
+
+                            <h3 class="text-lg font-semibold mb-2">Resultado del Factor de Estiba</h3>
+
+                            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                <mat-label>FE Promedio (m3/ton)</mat-label>
+                                <input [value]="formfe.get('totalfe')?.value | number:'1.2-2'" matInput
+                                    formControlName="totalfe" type="number" readonly />
+                            </mat-form-field>
+
+                            <div class="flex justify-end m-4">
+                                <button mat-raised-button color="primary" (click)="guardarFactorEstiba()">
+                                    Guardar Datos
+                                </button>
+                            </div>
+
                         </mat-card-content>
 
-                        <mat-divider></mat-divider>
-                        <div class="flex justify-end m-4">
-                            <button mat-raised-button color="primary" (click)="calcularFactorEstiba()">
-                                Calcular Valores
-                            </button>
-                        </div>
 
-                        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-                            <mat-label>FE Promedio (m3/ton)</mat-label>
-                            <input [value]="formfe.get('totalfe')?.value | number:'1.2-2'" matInput
-                                formControlName="totalfe" type="number" readonly />
-                        </mat-form-field>
 
 
                     </mat-card>
@@ -176,11 +182,11 @@
                                         <input id="volumen1" matInput formControlName="volumen1" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
                                         <input id="pesoBruto1" matInput formControlName="pesoBruto1" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara1" matInput formControlName="tara1" type="number"
@@ -208,11 +214,11 @@
                                         <input id="volumen2" matInput formControlName="volumen2" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
                                         <input id="pesoBruto2" matInput formControlName="pesoBruto2" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara2" matInput formControlName="tara2" type="number"
@@ -241,11 +247,11 @@
                                         <input id="volumen3" matInput formControlName="volumen3" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
                                     </mat-form-field>
-                                    <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                    <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>peso bruto (grs)</mat-label>
                                         <input id="pesoBruto3" matInput formControlName="pesoBruto3" type="number"
                                             placeholder="Ej: 3.0" step="0.01" />
-                                    </mat-form-field>
+                                    </mat-form-field> -->
                                     <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                                         <mat-label>tara (grs)</mat-label>
                                         <input id="tara3" matInput formControlName="tara3" type="number"
@@ -264,19 +270,22 @@
                                 </div>
                             </div>
 
+                            <mat-divider></mat-divider>
+
+                            <h3 class="text-lg font-semibold mb-2">Resultado de la Desidad Promedio</h3>
+
+                            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+                                <mat-label>DENSITY (Kg/m³)</mat-label>
+                                <input matInput formControlName="totalDen" type="number" readonly />
+                            </mat-form-field>
+
+                            <div class="flex justify-end m-4">
+                                <button mat-raised-button color="primary" (click)="guardarDensidad()">
+                                    Guardar Datos
+                                </button>
+                            </div>
+
                         </mat-card-content>
-
-                        <div class="flex justify-end m-4">
-                            <button mat-raised-button color="primary" (click)="calcularDensidad()">
-                                Calcular Valores
-                            </button>
-                        </div>
-
-                        <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-                            <mat-label>DENSITY (Kg/m³)</mat-label>
-                            <input matInput formControlName="totalDen" type="number" readonly />
-                        </mat-form-field>
-
 
                     </mat-card>
                 </form>

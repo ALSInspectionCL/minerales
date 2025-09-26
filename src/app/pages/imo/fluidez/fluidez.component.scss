@@ -1,0 +1,85 @@
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .chart-wrapper {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .trendline-info {
+    margin-top: 15px;
+    padding: 10px;
+    background: #e3f2fd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #1565c0;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px 20px;
+  }
+}
+
+.grid line {
+  stroke: #e0e0e0;
+  stroke-opacity: 0.7;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
+.axis line {
+  stroke: #666;
+}
+
+.axis path {
+  stroke: #666;
+}
+
+.axis text {
+  fill: #666;
+  font-size: 12px;
+}
+
+.axis-label {
+  fill: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.point {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    r: 8;
+    stroke-width: 3;
+  }
+}
+
+.trendline {
+  stroke-dasharray: 5, 5;
+}

@@ -15,13 +15,15 @@ class EquipoControl(models.Model):
     fechaCalibracion = models.DateField(blank=True, null=True)
 
 class Servicio(models.Model):
-    nServ = models.CharField(max_length=20)
+    nServ = models.CharField(max_length=100)
     fServ =  models.DateField()
     lServ =  models.CharField(max_length=100)
     eServ = models.CharField(max_length=20)
+    tServ = models.CharField(max_length=100, blank=True, null=True)
+    refAls = models.CharField(max_length=100, blank=True, null=True)
 
 class Solicitud(models.Model):
-    nSoli = models.CharField(max_length=20)
+    nSoli = models.CharField(max_length=100)
     nServ  = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     fiSoli = models.DateField()
     ftSoli = models.DateField(null=True, blank=True)
@@ -301,9 +303,9 @@ class Emails(models.Model):
 class Humedades(models.Model):
     nLote = models.CharField(max_length=50)
     nSublote = models.CharField(max_length=30, blank=True, null=True)
-    observacion = models.CharField(max_length=200)
     fInicio = models.DateField(blank=True, null=True)
     fFin = models.DateField(blank=True, null=True)
+    observacion = models.CharField(max_length=200)
     nLata1 = models.CharField(max_length=50,blank=True, null=True)
     nLata2 = models.CharField(max_length=50,blank=True, null=True)
     pLata1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
@@ -326,7 +328,7 @@ class Humedades(models.Model):
     porcHumedad2 = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     porcHumedadFinal = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
-
+    
 class CriteriosAceptacion(models.Model):
     porcentajeHumedad = models.DecimalField(max_digits=5, decimal_places=3, blank=True, null=True)
     variacionPeso = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
@@ -358,11 +360,66 @@ class VerificacionBalanza(models.Model):
 class Pesaje(models.Model):
     peso = models.CharField(max_length=20)
     fecha = models.DateTimeField(auto_now_add=True)
- 
+    
+class factorEstiba(models.Model):
+      nLote = models.CharField(max_length=100,blank=True, null=True)
+      nReferencia = models.CharField(max_length=100,blank=True, null=True)
+      tipoMaterial = models.CharField(max_length=100,blank=True, null=True)
+      cliente = models.CharField(max_length=100,blank=True, null=True)
+      realizado = models.CharField(max_length=100,blank=True, null=True)
+      nNave = models.CharField(max_length=100,blank=True, null=True)
+      nSublote = models.CharField(max_length=100,blank=True, null=True)
+      fDeterminacion = models.DateField(blank=True, null=True)
+      observacion = models.CharField(max_length=100,blank=True, null=True)
+      volumen1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      volumen2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      volumen3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      fe1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      fe2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      fe3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      totalfe = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+
+class densidad(models.Model):
+      nLote = models.CharField(max_length=100,blank=True, null=True)
+      nReferencia = models.CharField(max_length=100,blank=True, null=True)
+      tipoMaterial = models.CharField(max_length=100,blank=True, null=True)
+      cliente = models.CharField(max_length=100,blank=True, null=True)
+      realizado = models.CharField(max_length=100,blank=True, null=True)
+      nNave = models.CharField(max_length=100,blank=True, null=True)
+      nSublote = models.CharField(max_length=100,blank=True, null=True)
+      fDeterminacion = models.DateField(blank=True, null=True)
+      observacion = models.CharField(max_length=100,blank=True, null=True)
+      volumen1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      volumen2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      volumen3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      tara3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoNeto3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      pesoBruto3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      densidad1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      densidad2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      densidad3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+      totalDen = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+
 class Fluidez(models.Model):
     nLote = models.CharField(max_length=50)
     nSublote = models.CharField(max_length=30, blank=True, null=True)
-    observacion = models.CharField(max_length=200)
+    observacion = models.CharField(max_length=200, blank=True, null=True)
+    tonelaje = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
     fInicio = models.DateField(blank=True, null=True)
     fFin = models.DateField(blank=True, null=True)
     idServicio = models.CharField(max_length=50,blank=True, null=True)
@@ -383,7 +440,7 @@ class Fluidez(models.Model):
 class PruebaFluidez(models.Model):
     nLote = models.CharField(max_length=50)
     nPrueba = models.CharField(max_length=30, blank=True, null=True)
-    observacion = models.CharField(max_length=200)
+    observacion = models.CharField(max_length=200, blank=True, null=True)
     desplazamiento = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
     nLata1 = models.CharField(max_length=50,blank=True, null=True)
     nLata2 = models.CharField(max_length=50,blank=True, null=True)
@@ -400,7 +457,32 @@ class PruebaFluidez(models.Model):
     porcHumedadPromedio = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     aplicacionAgua = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
+    diametroBase = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
 
+class Angulo(models.Model):
+    nLote = models.CharField(max_length=50)
+    nSublote = models.CharField(max_length=30, blank=True, null=True)
+    tipoMaterial = models.CharField(max_length=50, blank=True, null=True)
+    referencia = models.CharField(max_length=50, blank=True, null=True)
+    fechaDeterminacion = models.DateField(blank=True, null=True)
+    nombreNave = models.CharField(max_length=100, blank=True, null=True)
+    cliente = models.CharField(max_length=100, blank=True, null=True)
+    pruebasRealizadas = models.CharField(max_length=100, blank=True, null=True)
+    observacion = models.CharField(max_length=200, blank=True, null=True)
+    prueba1 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+    prueba2 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+    prueba3 = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+    promedio = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
+
+class Reportes(models.Model):
+    servicio = models.CharField(max_length=100)
+    solicitud = models.CharField(max_length=100)
+    tipoReporte = models.CharField(max_length=50)
+    fechaInformeCliente = models.DateField(blank=True, null=True)
+    fechaFacturacion = models.DateField(blank=True, null=True)
+
+ 
 @receiver(pre_save, sender=Recepcion)
 def calculate_diferencia_humeda(sender, instance, **kwargs):
     instance.diferenciaHumeda = instance.netoHumedoOrigen - instance.netoHumedoDestino

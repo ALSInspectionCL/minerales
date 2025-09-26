@@ -27,8 +27,12 @@ router.register(r'pesajes', views.PesajeViewSet)
 router.register(r'criterios-aceptacion', views.CriteriosAceptacionViewSet)
 router.register(r'verificacion-balanza', views.VerificacionBalanzaViewSet)
 router.register(r'equipo-control', views.EquipoControlViewSet)
+router.register(r'factor-estiba', views.FactorEstibaViewSet)
+router.register(r'densidad', views.DensidadViewSet)
 router.register(r'fluidez', views.FluidezViewSet)
 router.register(r'prueba-fluidez', views.PruebaFluidezViewSet)
+router.register(r'angulo', views.AnguloViewSet)
+router.register(r'reportes', views.ReportesViewSet)
 
 urlpatterns=[
     path('', include(router.urls)),

@@ -6,8 +6,8 @@ from email.message import EmailMessage
 from rest_framework.filters import SearchFilter, OrderingFilter # type: ignore
 from rest_framework import filters # type: ignore
 from rest_framework import viewsets # type: ignore
-from .serializer import EquipoControlSerializer, FluidezSerializer, PruebaFluidezSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer
-from .models import CriteriosAceptacion, EquipoControl, Fluidez, PruebaFluidez, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs
+from .serializer import AnguloSerializer, FluidezSerializer, PruebaFluidezSerializer, EquipoControlSerializer, ReportesSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer, FactorEstibaSerializer, DensidadSerializer
+from .models import Angulo, PruebaFluidez, Fluidez, CriteriosAceptacion, EquipoControl, Reportes, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs, densidad, factorEstiba
 from rest_framework.views import APIView # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
@@ -150,7 +150,20 @@ class EquipoControlViewSet(viewsets.ModelViewSet):
     serializer_class = EquipoControlSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=marca', '=capacidad', '=codigo', '=fechaCalibracion')
+    
+class FactorEstibaViewSet(viewsets.ModelViewSet):
+    queryset = factorEstiba.objects.all()
+    serializer_class = FactorEstibaSerializer
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote', '=observacion', '=fDeterminacion')
 
+
+class DensidadViewSet(viewsets.ModelViewSet):
+    queryset = densidad.objects.all()
+    serializer_class = DensidadSerializer
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote', '=observacion', '=fDeterminacion')
+    
 class FluidezViewSet(viewsets.ModelViewSet):
     queryset = Fluidez.objects.all()
     serializer_class = FluidezSerializer
@@ -162,6 +175,18 @@ class PruebaFluidezViewSet(viewsets.ModelViewSet):
     serializer_class = PruebaFluidezSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=nLote')
+
+class AnguloViewSet(viewsets.ModelViewSet):
+    queryset = Angulo.objects.all()
+    serializer_class = AnguloSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=nLote')
+
+class ReportesViewSet(viewsets.ModelViewSet):
+    queryset = Reportes.objects.all()
+    serializer_class = ReportesSerializer
+    filter_backends =  (SearchFilter, OrderingFilter)
+    search_fields = ('=servicio', '=solicitud', '=tipoReporte', '=fechaInformeCliente', '=fechaFacturacion')
 
 
 def obtener_lotes_por_fechas(request):

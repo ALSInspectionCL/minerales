@@ -545,3 +545,80 @@
     </mat-card-content>
   </mat-card>
 </div>
+<!-- <div class="row m-b-16">
+  <mat-card class="col-md-12">
+    <mat-card-header class="m-b-16">
+      <mat-card-title>Gestión de Reportes</mat-card-title>
+      <mat-card-subtitle class="mat-body-1">Configure las fechas de envío de informes y facturación para servicios y solicitudes</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="guardarReporte()">
+        <div class="row">
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-label>Servicio</mat-label>
+              <mat-select [(ngModel)]="selectedServicioReporte" name="servicioReporte" (selectionChange)="filtrarSolicitudesReporte($event.value)">
+                <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">
+                  {{ servicio.nServ }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-label>Servicio por Referencia ALS</mat-label>
+              <mat-select [(ngModel)]="selectedServicioReporte" name="servicioReporte" (selectionChange)="filtrarSolicitudesReporte($event.value)">
+                <mat-option *ngFor="let servicio of servicios" [value]="servicio.id">
+                  {{ servicio.refAls || "desconocido" }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-label>Solicitud</mat-label>
+              <mat-select [(ngModel)]="selectedSolicitudReporte" name="solicitudReporte">
+                <mat-option *ngFor="let solicitud of solicitudesFiltradasReporte" [value]="solicitud.nSoli">
+                  {{ solicitud.nSoli }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row m-t-16">
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-label>Fecha de Envío de Informe</mat-label>
+              <input matInput [matDatepicker]="pickerInforme" [(ngModel)]="fechaInformeCliente" name="fechaInformeCliente" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerInforme"></mat-datepicker-toggle>
+              <mat-datepicker #pickerInforme></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <mat-label>Fecha de Facturación</mat-label>
+              <input matInput [matDatepicker]="pickerFacturacion" [(ngModel)]="fechaFacturacion" name="fechaFacturacion" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerFacturacion"></mat-datepicker-toggle>
+              <mat-datepicker #pickerFacturacion></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row m-t-16">
+          <div class="col-md-12 text-center">
+            <button mat-raised-button color="primary" type="submit" [disabled]="!selectedServicioReporte || !selectedSolicitudReporte">
+              Guardar Reporte
+            </button>
+            <button mat-stroked-button type="button" (click)="resetFormularioReporte()" class="m-l-16">
+              Limpiar Formulario
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div> -->
