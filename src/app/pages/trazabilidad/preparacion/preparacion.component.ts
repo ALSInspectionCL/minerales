@@ -89,12 +89,18 @@ export class PreparacionComponent {
     public data: {
       nLote: any;
       subLote: any,
-      opcion: any
+      opcion: any,
+      nSobre?: any,
+      idSubLote?: number | null
     },
   ) {
 
     this.cargarLote(data.nLote)
     this.getPreparacion(data.nLote)
+    
+    console.log('PreparacionComponent inicializado con:');
+    console.log('- nSobre:', data.nSobre);
+    console.log('- idSubLote:', data.idSubLote);
 
     this.formulario = this.fb.group({
       observacion: ['', Validators.required]
@@ -193,7 +199,27 @@ export class PreparacionComponent {
       const loteNormalizado = Lote.toString().trim();
 
       // Filtrar todos los registros que coincidan con el número de lote
-      const resultados = res.filter(item => item.nLote?.toString().trim() === loteNormalizado);
+      let resultados = res.filter(item => item.nLote?.toString().trim() === loteNormalizado);
+
+      // Si hay un idSubLote específico (sublote de embarque), filtrar SOLO por ese idSubLote
+      if (this.data.idSubLote) {
+        const idSubLoteStr = this.data.idSubLote.toString();
+        console.log('Filtrando por idSubLote:', idSubLoteStr);
+
+        // Filtrar solo los registros que pertenecen a este sublote específico
+        resultados = resultados.filter(item =>
+          item.idSubLote?.toString() === idSubLoteStr
+        );
+
+        console.log('Resultados filtrados por idSubLote:', resultados);
+      } else if (this.data.nSobre) {
+        // Fallback: Si no hay idSubLote pero hay nSobre, filtrar por numeroSubLote
+        console.log('Filtrando por numeroSubLote (fallback):', this.data.nSobre);
+        resultados = resultados.filter(item =>
+          item.numeroSubLote?.toString() === this.data.nSobre?.toString()
+        );
+        console.log('Resultados filtrados por numeroSubLote:', resultados);
+      }
 
       // Ordenar por nSublote como número
       const resultadosOrdenados = resultados.sort((a, b) => parseInt(a.nSubLote) - parseInt(b.nSubLote));
@@ -206,12 +232,9 @@ export class PreparacionComponent {
       this.dataSourceInternos.data = sobresInternos;
       this.dataSourceExternos.data = sobresExternos;
 
-      console.log('internos ')
-
-      console.log(this.dataSourceInternos.data)
-
-      console.log('Externos ')
-      console.log(this.dataSourceInternos.data)
+      console.log('Sobres Internos:', this.dataSourceInternos.data);
+      console.log('Sobres Externos:', this.dataSourceExternos.data);
+      
       // Para otros datos generales
       this.loteGeneral = resultadosOrdenados.length > 0 ? resultadosOrdenados[0] : null;
     });

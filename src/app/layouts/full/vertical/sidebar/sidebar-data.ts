@@ -39,6 +39,11 @@ export const navItems: NavItem[] = [
     iconName:  'truck-delivery',
     route: '/home/despacho'
   },
+  {
+    displayName: 'Actiz',
+    iconName: 'file',
+    route: '/home/actiz'
+  },
   // {
   //   displayName: 'Balance',
   //   iconName:  'file-analytics',

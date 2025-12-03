@@ -460,6 +460,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Aplicación de Agua (ml)</mat-label>
+                        <input
+                          matInput
+                          formControlName="aplicacionAgua"
+                          type="number"
+                          placeholder="Ingrese aplicación de agua"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -690,6 +705,21 @@
                           formControlName="diametroBase"
                           type="number"
                           placeholder="Ingrese diametro base"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Aplicación de Agua (ml)</mat-label>
+                        <input
+                          matInput
+                          formControlName="aplicacionAgua"
+                          type="number"
+                          placeholder="Ingrese aplicación de agua"
                           step="0.01"
                           min="0"
                         />
@@ -928,6 +958,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Aplicación de Agua (ml)</mat-label>
+                        <input
+                          matInput
+                          formControlName="aplicacionAgua"
+                          type="number"
+                          placeholder="Ingrese aplicación de agua"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1158,6 +1203,21 @@
                           formControlName="diametroBase"
                           type="number"
                           placeholder="Ingrese diametro base"
+                          step="0.01"
+                          min="0"
+                        />
+                      </mat-form-field>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-50 m-8"
+                        color="primary"
+                      >
+                        <mat-label>Aplicación de Agua (ml)</mat-label>
+                        <input
+                          matInput
+                          formControlName="aplicacionAgua"
+                          type="number"
+                          placeholder="Ingrese aplicación de agua"
                           step="0.01"
                           min="0"
                         />
@@ -1396,6 +1456,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                      appearance="outline"
+                      class="w-50 m-8"
+                      color="primary"
+                    >
+                      <mat-label>Aplicación de Agua (ml)</mat-label>
+                      <input
+                        matInput
+                        formControlName="aplicacionAgua"
+                        type="number"
+                        placeholder="Ingrese aplicación de agua"
+                        step="0.01"
+                        min="0"
+                      />
+                    </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1630,6 +1705,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                      appearance="outline"
+                      class="w-50 m-8"
+                      color="primary"
+                    >
+                      <mat-label>Aplicación de Agua (ml)</mat-label>
+                      <input
+                        matInput
+                        formControlName="aplicacionAgua"
+                        type="number"
+                        placeholder="Ingrese aplicación de agua"
+                        step="0.01"
+                        min="0"
+                      />
+                    </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1864,6 +1954,21 @@
                           min="0"
                         />
                       </mat-form-field>
+                      <mat-form-field
+                      appearance="outline"
+                      class="w-50 m-8"
+                      color="primary"
+                    >
+                      <mat-label>Aplicación de Agua (ml)</mat-label>
+                      <input
+                        matInput
+                        formControlName="aplicacionAgua"
+                        type="number"
+                        placeholder="Ingrese aplicación de agua"
+                        step="0.01"
+                        min="0"
+                      />
+                    </mat-form-field>
                     </div>
                   </div>
                   <div class="text-center m-8">
@@ -1900,6 +2005,63 @@
               </div>
             </div>
 
+            <div class="resultado-segun-grafico mb-4" *ngIf="trendlineFormula && trendlineFormula !== 'No hay datos válidos para mostrar'">
+              <h3>RESULTADO SEGÚN GRAFICO</h3>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Humedad de fluidización:</strong> {{ humedadFluidizacion | number : '1.2-2' }}%</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Humedad Crítica Transportable:</strong> {{ humedadCriticaTransportable | number : '1.2-2' }}%</p>
+                </div>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="resultado-segun-grafico mb-4" *ngIf="trendlineFormula && trendlineFormula !== 'No hay datos válidos para mostrar'">
+              <h3>RESULTADO SEGÚN METODO PRINCIPAL (BRACKET)</h3>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Humedad de fluidización:</strong> {{ humedadFluidizacionBracket | number : '1.2-2' }}%</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Humedad Crítica Transportable:</strong> {{ humedadCriticaTransportableBracket | number : '1.2-2' }}%</p>
+                </div>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <h3>Tabla de Conclusiones</h3>
+            <table
+              class="table table-bordered"
+              style="width: 100%; border-collapse: collapse"
+            >
+              <thead>
+                <tr style="background-color: #f0f0f0">
+                  <th>Criterio</th>
+                  <th>Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Conclusión entre métodos</td>
+                  <td [style.color]="conclusionEntreMetodos.success ? 'green' : 'red'">
+                    {{ conclusionEntreMetodos.message }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Conclusión precisión gráfico</td>
+                  <td [style.color]="conclusionPrecisionGrafico.success ? 'green' : 'red'">
+                    {{ conclusionPrecisionGrafico.message }}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Conclusión método "bracket"</td>
+                  <td [style.color]="conclusionMetodoBracket.success ? 'green' : 'red'">
+                    {{ conclusionMetodoBracket.message }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <mat-divider></mat-divider>
             <h3>Determinación de Humedad de la Muestra</h3>
             <table
               class="table table-bordered"

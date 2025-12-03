@@ -11,6 +11,7 @@ export class DespachoTransporteService {
   private apiUrl = 'https://control.als-inspection.cl/api_min/api/despacho-camion/';
   private apiLotes = 'https://control.als-inspection.cl/api_min/api/lote-despacho/'
   private apiEmbarques = 'https://control.als-inspection.cl/api_min/api/despacho-embarque/'
+  private apiSolicitud = 'https://control.als-inspection.cl/api_min/api/solicitud/'
   constructor(private http: HttpClient) { }
 
   getDespachoTransporte(): Observable<any[]> {
@@ -51,6 +52,15 @@ export class DespachoTransporteService {
   getDespachoEmbarque(): Observable<any[]> {
     return this.http.get<any[]>(this.apiLotes);
   }
+
+  getDespachoEmbarqueByID(id:number): Observable<any[]>{
+    return this.http.get<any[]>(`${this.apiLotes}${id}/`)
+  }
+
+  getReferenciaByIdSolicitud(solicitud:number): Observable<any>{
+    return this.http.get<any>(`${this.apiSolicitud}${solicitud}/`)
+  }
+  
 
 
 //   actualizarValoresLote(nLote : number): void {

@@ -1,4 +1,4 @@
-  import { P } from '@angular/cdk/keycodes';
+import { P } from '@angular/cdk/keycodes';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, Inject, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
@@ -67,6 +67,9 @@ export class FluidezComponent implements OnInit, AfterViewInit {
   private chartData: any[] = [];
   trendlineFormula: string = '';
   private chartUpdateTimeout: any;
+  private currentSlope: number = 0;
+  private currentIntercept: number = 0;
+  correlationR: number = 0;
   // Recibir la información desde el componente padre
   nLote: string = '';
   idSolicitud: string = '';
@@ -246,6 +249,7 @@ export class FluidezComponent implements OnInit, AfterViewInit {
         porcHumedadPromedio: new FormControl(''),
         desplazamiento: new FormControl(''),
         diametroBase: new FormControl(''),
+        aplicacionAgua: new FormControl(''),
         estado: new FormControl('Iniciado'),
       });
     }
@@ -274,6 +278,7 @@ export class FluidezComponent implements OnInit, AfterViewInit {
                 porcHumedadPromedio: this.formatDecimal(existente.porcHumedadPromedio),
                 desplazamiento: this.formatDecimal(existente.desplazamiento),
                 diametroBase: this.formatDecimal(existente.diametroBase),
+                aplicacionAgua: this.formatDecimal(existente.aplicacionAgua),
               };
               this.fluidezForms[i].patchValue(formatted);
             } else {
@@ -358,14 +363,14 @@ export class FluidezComponent implements OnInit, AfterViewInit {
       const desplazamiento = parseFloat(form.get('desplazamiento')?.value);
 
       // Include points that have both values, including cases where desplazamiento = 0
-      if (!isNaN(diametroBase) && !isNaN(humedad) && humedad > 0) {
-        // Include points where diametroBase > 0 OR desplazamiento = 0
-        if (diametroBase > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
+      if (!isNaN(desplazamiento) && !isNaN(humedad) && humedad > 0) {
+        // Include points where desplazamiento > 0 OR desplazamiento = 0
+        if (desplazamiento > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
           data.push({
             prueba: index + 1,
-            diametroBase: diametroBase,
+            desplazamiento: desplazamiento,
             humedad: humedad,
-            desplazamiento: desplazamiento
+            diametroBase: diametroBase
           });
         }
       }
@@ -424,17 +429,17 @@ export class FluidezComponent implements OnInit, AfterViewInit {
       }
 
       // Include points that have both values, including cases where desplazamiento = 0
-      if (!isNaN(diametroBase) && humedadCompleta > 0) {
-        // Include points where diametroBase > 0 OR desplazamiento = 0
-        if (diametroBase > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
+      if (!isNaN(desplazamiento) && humedadCompleta > 0) {
+        // Include points where desplazamiento > 0 OR desplazamiento = 0
+        if (desplazamiento > 0 || (!isNaN(desplazamiento) && desplazamiento === 0)) {
           data.push({
             prueba: index + 1,
-            diametroBase: diametroBase,
+            desplazamiento: desplazamiento,
             humedad: humedadCompleta, // Usar valor completo sin redondear
-            desplazamiento: desplazamiento
+            diametroBase: diametroBase
           });
-          // Console log para debug: mostrar diámetro y humedad
-          console.log(`Prueba ${index + 1}: diámetro=${diametroBase.toFixed(2)}cm, humedad=${humedadCompleta}%`);
+          // Console log para debug: mostrar desplazamiento y humedad
+          console.log(`Prueba ${index + 1}: desplazamiento=${desplazamiento.toFixed(2)}cm, humedad=${humedadCompleta}%`);
         }
       }
     });
@@ -451,22 +456,22 @@ export class FluidezComponent implements OnInit, AfterViewInit {
     }
 
     // X = humedad (variable independiente)
-    // Y = diámetro base (variable dependiente)
+    // Y = desplazamiento (variable dependiente)
     const sumX = data.reduce((sum, point) => sum + point.humedad, 0);
-    const sumY = data.reduce((sum, point) => sum + point.diametroBase, 0);
-    const sumXY = data.reduce((sum, point) => sum + point.humedad * point.diametroBase, 0);
+    const sumY = data.reduce((sum, point) => sum + point.desplazamiento, 0);
+    const sumXY = data.reduce((sum, point) => sum + point.humedad * point.desplazamiento, 0);
     const sumXX = data.reduce((sum, point) => sum + point.humedad * point.humedad, 0);
-    const sumYY = data.reduce((sum, point) => sum + point.diametroBase * point.diametroBase, 0);
+    const sumYY = data.reduce((sum, point) => sum + point.desplazamiento * point.desplazamiento, 0);
 
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
 
     // Calculate R-squared
     const yMean = sumY / n;
-    const totalSumSquares = data.reduce((sum, point) => sum + Math.pow(point.diametroBase - yMean, 2), 0);
+    const totalSumSquares = data.reduce((sum, point) => sum + Math.pow(point.desplazamiento - yMean, 2), 0);
     const residualSumSquares = data.reduce((sum, point) => {
       const predicted = slope * point.humedad + intercept;
-      return sum + Math.pow(point.diametroBase - predicted, 2);
+      return sum + Math.pow(point.desplazamiento - predicted, 2);
     }, 0);
 
     const r2 = totalSumSquares !== 0 ? 1 - (residualSumSquares / totalSumSquares) : 0;
@@ -522,6 +527,7 @@ export class FluidezComponent implements OnInit, AfterViewInit {
 
     if (data.length === 0) {
       this.trendlineFormula = 'No hay datos válidos para mostrar';
+      this.correlationR = 0;
       return;
     }
 
@@ -531,7 +537,12 @@ export class FluidezComponent implements OnInit, AfterViewInit {
 
     // Calculate trendline
     const trendline = this.calculateTrendline(data);
+    this.currentSlope = trendline.slope;
+    this.currentIntercept = trendline.intercept;
     this.trendlineFormula = `y = ${trendline.slope.toFixed(3)}x + ${trendline.intercept.toFixed(3)} (R² = ${trendline.r2.toFixed(3)})`;
+
+    // Calculate correlation coefficient r
+    this.correlationR = data.length >= 2 ? Math.sqrt(trendline.r2) * Math.sign(trendline.slope) : 0;
 
     // Clear ALL previous elements (more comprehensive cleanup)
     this.svg.selectAll('*').remove();
@@ -572,7 +583,7 @@ export class FluidezComponent implements OnInit, AfterViewInit {
       .attr('x', -this.height / 2)
       .attr('y', -this.margin.left + 15)
       .style('text-anchor', 'middle')
-      .text('Diámetro Base (cm)');
+      .text('Desplazamiento (cm)');
 
     // Add points
     this.svg.selectAll('.point')
@@ -581,13 +592,13 @@ export class FluidezComponent implements OnInit, AfterViewInit {
       .append('circle')
       .attr('class', 'point')
       .attr('cx', (d: any) => xScale(d.humedad))  // X = humedad
-      .attr('cy', (d: any) => yScale(d.diametroBase))  // Y = diámetro base
+      .attr('cy', (d: any) => yScale(d.desplazamiento))  // Y = desplazamiento
       .attr('r', 6)
       .style('fill', '#3b82f6')
       .style('stroke', '#1e40af')
       .style('stroke-width', 2)
       .append('title')
-      .text((d: any) => `Prueba ${d.prueba}: Humedad ${d.humedad}%, Diámetro ${d.diametroBase} cm`);
+      .text((d: any) => `Prueba ${d.prueba}: Humedad ${d.humedad}%, Desplazamiento ${d.desplazamiento} cm`);
 
     // Add trendline
     if (data.length > 1) {
@@ -616,10 +627,10 @@ export class FluidezComponent implements OnInit, AfterViewInit {
       .range([0, this.width]);
   }
 
-  // Helper method to create Y scale (now uses diametroBase data)
+  // Helper method to create Y scale (now uses desplazamiento data)
   private createYScale(data: any[]): any {
-    const minY = d3.min(data, (d: any) => d.diametroBase) || 0;
-    const maxY = d3.max(data, (d: any) => d.diametroBase) || 10;
+    const minY = d3.min(data, (d: any) => d.desplazamiento) || 0;
+    const maxY = d3.max(data, (d: any) => d.desplazamiento) || 10;
 
     return d3.scaleLinear()
       .domain([Math.max(0, minY - 1), maxY + 1])
@@ -1093,5 +1104,87 @@ export class FluidezComponent implements OnInit, AfterViewInit {
 
     const result = ((sumHumedo - sumSeco) / (sumHumedo - sumLata)) * 100;
     return result.toFixed(2);
+  }
+
+  // Getters for slope and intercept
+  get slope(): number {
+    return this.currentSlope;
+  }
+
+  get intercept(): number {
+    return this.currentIntercept;
+  }
+
+  // Getters for calculated humidities
+  get humedadFluidizacion(): number {
+    if (this.currentSlope === 0) return 0;
+    return -this.currentIntercept / this.currentSlope;
+  }
+
+  get humedadCriticaTransportable(): number {
+    if (this.currentSlope === 0) return 0;
+    // Assuming critical transportable at displacement = 2 cm
+    return (this.humedadFluidizacion) - (this.humedadFluidizacion*10/100);
+  }
+
+  // Getters for bracket calculations
+  get humedadFluidizacionBracket(): number {
+    // Average of the first 4 fluidization humidities
+    const humidities: number[] = [];
+    for (let i = 0; i < Math.min(4, this.fluidezForms.length); i++) {
+      const humidity = parseFloat(this.getHumedadTable(this.fluidezForms[i]));
+      if (!isNaN(humidity) && humidity > 0) {
+        humidities.push(humidity);
+      }
+    }
+    if (humidities.length === 0) return 0;
+    const sum = humidities.reduce((acc, val) => acc + val, 0);
+    return sum / humidities.length;
+  }
+
+  get humedadCriticaTransportableBracket(): number {
+    // humedadFluidizacionBracket - (humedadFluidizacionBracket * 10 / 100)
+    const bracket = this.humedadFluidizacionBracket;
+    return bracket - (bracket * 10 / 100);
+  }
+
+  get conclusionEntreMetodos(): { success: boolean; message: string } {
+    const grafico = this.humedadFluidizacion;
+    const bracket = this.humedadFluidizacionBracket;
+    if (isNaN(grafico) || isNaN(bracket) || grafico === 0 || bracket === 0) {
+      return { success: false, message: 'Datos insuficientes' };
+    }
+    const diff = Math.abs(bracket - grafico);
+    const success = diff <= 0.5;
+    const message = success ? 'Éxito, precisión adecuada' : 'Repetir prueba';
+    return { success, message };
+  }
+
+  get conclusionPrecisionGrafico(): { success: boolean; message: string } {
+    if (this.correlationR === 0 || isNaN(this.correlationR)) {
+      return { success: false, message: 'Datos insuficientes' };
+    }
+    const success = Math.abs(this.correlationR) > 0.95;
+    const message = success ? 'Precisión menor al 5%, Éxito' : 'Error mayor al permitido';
+    return { success, message };
+  }
+
+  get conclusionMetodoBracket(): { success: boolean; message: string } {
+    const humidities: number[] = [];
+    for (let i = 0; i < Math.min(4, this.fluidezForms.length); i++) {
+      const humidity = parseFloat(this.getHumedadTable(this.fluidezForms[i]));
+      if (!isNaN(humidity) && humidity > 0) {
+        humidities.push(humidity);
+      }
+    }
+    if (humidities.length < 2) {
+      return { success: false, message: 'Datos insuficientes' };
+    }
+    const max = Math.max(...humidities);
+    const min = Math.min(...humidities);
+    const diff = max - min;
+    const success = diff <= 0.5;
+    const message = success ? 'Resultado Válido, Éxito' : 'Diferencia mayor al permitido';
+    return { success, message };
   }
 }

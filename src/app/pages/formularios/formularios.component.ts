@@ -553,10 +553,9 @@ export class FormulariosComponent {
       'Cancelar',
       () => {
         this.eliminarLote(loteSeleccionadoEliminar);
-        Notiflix.Notify.success('Lote eliminado');
       },
       () => {
-        Notiflix.Notify.warning('No se elimino el lote');
+        Notiflix.Notify.warning('No se eliminó el lote');
       }
     );
   }
@@ -2048,16 +2047,16 @@ export class FormulariosComponent {
       return;
     }
 
-    // Find the service name based on the service ID
+    // Find the service based on the service ID
     const servicioSeleccionado = this.servicios.find(
       (servicio) => servicio.id === servicioId
     );
 
     if (servicioSeleccionado) {
-      // Filter requests that match the service name
-      this.solicitudesFiltradas = this.solicitudes.filter(
-        (solicitud) => solicitud.nServ === servicioSeleccionado.nServ
-      );
+    // Filter requests that match the service ID (since solicitud.nServ is the service ID)
+    this.solicitudesFiltradas = this.solicitudes.filter(
+      (solicitud) => solicitud.nServ == servicioSeleccionado.id.toString()
+    );
       console.log('Servicio seleccionado:', servicioSeleccionado.nServ);
       console.log('Solicitudes filtradas:', this.solicitudesFiltradas.length);
     } else {

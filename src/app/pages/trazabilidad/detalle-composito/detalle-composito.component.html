@@ -1,0 +1,126 @@
+<h2 mat-dialog-title>{{ data.composito ? 'Detalle del Composito' : 'Nuevo Composito' }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="compositoForm" class="composito-form">
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>N° Lote</mat-label>
+          <input matInput formControlName="nLote" readonly>
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>ID Trazabilidad</mat-label>
+          <input matInput formControlName="idTrazabilidad" readonly>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Cliente</mat-label>
+          <input matInput formControlName="cliente" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>ID Transporte</mat-label>
+          <input matInput formControlName="idTransporte" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Estado</mat-label>
+          <input matInput formControlName="estado">
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Observación</mat-label>
+          <textarea matInput formControlName="observacion" rows="3"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>N° DUS</mat-label>
+          <input matInput formControlName="nDUS" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Fecha Actual</mat-label>
+          <input matInput [matDatepicker]="fActualPicker" formControlName="fActual">
+          <mat-datepicker-toggle matSuffix [for]="fActualPicker"></mat-datepicker-toggle>
+          <mat-datepicker #fActualPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Inicio de Embarque</mat-label>
+          <input matInput [matDatepicker]="inicioEmbarquePicker" formControlName="fInicioEmbarque" [readonly]="!isEditing" (dateChange)="onDateChange($event, 'fInicioEmbarque')">
+          <mat-datepicker-toggle matSuffix [for]="inicioEmbarquePicker"></mat-datepicker-toggle>
+          <mat-datepicker #inicioEmbarquePicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Termino de Embarque</mat-label>
+          <input matInput [matDatepicker]="terminoEmbarquePicker" formControlName="fTerminoEmbarque" [readonly]="!isEditing" (dateChange)="onDateChange($event, 'fTerminoEmbarque')">
+          <mat-datepicker-toggle matSuffix [for]="terminoEmbarquePicker"></mat-datepicker-toggle>
+          <mat-datepicker #terminoEmbarquePicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Fecha Lote</mat-label>
+          <input matInput [matDatepicker]="fLotePicker" formControlName="fLote">
+          <mat-datepicker-toggle matSuffix [for]="fLotePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fLotePicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Bodega</mat-label>
+          <input matInput formControlName="bodega" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>N° Sobre</mat-label>
+          <input matInput formControlName="nSobre" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Motonave</mat-label>
+          <input matInput formControlName="motonave" [readonly]="!isEditing">
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cerrar</button>
+  <button mat-button color="primary" (click)="toggleEdit()" *ngIf="data.composito && !isEditing">
+    Editar
+  </button>
+  <button mat-raised-button color="primary" (click)="save()" *ngIf="isEditing">
+    Guardar
+  </button>
+</mat-dialog-actions>

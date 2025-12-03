@@ -57,28 +57,39 @@
 
 
 </mat-dialog-content>
-<mat-dialog-actions fxLayout="row" fxLayoutAlign="end center" class="m-t-24">
-  <button
-    *ngIf="(admin || operator || encargado)"
-    mat-flat-button
-    (click)="guardar()"
-    color="primary"
-    [disabled]="embarqueTransporteForm.invalid"
-  >
-    Registrar
-  </button>
-  <button mat-flat-button (click)="onCancel()">Cerrar</button>
-  <button
-    class="m-l-48"
-    *ngIf="(admin || encargado)"
-    mat-flat-button
-    (click)="aprobar()"
-    type="submit"
-    color="primary"
-    [disabled]="embarqueTransporteForm.invalid"
-  >
-    Aprobar
-  </button>
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-between center" class="m-t-24 m-16">
+  <div>
+    <button
+      *ngIf="(admin || encargado)"
+      mat-flat-button
+      (click)="eliminarSublote()"
+      color="warn"
+    >
+      Eliminar
+    </button>
+  </div>
+  <div style="display: flex; gap: 12px;">
+    <button
+      *ngIf="(admin || operator || encargado)"
+      mat-flat-button
+      (click)="guardar()"
+      color="primary"
+      [disabled]="embarqueTransporteForm.invalid"
+    >
+      Registrar
+    </button>
+    <button mat-flat-button (click)="onCancel()">Cerrar</button>
+    <button
+      *ngIf="(admin || encargado)"
+      mat-flat-button
+      (click)="aprobar()"
+      type="submit"
+      color="primary"
+      [disabled]="embarqueTransporteForm.invalid"
+    >
+      Aprobar
+    </button>
+  </div>
 </mat-dialog-actions>
 
 

@@ -12,6 +12,7 @@ import { ReportesComponent } from './reportes/reportes.component';
 import { TrazabilidadComponent } from './trazabilidad/trazabilidad.component';
 import { DethumedadComponent } from './dethumedad/dethumedad.component';
 import { ImoComponent } from './imo/imo.component';
+import { ActizComponent } from './actiz/actiz.component';
 
 export const PagesRoutes: Routes = [
   {
@@ -110,4 +111,12 @@ export const PagesRoutes: Routes = [
       title: 'Trazabilidad de la muestra',
     },
   },
+  {
+    path: 'actiz',
+    canActivate: [guardLogin],
+    component: ActizComponent,
+    data:{
+      title:'Cruce con Actiz'
+    }
+  }
 ];

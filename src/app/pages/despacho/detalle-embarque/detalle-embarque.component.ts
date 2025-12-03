@@ -109,7 +109,7 @@ export class DetalleEmbarqueComponent {
   operator: boolean;
   encargado: boolean;
   apiLotes: 'https://control.als-inspection.cl/api_min/api/lote-despacho/';
-  bodegaSeleccionada: any;
+  bodegaSeleccionada: 1;
   bodegas: any;
   total: number;
 
@@ -251,9 +251,13 @@ export class DetalleEmbarqueComponent {
           this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
         );
 
-        //calcular el peso seco
-        this.pesoSeco =
-          this.sumaPesos - this.sumaPesos * (this.porcHumedad / 100);
+        //calcular el peso seco como suma de cada sublote's pesoNetoSeco
+        this.pesoSeco = this.dataSource1.reduce((total, sublote) => {
+          const pesoBrutoHumedo = Number(sublote.pesoLote) || 0;
+          const humedad = Number(sublote.porcHumedad) || 0;
+          const pesoNetoSecoSublote = pesoBrutoHumedo * (1 - humedad / 100);
+          return total + pesoNetoSecoSublote;
+        }, 0);
 
         // this.odometrosIniciales = Number(this.odometrosIniciales.toFixed(2));
         // this.odometrosFinales = Number(this.odometrosFinales.toFixed(2));
@@ -317,7 +321,7 @@ export class DetalleEmbarqueComponent {
   }
 
   crearRegistro() {
-    if (this.lote && this.bodegaSeleccionada) {
+    if (this.lote) {
       const hoy = new Date();
       const horas = String(hoy.getHours()).padStart(2, '0'); // Asegura que las horas tengan 2 dígitos
       const minutos = String(hoy.getMinutes()).padStart(2, '0'); // Asegura que los minutos tengan 2 dígitos
@@ -357,11 +361,11 @@ export class DetalleEmbarqueComponent {
         }
       );
     } else {
-      if (!this.bodegaSeleccionada) {
-        Notiflix.Notify.warning('Debes seleccionar una bodega para continuar');
-      } else {
+      // if (!this.bodegaSeleccionada) {
+      //   Notiflix.Notify.warning('Debes seleccionar una bodega para continuar');
+      // } else {
         console.error('No se puede crear el registro, lote no cargado.');
-      }
+      // }
     }
   }
   actualizarLote() {
@@ -392,7 +396,10 @@ export class DetalleEmbarqueComponent {
       CuFino = 0;
     }
   
+    // Actualizar el CuFino en el objeto lote
+    this.lote.CuFino = CuFino || 0;
 
+    // Crear objeto con TODOS los campos del lote, incluyendo los campos calculados
     const loteActualizado = {
       ...this.lote,
       cantSubLotes: cantSubLotes,
@@ -400,20 +407,54 @@ export class DetalleEmbarqueComponent {
       porcHumedad: porcHumedad,
       pesoNetoSeco: pesoNetoSeco,
       CuFino: CuFino || 0,
+      // Asegurar que todos los campos del embarque estén incluidos
+      DUS: this.lote.DUS || null,
+      fechaDUS: this.lote.fechaDUS || null,
+      listaVerificacion: this.lote.listaVerificacion || null,
+      refFocus: this.lote.refFocus || null,
+      calidad: this.lote.calidad || null,
+      cliente: this.lote.cliente || null,
+      CuOrigen: this.lote.CuOrigen || null,
+      CuDestino: this.lote.CuDestino || null,
+      fechaTermino: this.lote.fechaTermino || null,
+      contratoCochilco: this.lote.contratoCochilco || null,
+      contratoAnglo: this.lote.contratoAnglo || null,
+      DV: this.lote.DV || null,
+      fechaEnvioReporte: this.lote.fechaEnvioReporte || null,
+      fechaEntregaLab: this.lote.fechaEntregaLab || null,
+      DUSAvanceComposito: this.lote.DUSAvanceComposito || null,
+      DUSFinales: this.lote.DUSFinales || null,
+      LALFinales: this.lote.LALFinales || null,
+      fechaEntregaLabAduana: this.lote.fechaEntregaLabAduana || null,
+      lugarDescarga: this.lote.lugarDescarga || null,
+      paisDescarga: this.lote.paisDescarga || null,
+      resguardoTestigoAduana: this.lote.resguardoTestigoAduana || null,
+      numResolucionSNA: this.lote.numResolucionSNA || null,
+      exportador: this.lote.exportador || null,
+      aduana: this.lote.aduana || null,
+      registroINN: this.lote.registroINN || null,
+      rutExportador: this.lote.rutExportador || null,
+      laboratorioDeEnsayo: this.lote.laboratorioDeEnsayo || null,
+      muestreadoPor: this.lote.muestreadoPor || null,
+      rutEmpresaMuestreadora: this.lote.rutEmpresaMuestreadora || null,
     };
-    this.lote.CuFino = Number(
-      this.calcularCobreFino(Number(this.pesoSeco.toFixed(2)))
-    );
+    
     console.log('Lote actualizado:', loteActualizado);
 
     this.despachoTransporteService
       .actualizarLoteEmbarque(loteActualizado)
-      .subscribe((response) => {
-        console.log('Lote actualizado:', response);
-        this.data.lote = this.lote;
-        this.ngOnInit();
-        Notiflix.Notify.success('Se ha actualizado el lote correctamente');
-      });
+      .subscribe(
+        (response) => {
+          console.log('Lote actualizado correctamente:', response);
+          this.data.lote = loteActualizado;
+          this.lote = loteActualizado;
+          Notiflix.Notify.success('Se ha actualizado el lote correctamente');
+        },
+        (error) => {
+          console.error('Error al actualizar el lote:', error);
+          Notiflix.Notify.failure('Error al actualizar el lote');
+        }
+      );
   }
 
   calcularCobreFino(totalSeco: number) : number {
@@ -437,12 +478,12 @@ export class DetalleEmbarqueComponent {
     return Number(CuFino.toFixed(2));
   }
 
-  onBodegaChange(event: MatSelectChange) {
-    const bodegaSeleccionada = event.value; // Esto ahora es el objeto bodega completo
-    console.log('Bodega seleccionada:', bodegaSeleccionada);
-    this.bodegaSeleccionada = bodegaSeleccionada;
-    this.total = bodegaSeleccionada.total;
-  }
+  // onBodegaChange(event: MatSelectChange) {
+  //   const bodegaSeleccionada = event.value; // Esto ahora es el objeto bodega completo
+  //   console.log('Bodega seleccionada:', bodegaSeleccionada);
+  //   this.bodegaSeleccionada = bodegaSeleccionada;
+  //   this.total = bodegaSeleccionada.total;
+  // }
 
   abrirDialogoModificarRegistro(element: any) {
     console.log(element);
@@ -494,6 +535,19 @@ export class DetalleEmbarqueComponent {
         if (trazabilidadesFiltradas.length > 0) {
           // Paso 3: Calcular cantidadSobres y agregarlo a cada registro
           const cantidadSobres = trazabilidadesFiltradas.length;
+
+          // Calcular pesoNetoSeco para cada sublote correspondiente
+          trazabilidadesFiltradas.forEach((item: any, index: number) => {
+            const sublote = this.dataSource1[index];
+            if (sublote) {
+              const odometroInicial = Number(sublote.odometroInicial) || 0;
+              const odometroFinal = Number(sublote.odometroFinal) || 0;
+              const humedad = Number(sublote.porcHumedad) || 0;
+              const tmh = odometroFinal - odometroInicial;
+              const tms = tmh * (1 - humedad / 100);
+              item.pesoNetoSeco = Number(tms.toFixed(2));
+            }
+          });
 
           const trazabilidadesConCantidad = trazabilidadesFiltradas.map((item : any) => ({
             ...item,
@@ -563,7 +617,7 @@ export class DetalleEmbarqueComponent {
   }
 
   generarCertificados() {
-    Notiflix.Loading.standard('Generando certificados, espere un momento...');
+    Notiflix.Loading.standard('Generando certificados...');
 
     // Ejecutar las funciones inmediatamente
     this.descargarExcelResumenLote2();
@@ -617,8 +671,8 @@ export class DetalleEmbarqueComponent {
       { label: 'PUERTO EMBARQUE', key: 'lugarDescarga' },
       { label: 'CONSIGNATARIO', key: 'cliente' },
       { label: 'PROCEDIMIENTO CERTIFICADO', key: 'listaVerificacion' },
-      { label: 'NOMBRE LABORATORIO DE ENSAYO', key: 'nombreLaboratorioEnsayo' },
-      { label: 'FECHA DE EMBARQUE', key: 'fLote' },
+      { label: 'NOMBRE LABORATORIO DE ENSAYO', key: 'laboratorioDeEnsayo' },
+      { label: 'FECHA INICIO/TERMINO EMBARQUE', key: 'fLote' },
     ];
 
     const detalleColumna2 = [
@@ -642,6 +696,8 @@ export class DetalleEmbarqueComponent {
       worksheet.getCell(`C${fila}`).value = ':';
       worksheet.getCell(`D${fila}`).value = label === 'DUS / Fecha'
         ? `${lote.DUS ?? 'No DUS'} / ${lote.fechaDUS ?? 'No Fecha'}`
+        : label === 'FECHA INICIO/TERMINO EMBARQUE'
+        ? `${lote.fLote ?? 'No aplica'} // ${lote.fechaTermino ?? 'No aplica'}`
         : lote[key] ?? 'No aplica';
       fila++;
     });
@@ -650,7 +706,10 @@ export class DetalleEmbarqueComponent {
     detalleColumna2.forEach(({ label, key }) => {
       worksheet.getCell(`E${fila}`).value = label;
       worksheet.getCell(`F${fila}`).value = ':';
-      worksheet.getCell(`G${fila}`).value = lote[key] ?? 'No aplica';
+      worksheet.getCell(`G${fila}`).value = label === 'CANTIDAD DE ITEM DEL DUS' ? 1 : lote[key] ?? 'No aplica';
+      if (label === 'CANTIDAD DE ITEM DEL DUS') {
+        worksheet.getCell(`G${fila}`).alignment = { horizontal: 'left' };
+      }
       fila++;
     });
 
@@ -691,12 +750,13 @@ export class DetalleEmbarqueComponent {
       const tmh = odometroFinal - odometroInicial;
       const tms = tmh * (1 - humedad / 100);
 
-      row.getCell(5).value = tmh > 0 ? tmh : 'No aplica';
-      row.getCell(6).value = humedad || 'No aplica';
-      row.getCell(7).value = tms > 0 ? tms.toFixed(2) : '';
+      // Formatear valores con 2 decimales siempre
+      row.getCell(5).value = tmh > 0 ? tmh.toFixed(2) : 'No aplica';
+      row.getCell(6).value = humedad >= 0 ? humedad.toFixed(2) : 'No aplica';
+      row.getCell(7).value = tms > 0 ? tms.toFixed(2) : '0.00';
 
-      sublote.pesoBruto = Number(tmh.toFixed(3));
-      sublote.pesoNetoSeco = Number(tms.toFixed(3));
+      sublote.pesoBruto = Number(tmh.toFixed(2));
+      sublote.pesoNetoSeco = Number(tms.toFixed(2));
 
       [2, 4, 5, 6, 7].forEach(col => {
         const cell = row.getCell(col);
@@ -749,9 +809,9 @@ export class DetalleEmbarqueComponent {
         : 0;
 
       worksheet.getCell(`D${filaActual}`).value = bodega;
-      worksheet.getCell(`E${filaActual}`).value = valores.tmh;
+      worksheet.getCell(`E${filaActual}`).value = valores.tmh.toFixed(2);
       worksheet.getCell(`F${filaActual}`).value = promedioHumedad.toFixed(2) + '%';
-      worksheet.getCell(`G${filaActual}`).value = valores.tms;
+      worksheet.getCell(`G${filaActual}`).value = valores.tms.toFixed(2);
 
       ['D', 'E', 'F', 'G'].forEach(col => {
         worksheet.getCell(`${col}${filaActual}`).border = {
@@ -766,9 +826,9 @@ export class DetalleEmbarqueComponent {
     });
 
     worksheet.getCell(`D${filaActual}`).value = 'PESO TOTAL EMBARCADO';
-    worksheet.getCell(`E${filaActual}`).value = totalTMH;
+    worksheet.getCell(`E${filaActual}`).value = totalTMH.toFixed(2);
     worksheet.getCell(`F${filaActual}`).value = '';
-    worksheet.getCell(`G${filaActual}`).value = totalTMS;
+    worksheet.getCell(`G${filaActual}`).value = totalTMS.toFixed(2);
 
     ['D', 'E', 'F', 'G'].forEach(col => {
       worksheet.getCell(`${col}${filaActual}`).font = { bold: true };
@@ -1785,18 +1845,18 @@ export class CrearRegistroDialog {
       //   );
       //   return;
       // }
-      if (formData.fechaInicial > formData.fechaFinal) {
-        Notiflix.Notify.failure(
-          'La fecha inicial no puede ser mayor a la final'
-        );
-        return;
-      }
-      if (formData.horaInicial > formData.horaFinal) {
-        Notiflix.Notify.failure(
-          'La hora inicial no puede ser mayor a la final'
-        );
-        return;
-      }
+      // if (formData.fechaInicial > formData.fechaFinal) {
+      //   Notiflix.Notify.failure(
+      //     'La fecha inicial no puede ser mayor a la final'
+      //   );
+      //   return;
+      // }
+      // if (formData.horaInicial > formData.horaFinal) {
+      //   Notiflix.Notify.failure(
+      //     'La hora inicial no puede ser mayor a la final'
+      //   );
+      //   return;
+      // }
       if (formData.porcHumedad > 100) {
         Notiflix.Notify.failure(
           'El porcentaje de humedad no puede ser mayor a 100'
@@ -1876,5 +1936,57 @@ export class CrearRegistroDialog {
     } else {
       Notiflix.Notify.failure('El formulario no es válido');
     }
+  }
+
+  eliminarSublote(): void {
+    const subloteId = this.embarqueTransporteForm.value.id;
+    const nLote = this.embarqueTransporteForm.value.nLote;
+
+    // Validar que el sublote existe
+    if (!subloteId) {
+      Notiflix.Notify.failure('No se puede eliminar un sublote sin ID');
+      return;
+    }
+
+    // Validar que el sublote no esté aprobado
+    if (this.embarqueTransporteForm.value.estado === 'aprobado') {
+      Notiflix.Notify.failure('No se puede eliminar un sublote aprobado');
+      return;
+    }
+
+    // Mostrar confirmación de Notiflix
+    Notiflix.Confirm.show(
+      'Confirmar eliminación',
+      `¿Está seguro que desea eliminar este sublote del lote ${nLote}?`,
+      'Sí, eliminar',
+      'Cancelar',
+      () => {
+        // Usuario confirmó la eliminación
+        this.http
+          .delete(
+            `https://control.als-inspection.cl/api_min/api/despacho-embarque/${subloteId}/`
+          )
+          .subscribe(
+            (response) => {
+              console.log('Sublote eliminado correctamente:', response);
+              Notiflix.Notify.success('Sublote eliminado correctamente');
+              // Cerrar el diálogo y notificar al componente padre para que actualice
+              this.dialogRef.close({ deleted: true });
+            },
+            (error) => {
+              console.error('Error al eliminar el sublote:', error);
+              Notiflix.Notify.failure('Error al eliminar el sublote');
+            }
+          );
+      },
+      () => {
+        // Usuario canceló la eliminación
+        Notiflix.Notify.info('Eliminación cancelada');
+      },
+      {
+        width: '400px',
+        borderRadius: '8px',
+      }
+    );
   }
 }

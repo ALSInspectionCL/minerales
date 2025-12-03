@@ -32,7 +32,8 @@ router.register(r'densidad', views.DensidadViewSet)
 router.register(r'fluidez', views.FluidezViewSet)
 router.register(r'prueba-fluidez', views.PruebaFluidezViewSet)
 router.register(r'angulo', views.AnguloViewSet)
-router.register(r'reportes', views.ReportesViewSet)
+router.register(r'compositos', views.CompositosViewSet)
+
 
 urlpatterns=[
     path('', include(router.urls)),

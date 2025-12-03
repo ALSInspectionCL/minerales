@@ -16,7 +16,19 @@
       </div>
     </div>
   </mat-card-content>
-</mat-card> -->
+</mat-card>
+
+<!-- Botones para reimprimir etiquetas y composito -->
+<div class="d-flex justify-content-between mt-3" *ngIf="lote?.fechaPreparacionMuestra">
+  <button mat-raised-button color="primary" class="me-2" (click)="reimprimirEtiquetas()">
+    <i-tabler name="printer" class="icon-18 me-2"></i-tabler>
+    Reimprimir Etiquetas
+  </button>
+  <button mat-raised-button color="accent" class="ms-2" (click)="composito()">
+    <i-tabler name="layers" class="icon-18 me-2"></i-tabler>
+    Composito
+  </button>
+</div>
 
 <mat-card class="cardWithShadow">
   <mat-card-content class="p-24">
@@ -102,7 +114,10 @@
             ><i-tabler name="eye-closed" class="icon-18"></i-tabler
           ></a>
             <a *ngIf="element?.fechaPreparacionMuestra" class="m-r-10 cursor-pointer"
-              ><i-tabler name="eye" class="icon-18" (click)="tieneMecanica(element.nLote, 1)"></i-tabler
+              ><i-tabler name="eye" class="icon-18" (click)="tieneMecanica(element.nLote, 1, element.nSobre)"></i-tabler
+            ></a>
+            <a *ngIf="element?.fechaPreparacionMuestra" class="m-r-10 cursor-pointer"
+              ><i-tabler name="printer" class="icon-18" (click)="reimprimirEtiquetas()"></i-tabler
             ></a>
           </td>
         </ng-container>

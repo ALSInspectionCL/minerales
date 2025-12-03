@@ -119,6 +119,9 @@ class LoteDespacho(models.Model):
     aduana = models.CharField(max_length=200,blank=True, null=True)
     registroINN = models.CharField(max_length=200,blank=True, null=True)
     rutExportador = models.CharField(max_length=200,blank=True, null=True)
+    laboratorioDeEnsayo = models.CharField(max_length=200,blank=True, null=True)
+    muestreadoPor = models.CharField(max_length=200,blank=True, null=True)
+    rutEmpresaMuestreadora = models.CharField(max_length=200,blank=True, null=True)
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     solicitud = models.ForeignKey(Solicitud, on_delete=models.CASCADE)
 
@@ -266,6 +269,7 @@ class Trazabilidad(models.Model):
 class TrazabilidadMecanica(models.Model):
     nLote = models.CharField(max_length=30)
     nSubLote = models.CharField(max_length=30)
+    idSubLote = models.CharField(max_length=30,blank=True, null=True)
     idTransporte = models.CharField(max_length=10,blank=True, null=True)
     nave = models.CharField(max_length=100,blank=True, null=True)
     bodega = models.CharField(max_length=100,blank=True, null=True)
@@ -456,8 +460,8 @@ class PruebaFluidez(models.Model):
     porcHumedad2 = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     porcHumedadPromedio = models.DecimalField(max_digits=20, decimal_places=5, blank=True, null=True)
     aplicacionAgua = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
-    estado = models.CharField(max_length=50, blank=True, null=True)
     diametroBase = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
+    estado = models.CharField(max_length=50, blank=True, null=True)
 
 class Angulo(models.Model):
     nLote = models.CharField(max_length=50)
@@ -475,12 +479,22 @@ class Angulo(models.Model):
     promedio = models.DecimalField(max_digits=20, decimal_places=3, blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
 
-class Reportes(models.Model):
-    servicio = models.CharField(max_length=100)
-    solicitud = models.CharField(max_length=100)
-    tipoReporte = models.CharField(max_length=50)
-    fechaInformeCliente = models.DateField(blank=True, null=True)
-    fechaFacturacion = models.DateField(blank=True, null=True)
+class Compositos(models.Model):
+    nLote = models.CharField(max_length=30)
+    idTrazabilidad = models.CharField(max_length=50,blank=True, null=True)
+    cliente = models.CharField(max_length=50,blank=True, null=True)
+    idTransporte = models.CharField(max_length=10,blank=True, null=True)
+    estado = models.CharField(max_length=100, blank=True, null=True)
+    observacion = models.CharField(max_length=200,blank=True, null=True)
+    nDUS = models.CharField(max_length=50,blank=True, null=True)
+    fActual = models.DateField(max_length=10,blank=True, null=True)
+    fLote = models.DateField(blank=True, null=True)
+    fInicioEmbarque = models.DateField(blank=True, null=True)
+    fTerminoEmbarque = models.DateField(blank=True, null=True)
+    bodega = models.CharField(max_length=30, blank=True, null=True)
+    nSobre = models.CharField(max_length=30, blank=True, null=True)
+    motonave = models.CharField(max_length=30, blank=True, null=True)
+
 
  
 @receiver(pre_save, sender=Recepcion)

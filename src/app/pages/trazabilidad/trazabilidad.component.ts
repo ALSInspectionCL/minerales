@@ -26,6 +26,7 @@ import { LoteService } from 'src/app/services/lote.service';
 import { DetalleQrComponent } from './detalle-qr/detalle-qr.component';
 import { EscanerComponent } from './escaner/escaner.component';
 import { LectorComponent } from './lector/lector.component';
+import { DetalleCompositoComponent } from './detalle-composito/detalle-composito.component';
 import Notiflix from 'notiflix';
 import { HttpClient } from '@angular/common/http';
 import { OtmComponent } from './otm/otm.component';
@@ -416,6 +417,14 @@ export class TrazabilidadComponent {
         console.log(nSubLote);
         this.actualizarEstado(nLote, nSubLote);
         this.cargarTrazabilidades(); // Recargar las trazabilidades después de actualizar el estado
+      } else if (codigo.includes('C')) {
+        // Si el primer elemento es una C, abrir modal de detalle-composito
+        this.muestra = false;
+        let nLote = codigo.substring(1, codigo.length);
+        console.log('nLote para composito:', nLote);
+        //Quitar el punto final de nLote
+        nLote = nLote.split('.')[0];
+        this.abrirModalComposito(nLote);
       }
       this.cargarTrazabilidades();
     }
@@ -680,6 +689,41 @@ export class TrazabilidadComponent {
       masaRecargo = ((pesoNetoSeco / sumaPesosNetosSecos) * 2500) / 2;
       return masaRecargo;
     }
+  }
+
+  abrirModalComposito(nLote: string) {
+    // Buscar el composito por nLote
+    console.log("El nLote que llega a la funcion es:")
+    console.log(nLote)
+    const apiUrl = `https://control.als-inspection.cl/api_min/api/compositos/?search=${nLote}`;
+    this.http.get<any[]>(apiUrl).subscribe(
+      (data) => {
+        console.log(data)
+        const composito = data.find(c => c.nLote === nLote);
+        console.log("El composito encontrado")
+        console.log(composito)
+        if (composito) {
+          // Abrir el modal de detalle-composito
+          const dialogRef = this.dialog.open(DetalleCompositoComponent, {
+            width: '80%',
+            height: '90%',
+            data: {
+              composito: composito
+            },
+          });
+
+          dialogRef.afterClosed().subscribe((result) => {
+            console.log('Modal de composito cerrado:', result);
+          });
+        } else {
+          Notiflix.Notify.failure('No se encontró un composito con ese código');
+        }
+      },
+      (error) => {
+        console.error('Error al buscar composito:', error);
+        Notiflix.Notify.failure('Error al buscar el composito');
+      }
+    );
   }
 }
 

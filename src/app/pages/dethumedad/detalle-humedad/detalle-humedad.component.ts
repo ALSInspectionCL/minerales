@@ -195,6 +195,22 @@ export class DetalleHumedadComponent {
   seleccionarCampo(id: string) {
     this.campoSeleccionado = id;
   }
+
+  // Función de redondeo matemático para humedad final
+  private redondeoHumedadFinal(num: number): number {
+    // Multiplicar por 100, sumar 0.5, truncar (ENTERO), dividir por 100
+    //return Math.floor(num * 100 + 0.5) / 100;
+    console.log(num)
+    const aprox1 = Number((num * 100).toFixed(2))
+    console.log(aprox1)
+    const aprox2 = aprox1 + 0.5
+    console.log(aprox2)
+    const aprox3 = Math.trunc(aprox2)
+    console.log(aprox3)
+    const aprox4 = aprox3 / 100
+    console.log(aprox4)
+    return aprox4;
+  }
   botonPesar = document.getElementById('boton-pesar');
   ngOnInit() {
     this.dataSource = [this.dataDefault];
@@ -615,76 +631,62 @@ export class DetalleHumedadComponent {
       const porcHumedad1 =
         ((pMaterial1 - (pSalidaHorno1Lata1 - pLata1)) / pMaterial1) * 100;
       console.log('porcHumedad1 primer pesaje:', porcHumedad1);
+      const porcHumedad1Rounded = this.redondeoHumedadFinal(porcHumedad1);
       this.humedadForm.patchValue({
-        porcHumedad1: parseFloat(porcHumedad1.toFixed(2)),
+        porcHumedad1: porcHumedad1Rounded,
       });
-      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(2));
+      this.dataSource[0].porcHumedad1 = porcHumedad1Rounded;
       const porcHumedad2 =
         ((pMaterial2 - (pSalidaHorno1Lata2 - pLata2)) / pMaterial2) * 100;
       console.log('porcHumedad2 primer pesaje:', porcHumedad2);
+      const porcHumedad2Rounded = this.redondeoHumedadFinal(porcHumedad2);
       this.humedadForm.patchValue({
-        porcHumedad2: parseFloat(porcHumedad2.toFixed(2)),
+        porcHumedad2: porcHumedad2Rounded,
       });
-      this.dataSource[0].porcHumedad2 = parseFloat(porcHumedad2.toFixed(2));
+      this.dataSource[0].porcHumedad2 = porcHumedad2Rounded;
       const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
       console.log('porcHumedadFinal primer pesaje:', porcHumedadFinal);
+      const porcHumedadFinalRounded = this.redondeoHumedadFinal(porcHumedadFinal);
       this.humedadForm.patchValue({
-        porcHumedadFinal: parseFloat(porcHumedadFinal.toFixed(2)),
+        porcHumedadFinal: porcHumedadFinalRounded,
       });
-      this.dataSource[0].porcHumedadFinal = parseFloat(
-        porcHumedadFinal.toFixed(2)
-      );
+      this.dataSource[0].porcHumedadFinal = porcHumedadFinalRounded;
     }
     if (pSalidaHorno2Lata1 <= 0 && pSalidaHorno2Lata2 <= 0) {
       return;
     } else {
       const porcHumedad1 =
         Number((((pMaterial1 - (pSalidaHorno2Lata1 - pLata1)) / pMaterial1) * 100).toFixed(4));
+      const porcHumedad1Rounded = this.redondeoHumedadFinal(porcHumedad1);
       this.humedadForm.patchValue({
-        porcHumedad1: parseFloat(porcHumedad1.toFixed(2)),
+        porcHumedad1: porcHumedad1Rounded,
       });
-      console.log('porcHumedad1 segundo pesaje:', porcHumedad1);
-      console.log('porcHumedad1 segundo pesaje:', this.humedadForm.value.porcHumedad1);
-      this.dataSource[0].porcHumedad1 = parseFloat(this.humedadForm.value.porcHumedad1);
+      console.log('porcHumedad1 segundo pesaje redondeado:', porcHumedad1Rounded);
+      this.dataSource[0].porcHumedad1 = porcHumedad1Rounded;
       const porcHumedad2 =
         Number((((pMaterial2 - (pSalidaHorno2Lata2 - pLata2)) / pMaterial2) * 100).toFixed(4));
+      const porcHumedad2Rounded = this.redondeoHumedadFinal(porcHumedad2);
       this.humedadForm.patchValue({
-        porcHumedad2: parseFloat(porcHumedad2.toFixed(2)),
+        porcHumedad2: porcHumedad2Rounded,
       });
-      console.log('porcHumedad2 segundo pesaje:', porcHumedad2);
-      this.dataSource[0].porcHumedad2 = parseFloat(this.humedadForm.value.porcHumedad2);
-      const porcHumedadFinal = 
-        Number(((this.humedadForm.value.porcHumedad1 + this.humedadForm.value.porcHumedad2) / 2));
-      console.log('porcHumedadFinal segundo pesaje:', porcHumedadFinal);
-      // Redondeo positivo a dos decimales solo si el tercer decimal es 5
-      function redondeoPositivo(num: number): number {
-        const entero = Math.floor(num);
-        console.log('Parte entera:', entero);
-        const decimal = num - entero;
-        console.log('Parte decimal:', decimal);
-        if (Math.floor(num * 1000) % 10 === 5) {
-          console.log('Redondeo hacia arriba');
-          return Math.ceil(num * 100) / 100;
-        } else {
-          console.log('Redondeo hacia abajo');
-          return Math.floor(num * 100) / 100;
-        }
-      }
-      // Porcentaje de humedad final, si es 0.005 o más, se redondea hacia arriba
-      let porcHumedadFinalRedondeado = redondeoPositivo(porcHumedadFinal);
+      console.log('porcHumedad2 segundo pesaje redondeado:', porcHumedad2Rounded);
+      this.dataSource[0].porcHumedad2 = porcHumedad2Rounded;
+      const porcHumedadFinal =
+        Number(((porcHumedad1Rounded + porcHumedad2Rounded) / 2).toFixed(4));
+      console.log('porcHumedadFinal segundo pesaje sin redondeo:', porcHumedadFinal);
+      // Aplicar redondeo matemático para humedad final
+      let porcHumedadFinalRedondeado = this.redondeoHumedadFinal(porcHumedadFinal);
       //Si porcHumedad1 y porcHumedad2 son iguales, entonces porcHumedadFinal es igual a ellos
       if (this.humedadForm.value.porcHumedad1 === this.humedadForm.value.porcHumedad2) {
         this.humedadForm.patchValue({
-          porcHumedadFinal: parseFloat(porcHumedad1.toFixed(2)),
+          porcHumedadFinal: porcHumedad1Rounded,
         });
-        this.dataSource[0].porcHumedadFinal = parseFloat(porcHumedad1.toFixed(2));
-        porcHumedadFinalRedondeado = parseFloat(porcHumedad1.toFixed(2));
+        this.dataSource[0].porcHumedadFinal = porcHumedad1Rounded;
+        porcHumedadFinalRedondeado = porcHumedad1Rounded;
 
         return;
       }
-      // const porcHumedadFinalRedondeado : Number = Number((porcHumedadFinal).toFixed(2));
-      console.log('porcHumedadFinal segundo pesaje:', porcHumedadFinalRedondeado);
-
+      console.log('porcHumedadFinal segundo pesaje redondeado:', porcHumedadFinalRedondeado);
       this.humedadForm.patchValue({
         porcHumedadFinal: porcHumedadFinalRedondeado,
       });
@@ -695,22 +697,24 @@ export class DetalleHumedadComponent {
     } else {
       const porcHumedad1 =
         ((pMaterial1 - (pSalidaHorno3Lata1 - pLata1)) / pMaterial1) * 100;
+      const porcHumedad1Rounded = this.redondeoHumedadFinal(porcHumedad1);
       this.humedadForm.patchValue({
-        porcHumedad1: parseFloat(porcHumedad1.toFixed(2)),
+        porcHumedad1: porcHumedad1Rounded,
       });
-      this.dataSource[0].porcHumedad1 = parseFloat(porcHumedad1.toFixed(2));
+      this.dataSource[0].porcHumedad1 = porcHumedad1Rounded;
       const porcHumedad2 =
         ((pMaterial2 - (pSalidaHorno3Lata2 - pLata2)) / pMaterial2) * 100;
+      const porcHumedad2Rounded = this.redondeoHumedadFinal(porcHumedad2);
       this.humedadForm.patchValue({
-        porcHumedad2: parseFloat(porcHumedad2.toFixed(2)),
+        porcHumedad2: porcHumedad2Rounded,
       });
       const porcHumedadFinal = (porcHumedad1 + porcHumedad2) / 2;
+      // Aplicar redondeo matemático para humedad final
+      const porcHumedadFinalRedondeado = this.redondeoHumedadFinal(porcHumedadFinal);
       this.humedadForm.patchValue({
-        porcHumedadFinal: parseFloat(porcHumedadFinal.toFixed(2)),
+        porcHumedadFinal: porcHumedadFinalRedondeado,
       });
-      this.dataSource[0].porcHumedadFinal = parseFloat(
-        porcHumedadFinal.toFixed(2)
-      );
+      this.dataSource[0].porcHumedadFinal = porcHumedadFinalRedondeado;
     }
   }
 
@@ -751,14 +755,100 @@ export class DetalleHumedadComponent {
   }
 
   finalizarProceso() {
-    // Finalizar el proceso de humedad
+    //Finalizar el proceso de humedad
     this.humedadForm.patchValue({
       fFin: new Date().toISOString().split('T')[0], // Fecha de fin actual
       observacion: 'Finalizado',
     });
+    // Llamar a la función de exportación dependiendo si es recepción o despacho
+    if (this.data.nSublote) {
+      this.exportarHumedadDespacho();
+    } else {
+      this.exportarHumedadRecepcion();
+    }
     this.actualizarDatos();
     Notiflix.Notify.success('Proceso finalizado correctamente.');
     this.ngOnInit();
+  }
+
+  exportarHumedadRecepcion() {
+    console.log(this.data.nLote, this.humedadForm.value.porcHumedadFinal);
+    // Actualizar el porcHumedad del lote en la API
+    this.http.get<any[]>('https://control.als-inspection.cl/api_min/api/lote-recepcion/').subscribe(
+      (data) => {
+        const lote = data.find(item => item.nLote === this.data.nLote);
+        if (lote) {
+          this.http.put(`https://control.als-inspection.cl/api_min/api/lote-recepcion/${lote.id}/`, {
+            ...lote,
+            porcHumedad: this.humedadForm.value.porcHumedadFinal
+          }).subscribe(
+            (response) => {
+              console.log('Humedad del lote actualizado correctamente:', response);
+            },
+            (error) => {
+              console.error('Error al actualizar el lote:', error);
+            }
+          );
+        } else {
+          console.log('Lote no encontrado para actualizar');
+        }
+      },
+      (error) => {
+        console.error('Error al buscar el lote:', error);
+      }
+    );
+  }
+
+  exportarHumedadDespacho() {
+    console.log('Exportando humedad a despacho - nLote:', this.data.nLote, 'nSublote:', this.data.nSublote, 'Humedad:', this.humedadForm.value.porcHumedadFinal);
+    
+    // Actualizar el porcHumedad del sublote en la API
+    this.http.get<any[]>('https://control.als-inspection.cl/api_min/api/despacho-embarque/').subscribe(
+      (data) => {
+        // Filtrar sublotes que compartan nLote
+        let sublotes = data.filter(item => item.nLote === this.data.nLote);
+        console.log('Sublotes encontrados para el lote', this.data.nLote, ':', sublotes.length);
+        
+        // Ordenar por id (autoincremental) para asegurar el orden correcto de creación
+        sublotes = sublotes.sort((a, b) => a.id - b.id);
+        console.log('Sublotes ordenados por ID:', sublotes.map(s => s.id));
+        
+        if (sublotes.length > 0) {
+          // Asignar al index igual al sublote - 1 (ya que nSublote empieza en 1)
+          const index = parseInt(this.data.nSublote) - 1;
+          console.log('Índice calculado para nSublote', this.data.nSublote, ':', index);
+          
+          if (index >= 0 && index < sublotes.length) {
+            const sublote = sublotes[index];
+            console.log('Sublote seleccionado - ID:', sublote.id, 'Posición:', index + 1);
+            
+            this.http.put(`https://control.als-inspection.cl/api_min/api/despacho-embarque/${sublote.id}/`, {
+              ...sublote,
+              porcHumedad: this.humedadForm.value.porcHumedadFinal
+            }).subscribe(
+              (response) => {
+                console.log('Sublote actualizado correctamente:', response);
+                Notiflix.Notify.success(`Humedad guardada en sublote ${this.data.nSublote} del lote ${this.data.nLote}`);
+              },
+              (error) => {
+                console.error('Error al actualizar el sublote:', error);
+                Notiflix.Notify.failure('Error al guardar la humedad en el sublote');
+              }
+            );
+          } else {
+            console.error('Índice de sublote fuera de rango. Índice:', index, 'Total sublotes:', sublotes.length);
+            Notiflix.Notify.failure(`El sublote ${this.data.nSublote} no existe. Solo hay ${sublotes.length} sublote(s) en este lote.`);
+          }
+        } else {
+          console.error('No se encontraron sublotes para el nLote:', this.data.nLote);
+          Notiflix.Notify.failure('No se encontraron sublotes para este lote');
+        }
+      },
+      (error) => {
+        console.error('Error al buscar los sublotes:', error);
+        Notiflix.Notify.failure('Error al buscar los sublotes');
+      }
+    );
   }
 
   displayedColumnsResultados: string[] = [

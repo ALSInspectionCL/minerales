@@ -58,6 +58,7 @@ import {
   NgApexchartsModule,
   ApexTitleSubtitle,
 } from 'ng-apexcharts';
+import { ActizService } from 'src/app/services/actiz.service';
 interface Camion {
   tipoTransporte: string;
   fOrigen: string;
@@ -136,6 +137,7 @@ export class StarterComponent {
     private servicioService: ServicioService,
     private http: HttpClient,
     private dateAdapter: DateAdapter<Date>,
+    private Actiz: ActizService
   ) {
     this.dateAdapter.setLocale('es-ES');
    }
@@ -158,6 +160,26 @@ export class StarterComponent {
     this.fechaHoy = new Date();
     this.obtenerPrimerDiaDelMes(this.fechaHoy);
     this.cdr.detectChanges();
+    this.Actiz.getDatos().subscribe(
+    (data) => {
+      console.log("Actiz data")
+      console.log(data)
+    }
+    )
+
+    // this.Actiz.getAnalysisRequestWithDUS().subscribe(
+    //   (data) => {
+    //     console.log("Actiz data")
+    //     console.log(data)
+    //   }
+    // )
+
+    this.Actiz.getSampleData().subscribe(
+      (data) => {
+        console.log("Actiz data")
+        console.log(data)
+      }
+    )
   }
 
   obtenerPrimerDiaDelMes(fecha: Date): Date {

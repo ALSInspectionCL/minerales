@@ -41,7 +41,8 @@ interface Lote {
   servicio: any;
   solicitud: any;
   tipoTransporte: any;
-  // agrega aquí otras propiedades si las hay
+  nombreServicio?: string;
+  nombreSolicitud?: string;
 }
 
 @Component({
@@ -61,6 +62,9 @@ interface Lote {
 export class DetallePrepComponent {
   formGroups: FormGroup[] = [];
   miFormulario: FormGroup;
+  lote: any;
+  fEmbarque: Date;
+  fechaDus: Date;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -74,11 +78,15 @@ export class DetallePrepComponent {
       destino: string;
       pesoHumedo: any,
       humedad: any,
-      pesoSeco: any
+      pesoSeco: any,
+      datosEmbarque?: any,
+      esSubLote?: boolean,
+      idSubLote?: number | null
     }
   ) {
-    this.cargarLote(this.data.nLote);
+    console.log('DetallePrepComponent inicializado con datos:', this.data);
 
+    // Inicializar formulario según destino
     if (data.destino === 'Aduana') {
       this.miFormulario = this.fb.group({
         nave: [''],
@@ -123,6 +131,7 @@ export class DetallePrepComponent {
       });
     }
 
+    // Habilitar/deshabilitar campos según destino
     if (this.data.destino === 'Local') {
       this.miFormulario.get('dus')?.disable();
       this.miFormulario.get('fechaDus')?.disable();
@@ -131,14 +140,66 @@ export class DetallePrepComponent {
       this.miFormulario.get('fechaDus')?.enable();
     }
 
+    // Si es un sublote de embarque, cargar datos del embarque
+    if (this.data.esSubLote && this.data.datosEmbarque) {
+      console.log('Es un sublote de embarque. Pre-llenando formulario con datos del embarque...');
+      this.cargarDatosEmbarque(this.data.datosEmbarque);
+    } else {
+      // Cargar lote normal
+      this.cargarLote(this.data.nLote);
+    }
   }
 
   ngOnInit() {
     this.obtenerLoteConNombres(this.data.nLote)
   }
-  lote: any;
-  fEmbarque: Date;
-  fechaDus: Date;
+
+  /**
+   * Carga los datos del embarque en el formulario cuando es un sublote
+   * @param embarque Datos del embarque (LoteDespacho)
+   */
+  cargarDatosEmbarque(embarque: any) {
+    console.log('Cargando datos del embarque:', embarque);
+    
+    // Crear objeto lote con los datos del embarque
+    this.lote = {
+      nLote: embarque.nLote,
+      observacion: embarque.observacion || '',
+      pesoNetoHumedo: embarque.pesoNetoHumedo,
+      porcHumedad: embarque.porcHumedad,
+      pesoNetoSeco: embarque.pesoNetoSeco,
+      servicio: embarque.servicio,
+      solicitud: embarque.solicitud,
+      nombreServicio: '',
+      nombreSolicitud: ''
+    };
+
+    // Pre-llenar el formulario con datos del embarque
+    this.miFormulario.patchValue({
+      nave: embarque.nombreNave || '',
+      bodega: embarque.bodegaNave || '',
+      material: 'Concentrado de Cobre',
+      numLote: embarque.nLote,
+      muestreado: 'ALS INSPECTION',
+      exportador: embarque.exportador || 'ANGLO AMERICAN',
+      puertoDes: embarque.lugarDescarga || '',
+      contrato: embarque.contratoAnglo || '',
+      cliente: embarque.cliente || 'TO ORDER',
+      contratoCochilco: embarque.contratoCochilco || '',
+      fEmbarque: embarque.fLote ? new Date(embarque.fLote) : null,
+      referenciaAls: embarque.observacion || '',
+      dus: embarque.DUS || null,
+      fechaDus: embarque.fechaDUS ? new Date(embarque.fechaDUS) : null,
+      pesoNetoHumedo: embarque.pesoNetoHumedo,
+      humedad: embarque.porcHumedad ? parseFloat(embarque.porcHumedad).toFixed(4) : '',
+      pesoNetoSeco: embarque.pesoNetoSeco,
+    });
+
+    // Obtener nombres de servicio y solicitud
+    this.obtenerLoteConNombres(embarque.nLote);
+    
+    console.log('Formulario pre-llenado con datos del embarque');
+  }
 
   cargarLote(nLote: any) {
     console.log('Cargando lote con nLote:', nLote);
@@ -166,33 +227,8 @@ export class DetallePrepComponent {
     });
   }
 
-  // createSteps(count: number) {
-  //   this.formGroups = Array.from({ length: count }, () =>
-  //     this._formBuilder.group({
-  //       nave: ['', Validators.required],
-  //       bodega: ['', Validators.required],
-  //       material: ['Concentrado de Cobre', Validators.required],
-  //       numLote: [this.data.numLote, Validators.required],
-  //       muestreado: ['ALS INSPECTION', Validators.required],
-  //       exportador: ['Ocean Partners', Validators.required],
-  //       puertoDes: ['', Validators.required],
-  //       contrato: ['', Validators.required],
-  //       cliente: ['TO ORDER', Validators.required],
-  //       contratoCochilco: ['', Validators.required],
-  //       fEmbarque: ['', Validators.required],
-  //       referenciaAls: ['this.lote.Observacion', Validators.required],
-  //       dus: ['', Validators.required],
-  //       fechaDus: ['', Validators.required],
-  //       pesoNetoHumedo: ['', Validators.required],
-  //       humedad: ['', Validators.required],
-  //       pesoNetoSeco: ['', Validators.required],
-  //       responsable: ['', Validators.required],
-  //     })
-  //   );
-  // }
-
   generarFormulariosConEtiqueta(): any[] {
-    const cantidad = this.data.CantSobres; // la que te pasaron al abrir el diálogo
+    const cantidad = this.data.CantSobres;
     const baseData = this.miFormulario.value;
     const resultado = [];
 
@@ -204,78 +240,23 @@ export class DetallePrepComponent {
     return resultado;
   }
 
-  // Inicializar los formGroups
-  // initializeFormGroups() {
-  //   const numberOfSteps = this.data.CantSobres; // Cambia este valor según el número de pasos que tengas
-  //   this.formGroups = [];
-
-  //   for (let i = 0; i < numberOfSteps; i++) {
-  //     const formGroup = this.fb.group({
-  //       nave: [''],
-  //       bodega: [''],
-  //       material: ['Concentrado de Cobre'],
-  //       numLote: [this.data.numLote],  // Asignamos el índice + 1 como valor por defecto
-  //       muestreado: ['ALS INSPECTION'],
-  //       exportador: ['Ocean Partners'],
-  //       puertoDes: [''],
-  //       contrato: [''],
-  //       cliente: ['TO ORDER'],
-  //       contratoCochilco: [''],
-  //       fEmbarque: [''],
-  //       referenciaAls: [this.lote.Observacion],
-  //       dus: [''],
-  //       fechaDus: [''],
-  //       pesoNetoHumedo: [''],
-  //       humedad: [''],
-  //       pesoNetoSeco: [''],
-  //       responsable: ['']
-  //     });
-
-  //     this.formGroups.push(formGroup);
-  //   }
-  // }
-
-  // onStepChange(event: StepperSelectionEvent) {
-  //   const currentIndex = event.selectedIndex;
-  //   const previousIndex = event.previouslySelectedIndex;
-
-  //   if (currentIndex > 0 && currentIndex < this.formGroups.length) {
-  //     const prevForm = this.formGroups[previousIndex];
-  //     const currForm = this.formGroups[currentIndex];
-
-  //     if (prevForm && currForm) {
-  //       // Clonar los valores del formulario anterior
-  //       const valoresPrevios = { ...prevForm.value };
-
-  //       // Eliminar los campos que NO queremos copiar
-  //       delete valoresPrevios.pesoNetoHumedo;
-  //       delete valoresPrevios.humedad;
-  //       delete valoresPrevios.pesoNetoSeco;
-
-  //       // Aplicar solo los valores permitidos
-  //       currForm.patchValue(valoresPrevios);
-  //     }
-  //   }
-  // }
-
   obtenerLoteConNombres(loteId: any): void {
     const apiLote = 'https://control.als-inspection.cl/api_min/api/lote-recepcion/';
     const apiServicio = 'https://control.als-inspection.cl/api_min/api/servicio/';
     const apiSolicitud = 'https://control.als-inspection.cl/api_min/api/solicitud/';
 
     this.http.get<any[]>(apiLote).subscribe((resLotes) => {
-      this.lote = resLotes.find(lote => lote.nLote === loteId);
+      const loteEncontrado = resLotes.find(lote => lote.nLote === loteId);
 
-      if (!this.lote) {
+      if (!loteEncontrado && !this.lote) {
         Notiflix.Notify.failure('Lote no encontrado.');
         return;
       }
 
-      // this.miFormulario.patchValue({
-      //   humedad: this.lote.porcHumedad,
-      //   pesoNetoHumedo: this.lote.pesoNetoHumedo,
-      //   pesoNetoSeco: this.lote.pesoNetoSeco
-      // });
+      // Si ya tenemos lote (de embarque), usar ese, sino usar el encontrado
+      if (!this.lote) {
+        this.lote = loteEncontrado;
+      }
 
       forkJoin({
         servicios: this.http.get<any[]>(apiServicio),
@@ -292,6 +273,30 @@ export class DetallePrepComponent {
     });
   }
 
+  /**
+   * Obtiene todos los sublotes del embarque desde la API despacho-embarque
+   * @param nLote Número del lote del embarque
+   * @returns Promise con la lista de sublotes ordenados por ID
+   */
+  obtenerSublotesEmbarque(nLote: string): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const apiUrl = 'https://control.als-inspection.cl/api_min/api/despacho-embarque/';
+      this.http.get<any[]>(apiUrl).subscribe(
+        (data) => {
+          const sublotes = data.filter(s => s.nLote === nLote);
+          // Ordenar por ID para mantener el orden correcto
+          sublotes.sort((a, b) => a.id - b.id);
+          console.log('Sublotes del embarque obtenidos:', sublotes);
+          resolve(sublotes);
+        },
+        (error) => {
+          console.error('Error al obtener sublotes del embarque:', error);
+          reject(error);
+        }
+      );
+    });
+  }
+
   mostrarResultado() {
     const formulariosGenerados = this.generarFormulariosConEtiqueta();
     console.log(this.data.CantSobres);
@@ -299,7 +304,6 @@ export class DetallePrepComponent {
     console.log(formulariosGenerados);
   }
 
-  // Función para rellenar los formularios con los datos del primer formulario
   rellenarCamposAutomáticos() {
     const primerFormulario = this.formGroups[0].value;
 
@@ -307,7 +311,6 @@ export class DetallePrepComponent {
       if (index !== 0) {
         Object.keys(formGroup.controls).forEach((controlName) => {
           if (!formGroup.controls[controlName].value) {
-            // Si el campo está vacío, lo rellenamos con el valor del primer formulario
             formGroup.controls[controlName].setValue(
               primerFormulario[controlName]
             );
@@ -319,14 +322,36 @@ export class DetallePrepComponent {
 
   finalizarProceso() {
     console.log(this.formGroups);
-    // Rellenar los campos antes de finalizar el proceso
     this.rellenarCamposAutomáticos();
     console.log(this.formGroups);
-    // Aquí puedes realizar cualquier otra lógica antes de finalizar
     this.generarCodigosQREnExcelUnificado();
   }
 
-  /////GENEREAR QR Y EXCEL
+  cerrarDialogo() {
+    this.dialogRef.close();
+  }
+
+  formatDate(date: Date | undefined | null): string | null {
+    if (!date) {
+      return null;
+    }
+
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        return null;
+      }
+
+      const year = dateObj.getFullYear().toString();
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const day = dateObj.getDate().toString().padStart(2, '0');
+
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error al formatear fecha:', error);
+      return null;
+    }
+  }
 
   async generarCodigosQREnExcelUnificado(): Promise<void> {
     const cantidad = this.data.CantSobres;
@@ -335,6 +360,22 @@ export class DetallePrepComponent {
     if (!cantidad || !codQrBase) {
       Notiflix.Notify.failure('Completa todos los campos del formulario.');
       return;
+    }
+
+    // Validar que los campos requeridos estén completos
+    if (!this.miFormulario.valid) {
+      Notiflix.Notify.failure('Por favor completa todos los campos requeridos del formulario.');
+      return;
+    }
+
+    let sublotes: any[] = [];
+    if (this.data.esSubLote) {
+      try {
+        sublotes = await this.obtenerSublotesEmbarque(this.data.nLote);
+      } catch (error) {
+        Notiflix.Notify.failure('Error al obtener sublotes del embarque.');
+        return;
+      }
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -360,8 +401,6 @@ export class DetallePrepComponent {
 
     const formulariosGenerados = this.generarFormulariosConEtiqueta();
 
-    let hojaIndex = 1;
-
     const aplicarFuenteTamanio10 = (hoja: ExcelJS.Worksheet): void => {
       hoja.eachRow((row) => {
         row.eachCell((cell) => {
@@ -369,88 +408,181 @@ export class DetallePrepComponent {
         });
       });
     };
-    for (const grupo of grupos) {
-      const hoja = workbook.addWorksheet(`Página ${hojaIndex++}`);
-      hoja.properties.defaultRowHeight = 20;
 
-      for (let row = 1; row <= 28; row++) {
-        for (let col = 1; col <= 3; col++) {
-          hoja.getCell(row, col).fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFFFF' },
-          };
+    if (this.data.esSubLote) {
+      for (let s = 0; s < sublotes.length; s++) {
+        const subloteNumber = s + 1;
+        let pageIndex = 1;
+        for (const grupo of grupos) {
+          const hoja = workbook.addWorksheet(`Sublote ${subloteNumber} - Página ${pageIndex++}`);
+          hoja.properties.defaultRowHeight = 20;
+
+          for (let row = 1; row <= 28; row++) {
+            for (let col = 1; col <= 3; col++) {
+              hoja.getCell(row, col).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFFFFF' },
+              };
+            }
+          }
+
+          hoja.getColumn(1).width = 35;
+          hoja.getColumn(2).width = 30;
+          hoja.getColumn(3).width = 20;
+
+          const fechaEmbarque: Date | null = this.miFormulario.get('fEmbarque')?.value;
+          const fechaDus: Date | null = this.miFormulario.get('fechaDus')?.value;
+
+          const formattedFEmbarque = this.formatDate(fechaEmbarque);
+          const formattedFDus = this.formatDate(fechaDus);
+
+          for (let i = 0; i < grupo.length; i++) {
+            const formulario = formulariosGenerados[grupo[i]];
+            const codQrActual = 'E' + this.lote.nLote + '/' + subloteNumber + '.' + String(grupo[i] + 1);
+            const qrDataUrl = await QRCode.toDataURL(codQrActual, {
+              errorCorrectionLevel: 'H',
+              type: 'image/png',
+              margin: 1,
+              color: { dark: '#000000', light: '#ffffff' },
+            });
+
+            const base64Image = qrDataUrl.split(',')[1];
+            const binaryString = atob(base64Image);
+            const bufferQR = new Uint8Array(binaryString.length);
+            for (let j = 0; j < binaryString.length; j++) {
+              bufferQR[j] = binaryString.charCodeAt(j);
+            }
+
+            const imageIdQR = workbook.addImage({
+              buffer: bufferQR,
+              extension: 'png',
+            });
+            const rowOffset = i * 17;
+
+            hoja.getCell(`A${2 + rowOffset}`).value = `Nave: ${formulario.nave || 'N/A'}`;
+            hoja.getCell(`A${3 + rowOffset}`).value = `Bodega: ${formulario.bodega || 'N/A'}`;
+            hoja.getCell(`A${4 + rowOffset}`).value = `Material: ${formulario.material}`;
+            hoja.getCell(`A${5 + rowOffset}`).value = `Solicitud: ${this.lote.nombreSolicitud}`;
+            hoja.getCell(`A${6 + rowOffset}`).value = `Muestreado: ${formulario.muestreado}`;
+            hoja.getCell(`A${7 + rowOffset}`).value = `Exportador: ${formulario.exportador}`;
+            hoja.getCell(`A${8 + rowOffset}`).value = `Puerto Des: ${formulario.puertoDes || 'N/A'}`;
+            hoja.getCell(`A${9 + rowOffset}`).value = `Contrato: ${formulario.contrato || 'N/A'}`;
+            hoja.getCell(`A${10 + rowOffset}`).value = `Contrato Cochilco: ${formulario.contratoCochilco || 'N/A'}`;
+            hoja.getCell(`B${2 + rowOffset}`).value = `Cliente: ${formulario.cliente}`;
+            hoja.getCell(`B${3 + rowOffset}`).value = `Fecha Embarque: ${formattedFEmbarque}`;
+            hoja.getCell(`B${4 + rowOffset}`).value = `Referencia Als: ${this.lote.nombreServicio}`;
+            hoja.getCell(`B${5 + rowOffset}`).value = `Dus: ${formulario.dus || 'No aplica'}`;
+            hoja.getCell(`B${6 + rowOffset}`).value = `Fecha Dus: ${formattedFDus || 'No aplica'}`;
+            hoja.getCell(`B${7 + rowOffset}`).value = `Peso Neto Húmedo: ${formulario.pesoNetoHumedo} tmh`;
+            hoja.getCell(`B${8 + rowOffset}`).value = `Humedad: ${formulario.humedad} %`;
+            hoja.getCell(`B${9 + rowOffset}`).value = `Peso Neto Seco: ${formulario.pesoNetoSeco} tms`;
+            hoja.getCell(`B${10 + rowOffset}`).value = `Responsable: ${formulario.responsable}`;
+            hoja.getCell(`C${5 + rowOffset}`).value = `Ref Lote: ${this.lote.observacion}`;
+            hoja.getCell(`C${6 + rowOffset}`).value = `N Sobre: ${formulario.etiqueta}`;
+            hoja.getCell(`C${7 + rowOffset}`).value = `N Sublote: ${subloteNumber}`;
+
+            hoja.getCell(`A${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
+            hoja.getCell(`B${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
+
+            hoja.addImage(imageIdQR, {
+              tl: { col: 2, row: 6 + rowOffset },
+              ext: { width: 100, height: 100 },
+            });
+
+            hoja.addImage(imageId, {
+              tl: { col: 2, row: 0 + rowOffset },
+              ext: { width: 70, height: 70 },
+            });
+          }
+          aplicarFuenteTamanio10(hoja);
         }
       }
+    } else {
+      let hojaIndex = 1;
+      for (const grupo of grupos) {
+        const hoja = workbook.addWorksheet(`Página ${hojaIndex++}`);
+        hoja.properties.defaultRowHeight = 20;
 
-      hoja.getColumn(1).width = 35;
-      hoja.getColumn(2).width = 30;
-      hoja.getColumn(3).width = 20;
-
-      const fechaEmbarque: Date | null = this.miFormulario.get('fEmbarque')?.value;
-      const fechaDus: Date | null = this.miFormulario.get('fechaDus')?.value;
-
-      const formattedFEmbarque = this.formatDate(fechaEmbarque);
-      const formattedFDus = this.formatDate(fechaDus);
-
-      for (let i = 0; i < grupo.length; i++) {
-        const formulario = formulariosGenerados[grupo[i]];
-        const codQrActual = 'E' + this.lote.nLote + '/' + String(i + 1) + '.';
-        const qrDataUrl = await QRCode.toDataURL(codQrActual, {
-          errorCorrectionLevel: 'H',
-          type: 'image/png',
-          margin: 1,
-          color: { dark: '#000000', light: '#ffffff' },
-        });
-
-        const base64Image = qrDataUrl.split(',')[1];
-        const binaryString = atob(base64Image);
-        const bufferQR = new Uint8Array(binaryString.length);
-        for (let j = 0; j < binaryString.length; j++) {
-          bufferQR[j] = binaryString.charCodeAt(j);
+        for (let row = 1; row <= 28; row++) {
+          for (let col = 1; col <= 3; col++) {
+            hoja.getCell(row, col).fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFFFFF' },
+            };
+          }
         }
 
-        const imageIdQR = workbook.addImage({
-          buffer: bufferQR,
-          extension: 'png',
-        });
-        const rowOffset = i * 17;
+        hoja.getColumn(1).width = 35;
+        hoja.getColumn(2).width = 30;
+        hoja.getColumn(3).width = 20;
 
-        hoja.getCell(`A${2 + rowOffset}`).value = `Nave: ${formulario.nave || 'N/A'}`;
-        hoja.getCell(`A${3 + rowOffset}`).value = `Bodega: ${formulario.bodega || 'N/A'}`;
-        hoja.getCell(`A${4 + rowOffset}`).value = `Material: ${formulario.material}`;
-        hoja.getCell(`A${5 + rowOffset}`).value = `Solicitud: ${this.lote.nombreSolicitud}`;
-        hoja.getCell(`A${6 + rowOffset}`).value = `Muestreado: ${formulario.muestreado}`;
-        hoja.getCell(`A${7 + rowOffset}`).value = `Exportador: ${formulario.exportador}`;
-        hoja.getCell(`A${8 + rowOffset}`).value = `Puerto Des: ${formulario.puertoDes || 'N/A'}`;
-        hoja.getCell(`A${9 + rowOffset}`).value = `Contrato: ${formulario.contrato || 'N/A'}`;
-        hoja.getCell(`A${10 + rowOffset}`).value = `Contrato Cochilco: ${formulario.contratoCochilco || 'N/A'}`;
-        hoja.getCell(`B${2 + rowOffset}`).value = `Cliente: ${formulario.cliente}`;
-        hoja.getCell(`B${3 + rowOffset}`).value = `Fecha Embarque: ${formattedFEmbarque}`;
-        hoja.getCell(`B${4 + rowOffset}`).value = `Referencia Als: ${this.lote.nombreServicio}`;
-        hoja.getCell(`B${5 + rowOffset}`).value = `Dus: ${formulario.dus || 'No aplica'}`;
-        hoja.getCell(`B${6 + rowOffset}`).value = `Fecha Dus: ${formattedFDus || 'No aplica'}`;
-        hoja.getCell(`B${7 + rowOffset}`).value = `Peso Neto Húmedo: ${formulario.pesoNetoHumedo} tmh`;
-        hoja.getCell(`B${8 + rowOffset}`).value = `Humedad: ${formulario.humedad} %`;
-        hoja.getCell(`B${9 + rowOffset}`).value = `Peso Neto Seco: ${formulario.pesoNetoSeco} tms`;
-        hoja.getCell(`B${10 + rowOffset}`).value = `Responsable: ${formulario.responsable}`;
-        hoja.getCell(`C${5 + rowOffset}`).value = `Ref Lote: ${this.lote.observacion}`;
-        hoja.getCell(`C${6 + rowOffset}`).value = `N Sobre: ${formulario.etiqueta}`;
+        const fechaEmbarque: Date | null = this.miFormulario.get('fEmbarque')?.value;
+        const fechaDus: Date | null = this.miFormulario.get('fechaDus')?.value;
 
-        hoja.getCell(`A${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
-        hoja.getCell(`B${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
+        const formattedFEmbarque = this.formatDate(fechaEmbarque);
+        const formattedFDus = this.formatDate(fechaDus);
 
-        hoja.addImage(imageIdQR, {
-          tl: { col: 2, row: 6 + rowOffset },
-          ext: { width: 100, height: 100 },
-        });
+        for (let i = 0; i < grupo.length; i++) {
+          const formulario = formulariosGenerados[grupo[i]];
+          const codQrActual = 'E' + this.lote.nLote + '/' + String(grupo[i] + 1) + '.';
+          const qrDataUrl = await QRCode.toDataURL(codQrActual, {
+            errorCorrectionLevel: 'H',
+            type: 'image/png',
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' },
+          });
 
-        hoja.addImage(imageId, {
-          tl: { col: 2, row: 0 + rowOffset },
-          ext: { width: 70, height: 70 },
-        });
+          const base64Image = qrDataUrl.split(',')[1];
+          const binaryString = atob(base64Image);
+          const bufferQR = new Uint8Array(binaryString.length);
+          for (let j = 0; j < binaryString.length; j++) {
+            bufferQR[j] = binaryString.charCodeAt(j);
+          }
+
+          const imageIdQR = workbook.addImage({
+            buffer: bufferQR,
+            extension: 'png',
+          });
+          const rowOffset = i * 17;
+
+          hoja.getCell(`A${2 + rowOffset}`).value = `Nave: ${formulario.nave || 'N/A'}`;
+          hoja.getCell(`A${3 + rowOffset}`).value = `Bodega: ${formulario.bodega || 'N/A'}`;
+          hoja.getCell(`A${4 + rowOffset}`).value = `Material: ${formulario.material}`;
+          hoja.getCell(`A${5 + rowOffset}`).value = `Solicitud: ${this.lote.nombreSolicitud}`;
+          hoja.getCell(`A${6 + rowOffset}`).value = `Muestreado: ${formulario.muestreado}`;
+          hoja.getCell(`A${7 + rowOffset}`).value = `Exportador: ${formulario.exportador}`;
+          hoja.getCell(`A${8 + rowOffset}`).value = `Puerto Des: ${formulario.puertoDes || 'N/A'}`;
+          hoja.getCell(`A${9 + rowOffset}`).value = `Contrato: ${formulario.contrato || 'N/A'}`;
+          hoja.getCell(`A${10 + rowOffset}`).value = `Contrato Cochilco: ${formulario.contratoCochilco || 'N/A'}`;
+          hoja.getCell(`B${2 + rowOffset}`).value = `Cliente: ${formulario.cliente}`;
+          hoja.getCell(`B${3 + rowOffset}`).value = `Fecha Embarque: ${formattedFEmbarque}`;
+          hoja.getCell(`B${4 + rowOffset}`).value = `Referencia Als: ${this.lote.nombreServicio}`;
+          hoja.getCell(`B${5 + rowOffset}`).value = `Dus: ${formulario.dus || 'No aplica'}`;
+          hoja.getCell(`B${6 + rowOffset}`).value = `Fecha Dus: ${formattedFDus || 'No aplica'}`;
+          hoja.getCell(`B${7 + rowOffset}`).value = `Peso Neto Húmedo: ${formulario.pesoNetoHumedo} tmh`;
+          hoja.getCell(`B${8 + rowOffset}`).value = `Humedad: ${formulario.humedad} %`;
+          hoja.getCell(`B${9 + rowOffset}`).value = `Peso Neto Seco: ${formulario.pesoNetoSeco} tms`;
+          hoja.getCell(`B${10 + rowOffset}`).value = `Responsable: ${formulario.responsable}`;
+          hoja.getCell(`C${5 + rowOffset}`).value = `Ref Lote: ${this.lote.observacion}`;
+          hoja.getCell(`C${6 + rowOffset}`).value = `N Sobre: ${formulario.etiqueta}`;
+
+          hoja.getCell(`A${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
+          hoja.getCell(`B${2 + rowOffset}`).alignment = { wrapText: true, vertical: 'top' };
+
+          hoja.addImage(imageIdQR, {
+            tl: { col: 2, row: 6 + rowOffset },
+            ext: { width: 100, height: 100 },
+          });
+
+          hoja.addImage(imageId, {
+            tl: { col: 2, row: 0 + rowOffset },
+            ext: { width: 70, height: 70 },
+          });
+        }
+        aplicarFuenteTamanio10(hoja);
       }
-      aplicarFuenteTamanio10(hoja);
     }
 
     // Página adicional para etiqueta simple
@@ -539,33 +671,40 @@ export class DetallePrepComponent {
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `etiquetas_y_simple_${codQrBase}.xlsx`;
+    link.download = this.data.esSubLote ? `etiquetas_sublotes_${codQrBase}.xlsx` : `etiquetas_y_simple_${codQrBase}.xlsx`;
     link.click();
 
-    // Guardar los datos en la base de datos. Se deben guardar los datos de cada formulario en la base de datos, para eso se debe hacer un post a la api de trazabilidad mecanica
+    // Guardar los datos en la base de datos
     const apiUrl =
       'https://control.als-inspection.cl/api_min/api/trazabilidad-mecanica/';
-    const dataToSend = {
-      nLote: this.miFormulario.get('numLote')?.value || this.lote[0].nLote, // Valor por defecto
-      nSubLote: this.miFormulario.get('numLote')?.value, // Valor por defecto
+
+    // Obtener y formatear valores numéricos con máximo 2 decimales
+    const pesoNetoHumedo = this.miFormulario.get('pesoNetoHumedo')?.value;
+    const pesoNetoSeco = this.miFormulario.get('pesoNetoSeco')?.value;
+    const humedad = this.miFormulario.get('humedad')?.value;
+
+    const dataToSendBase = {
+      nLote: this.miFormulario.get('numLote')?.value || this.lote.nLote,
+      nSubLote: this.miFormulario.get('numLote')?.value,
+      idSubLote: this.data.idSubLote ? this.data.idSubLote.toString() : null,  // Guardar el ID del sublote
       idTransporte: '',
-      nave: this.miFormulario.get('nave')?.value,
-      bodega: this.miFormulario.get('bodega')?.value,
+      nave: this.miFormulario.get('nave')?.value || '',
+      bodega: this.miFormulario.get('bodega')?.value || '',
       material: this.miFormulario.get('material')?.value,
       muestreadoPor: this.miFormulario.get('muestreado')?.value,
       exportador: this.miFormulario.get('exportador')?.value,
-      puertoDestino: this.miFormulario.get('puertoDes')?.value,
-      contrato: this.miFormulario.get('contrato')?.value,
+      puertoDestino: this.miFormulario.get('puertoDes')?.value || '',
+      contrato: this.miFormulario.get('contrato')?.value || '',
       cliente: this.miFormulario.get('cliente')?.value,
-      cochilco: this.miFormulario.get('contratoCochilco')?.value,
-      fechaEmbarque: this.formatDate(this.miFormulario.get('fEmbarque')?.value),
+      cochilco: this.miFormulario.get('contratoCochilco')?.value || '',
+      fechaEmbarque: this.formatDate(this.miFormulario.get('fEmbarque')?.value) || null,
       DUS: this.miFormulario.get('dus')?.value?.trim() || 'No aplica',
       fechaDUS: this.miFormulario.get('fechaDus')?.value
         ? this.formatDate(this.miFormulario.get('fechaDus')!.value)
         : null,
-      pesoNetoHumedo: this.miFormulario.get('pesoNetoHumedo')?.value,
-      pesoNetoSeco: this.miFormulario.get('pesoNetoSeco')?.value,
-      porcHumedad: parseFloat(Number(this.miFormulario.get('humedad')?.value).toFixed(2)),
+      pesoNetoHumedo: pesoNetoHumedo ? parseFloat(Number(pesoNetoHumedo).toFixed(2)) : 0,
+      pesoNetoSeco: pesoNetoSeco ? parseFloat(Number(pesoNetoSeco).toFixed(2)) : 0,
+      porcHumedad: humedad ? parseFloat(Number(humedad).toFixed(2)) : 0,
       responsable: this.miFormulario.get('responsable')?.value,
       observacion: 'Sin Observaciones',
       estado: 'En Preparación',
@@ -577,42 +716,84 @@ export class DetallePrepComponent {
       laboratorio: null,
       fechaLlegadaLaboratorio: null,
       pais: null,
-      tipoSobre: 'Interno'
+      tipoSobre: this.data.esSubLote ? 'Externo' : 'Interno'
     };
 
-    // Enviar los datos a la API pero tantas veces como sobres se hayan creado. El nLote se mantiene y el nSubLote cambia segun el número de sobre
-    for (let i = 0; i < cantidad; i++) {
-      const dataToSendWithSubLote = {
-        ...dataToSend,
-        nSubLote: String(i + 1),
-      };
-      this.http.post(apiUrl, dataToSendWithSubLote).subscribe(
-        (response) => {
-          console.log('Datos enviados correctamente:', response);
-        },
-        (error) => {
-          console.error('Error al enviar los datos:', error);
+    if (this.data.esSubLote) {
+      // Para sublotes de embarque, crear trazabilidades mecánicas para TODOS los sobres de TODOS los sublotes
+      const promises: Promise<any>[] = [];
+
+      sublotes.forEach((sublote, index) => {
+        const subloteNumber = index + 1; // Número del sublote (1, 2, 3, ...)
+
+        // Crear CantSobres trazabilidades para cada sublote
+        for (let j = 0; j < cantidad; j++) {
+          const dataToSend = {
+            ...dataToSendBase,
+            nSubLote: String(j + 1),  // nSubLote como "1", "2", "3", etc. (número del sobre dentro del sublote)
+            numeroSubLote: subloteNumber,  // numeroSubLote como 1, 2, 3, etc. (número del sublote del embarque)
+            idSubLote: sublote.id.toString(),  // ID real del sublote desde despacho-embarque
+          };
+
+          promises.push(
+            new Promise((resolve, reject) => {
+              this.http.post(apiUrl, dataToSend).subscribe(
+                (response) => {
+                  console.log(`Trazabilidad mecánica creada para sublote ${subloteNumber}, sobre ${j + 1}:`, response);
+                  resolve(response);
+                },
+                (error) => {
+                  console.error(`Error al crear trazabilidad mecánica para sublote ${subloteNumber}, sobre ${j + 1}:`, error);
+                  reject(error);
+                }
+              );
+            })
+          );
         }
-      );
+      });
+
+      try {
+        await Promise.all(promises);
+        Notiflix.Notify.success(`Trazabilidades mecánicas creadas para todos los ${sublotes.length} sublotes del embarque (${cantidad} sobres por sublote).`);
+      } catch (error) {
+        Notiflix.Notify.failure('Error al crear algunas trazabilidades mecánicas.');
+        return;
+      }
+    } else {
+      // Para lotes normales, crear trazabilidades mecánicas para la cantidad de sobres especificada
+      const promises = [];
+      for (let i = 0; i < cantidad; i++) {
+        const dataToSend = {
+          ...dataToSendBase,
+          nSubLote: String(i + 1),
+          idSubLote: null,  // No hay sublote para lotes normales
+        };
+
+        promises.push(
+          new Promise((resolve, reject) => {
+            this.http.post(apiUrl, dataToSend).subscribe(
+              (response) => {
+                console.log(`Trazabilidad mecánica creada para sobre ${i + 1}:`, response);
+                resolve(response);
+              },
+              (error) => {
+                console.error(`Error al crear trazabilidad mecánica para sobre ${i + 1}:`, error);
+                reject(error);
+              }
+            );
+          })
+        );
+      }
+
+      try {
+        await Promise.all(promises);
+        Notiflix.Notify.success(`Trazabilidades mecánicas creadas para ${cantidad} sobres.`);
+      } catch (error) {
+        Notiflix.Notify.failure('Error al crear algunas trazabilidades mecánicas.');
+        return;
+      }
     }
 
-    this.cerrarDialogo()
-  }
-
-  cerrarDialogo() {
-    this.dialogRef.close();
-  }
-
-  formatDate(date: Date | undefined | null): string {
-    if (!date) {
-      console.warn('formatDate recibió una fecha inválida:', date);
-      return ''; // O podrías retornar una fecha por defecto, según lo que necesites
-    }
-
-    const year = date.getFullYear().toString();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    this.cerrarDialogo();
   }
 }

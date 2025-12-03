@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import Angulo, Fluidez, PruebaFluidez, CriteriosAceptacion, EquipoControl, Reportes, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails, densidad, factorEstiba
+from .models import Angulo, Fluidez, PruebaFluidez, CriteriosAceptacion, EquipoControl, VerificacionBalanza, Pesaje, Bodega, Humedades, DespachoEmbarque, DetalleBodega, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, Despacho, DespachoCamion, RecepcionTransporte, User, UserLogs, Trazabilidad, TrazabilidadMecanica, Emails, densidad, factorEstiba, Compositos
 
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -142,7 +142,7 @@ class AnguloSerializer(serializers.ModelSerializer):
         model = Angulo
         fields = '__all__'
 
-class ReportesSerializer(serializers.ModelSerializer):
+class CompositosSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Reportes
-        fields = '__all__'
+        model = Compositos
+        fields = ['id', 'nLote', 'idTrazabilidad', 'cliente', 'idTransporte', 'estado', 'observacion', 'nDUS', 'fActual', 'fLote', 'fInicioEmbarque', 'fTerminoEmbarque', 'bodega', 'nSobre', 'motonave']

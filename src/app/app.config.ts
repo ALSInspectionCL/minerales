@@ -28,6 +28,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 
 //Import all material modules
 import { MaterialModule } from './material.module';
+import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 export function HttpLoaderFactory(http: HttpClient): any {
@@ -52,6 +53,7 @@ export const appConfig: ApplicationConfig = {
       FormsModule,
       ReactiveFormsModule,
       MaterialModule,
+      MatNativeDateModule,
       TablerIconsModule.pick(TablerIcons),
       NgScrollbarModule,
       TranslateModule.forRoot({

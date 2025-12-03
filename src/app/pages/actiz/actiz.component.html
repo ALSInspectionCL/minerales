@@ -1,0 +1,134 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content class="p-24">
+    <!-- Encabezado -->
+    <div class="mb-3">
+      <h2 class="mat-subtitle-1 f-s-18 f-w-600 m-0">Solicitudes de Análisis - Actiz Lab</h2>
+      <p class="mat-body-1 m-t-8 m-b-0" *ngIf="!isLoading">
+        Total de registros: {{ totalRecords }}
+      </p>
+    </div>
+
+    <!-- Campo de búsqueda -->
+    <mat-form-field class="w-100 mb-3" appearance="outline">
+      <mat-label>Buscar</mat-label>
+      <input 
+        matInput 
+        (keyup)="applyFilter($event)" 
+        placeholder="Buscar por código, nombre, lote, proveedor..."
+        #input
+      >
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Spinner de carga -->
+    <div *ngIf="isLoading" class="text-center p-y-40">
+      <mat-spinner diameter="50" class="m-auto"></mat-spinner>
+      <p class="mat-body-1 m-t-16">Cargando datos...</p>
+    </div>
+
+    <!-- Tabla -->
+    <div *ngIf="!isLoading" class="table-responsive">
+      <table mat-table [dataSource]="dataSource" matSort class="w-100">
+
+        <!-- Columna Código -->
+        <ng-container matColumnDef="Code">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Código
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.Code || '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Nombre -->
+        <ng-container matColumnDef="Name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Nombre
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.Name || '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Lote -->
+        <ng-container matColumnDef="Lote">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Lote
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.Lote || '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Proveedor -->
+        <ng-container matColumnDef="Provider">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Proveedor
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.Provider || '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Descripción -->
+        <ng-container matColumnDef="Description">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Descripción
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.Description || '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Fecha de Creación -->
+        <ng-container matColumnDef="DateCreation">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            Fecha Creación
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ formatDate(element.DateCreation) }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Número Secuencial -->
+        <ng-container matColumnDef="SequentialNumber">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600">
+            N° Secuencial
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.SequentialNumber || '-' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <!-- Fila cuando no hay datos -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell text-center p-y-24" [attr.colspan]="displayedColumns.length">
+            <mat-icon class="d-block m-auto m-b-8" style="font-size: 48px; width: 48px; height: 48px;">
+              search_off
+            </mat-icon>
+            <p class="mat-body-1 m-0">
+              No se encontraron resultados para "{{ input.value }}"
+            </p>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Paginador -->
+    <mat-paginator
+      *ngIf="!isLoading"
+      [pageSizeOptions]="[5, 10, 25, 50, 100]"
+      [pageSize]="10"
+      showFirstLastButtons
+      aria-label="Seleccionar página"
+      #paginator
+      [length]="totalRecords"
+      [pageSize]="10"
+      [pageIndex]="0">
+    </mat-paginator>
+
+  </mat-card-content>
+</mat-card>

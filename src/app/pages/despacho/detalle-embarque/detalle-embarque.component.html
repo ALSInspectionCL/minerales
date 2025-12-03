@@ -55,11 +55,6 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-                <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha de Lote</mat-label>
-                <input matInput readonly type="text" [value]="lote?.fLote | date : 'yyyy-MM-dd'" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
                 <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Peso Lote</mat-label>
                 <input matInput readonly type="text" [value]="sumaPesos.toFixed(2) + ' Ton'" />
               </mat-form-field>
@@ -133,7 +128,11 @@
               <input matInput type="number" [(ngModel)]="lote.CuDestino" name="CuDestino" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
-              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha Termino</mat-label>
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha Inicio de Embarque</mat-label>
+              <input matInput type="date" [(ngModel)]="lote.fLote" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Fecha Termino de Embarque</mat-label>
               <input matInput type="date" [(ngModel)]="lote.fechaTermino" name="fechaTermino" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
@@ -204,6 +203,18 @@
               <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Rut Exportador</mat-label>
               <input matInput type="text" [(ngModel)]="lote.rutExportador" name="rutExportador" />
             </mat-form-field>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Laboratorio De Ensayo</mat-label>
+              <input matInput type="text" [(ngModel)]="lote.laboratorioDeEnsayo" name="laboratorioDeEnsayo" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Muestreado por</mat-label>
+              <input matInput type="text" [(ngModel)]="lote.muestreadoPor" name="muestreadoPor" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+              <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Rut Empresa Muestreadora</mat-label>
+              <input matInput type="text" [(ngModel)]="lote.rutEmpresaMuestreadora" name="rutEmpresaMuestreadora" />
+            </mat-form-field>
           </div>
           <div class="col" style="display: flex; justify-content: flex-end">
             <button mat-flat-button *ngIf="admin || operator || encargado" (click)="actualizarLote()" color="primary"
@@ -225,7 +236,7 @@
             class="m-t-8 m-b-8">
             Nuevo registro
           </button>
-          <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
+          <!-- <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
             <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Bodegas</mat-label>
             <mat-select matInput placeholder="Seleccione una bodega" [(ngModel)]="bodegaSeleccionada"
               name="bodegaSeleccionada" (selectionChange)="onBodegaChange($event)">
@@ -233,7 +244,7 @@
                 {{ bodega.nombreBodega }}
               </mat-option>
             </mat-select>
-          </mat-form-field>
+          </mat-form-field> -->
           <mat-form-field appearance="outline" class="w-50 m-8" color="primary">
             <mat-label class="m-t-8 mat-subtitle-2 f-w-600 m-b-8 d-block">Material disponible</mat-label>
             <input readonly matInput [(ngModel)]="total" />

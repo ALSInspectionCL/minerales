@@ -6,8 +6,8 @@ from email.message import EmailMessage
 from rest_framework.filters import SearchFilter, OrderingFilter # type: ignore
 from rest_framework import filters # type: ignore
 from rest_framework import viewsets # type: ignore
-from .serializer import AnguloSerializer, FluidezSerializer, PruebaFluidezSerializer, EquipoControlSerializer, ReportesSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer, FactorEstibaSerializer, DensidadSerializer
-from .models import Angulo, PruebaFluidez, Fluidez, CriteriosAceptacion, EquipoControl, Reportes, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs, densidad, factorEstiba
+from .serializer import AnguloSerializer, FluidezSerializer, PruebaFluidezSerializer, EquipoControlSerializer, VerificacionBalanzaSerializer, CriteriosAceptacionSerializer, PesajeSerializer, BodegaSerializer, DespachoEmbarqueSerializer, DetalleBodegaSerializer, EmailSerializer, HumedadesSerializer, LoteDespachoSerializer, LoteInventarioSerializer, LoteRecepcionSerializer, ServicioSerializer, SolicitudSerializer, LoteSerializer, RecepcionSerializer, RecepcionTransporteSerializer, DespachoSerializer, DespachoCamionSerializer, TrazabilidadMecanicaSerializer, TrazabilidadSerializer, UserLogSerializer, UserSerializer, FactorEstibaSerializer, DensidadSerializer, CompositosSerializer
+from .models import Angulo, PruebaFluidez, Fluidez, CriteriosAceptacion, EquipoControl, VerificacionBalanza, Pesaje, Bodega, DespachoEmbarque, DetalleBodega, Emails, Humedades, LoteDespacho, LoteInventario, LoteRecepcion, Servicio, Solicitud, Lote, Recepcion, RecepcionTransporte, Despacho, DespachoCamion, Trazabilidad, TrazabilidadMecanica, User, UserLogs, densidad, factorEstiba, Compositos
 from rest_framework.views import APIView # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
@@ -182,11 +182,11 @@ class AnguloViewSet(viewsets.ModelViewSet):
     filter_backends =  (SearchFilter, OrderingFilter)
     search_fields = ('=nLote')
 
-class ReportesViewSet(viewsets.ModelViewSet):
-    queryset = Reportes.objects.all()
-    serializer_class = ReportesSerializer
+class CompositosViewSet(viewsets.ModelViewSet):
+    queryset = Angulo.objects.all()
+    serializer_class = CompositosSerializer
     filter_backends =  (SearchFilter, OrderingFilter)
-    search_fields = ('=servicio', '=solicitud', '=tipoReporte', '=fechaInformeCliente', '=fechaFacturacion')
+    search_fields = ('=nLote', '=idTrazabilidad')
 
 
 def obtener_lotes_por_fechas(request):
